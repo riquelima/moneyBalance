@@ -329,7 +329,7 @@ const Dashboard: React.FC = () => {
                       style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: 1, minHeight: period === 'month' ? `${minPx}px` : undefined }}
                     >
                       {period === 'month' && (
-                        <span className="rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none">
+                        <span className={`rotate-90 text-[10px] font-bold ${chartType === 'income' ? 'text-black' : 'text-white'} whitespace-nowrap leading-none pointer-events-none`}>
                           {labelText}
                         </span>
                       )}
