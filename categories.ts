@@ -7,6 +7,7 @@ export const categories = [
   'Educação e desenvolvimento',
   'Lazer e social',
   'Imprevistos',
+  'Compras',
   'Investimentos / economias',
   'Salário',
   'Rendimentos',

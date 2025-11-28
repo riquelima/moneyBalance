@@ -97,6 +97,10 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const parseLocal = (s: string) => {
+      const [y, m, dd] = String(s).split('-').map(Number);
+      return new Date(y, m - 1, dd);
+    };
     const normalize = (vals: number[]) => {
       const max = Math.max(0, ...vals);
       if (max === 0) return vals.map(() => 6);
@@ -127,7 +131,7 @@ const Dashboard: React.FC = () => {
           .lte('date', fmt(end));
         const vals = Array(7).fill(0);
         (data || []).forEach((t: any) => {
-          const d = new Date(t.date);
+          const d = parseLocal(t.date);
           const idx = (d.getDay() + 6) % 7; // Mon=0
           vals[idx] += Number(t.amount || 0);
         });
@@ -148,7 +152,7 @@ const Dashboard: React.FC = () => {
           .lte('date', fmt(last));
         const vals = Array(weeks).fill(0);
         (data || []).forEach((t: any) => {
-          const d = new Date(t.date);
+          const d = parseLocal(t.date);
           // week index within month
           const dayIndex = d.getDate();
           const totalOffset = startDowMonday + dayIndex - 1;
@@ -169,7 +173,7 @@ const Dashboard: React.FC = () => {
         const labels = last12MonthsLabels();
         const vals = Array(12).fill(0);
         (data || []).forEach((t: any) => {
-          const d = new Date(t.date);
+          const d = parseLocal(t.date);
           const idx = d.getMonth();
           vals[idx] += Number(t.amount || 0);
         });
@@ -265,25 +269,28 @@ const Dashboard: React.FC = () => {
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
-        {[
-            { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
-            { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger' },
-            { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
-            { label: 'Saldo', value: formatBRL(summary.balance), icon: 'account_balance_wallet', color: 'text-primary' },
-        ].map((item, idx) => (
-            <motion.div 
-                key={idx}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/reports')}
-                className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
-            >
-                <div className={`flex items-center gap-2 ${item.color} mb-2`}>
-                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                    <p className="text-sm font-semibold text-text-secondary">{item.label}</p>
-                </div>
-                <p className="text-lg font-bold text-text-primary">{item.value}</p>
-            </motion.div>
+        {(() => {
+            const displayExpense = (chart.raw && chart.raw[selectedMonth] !== undefined) ? chart.raw[selectedMonth] : summary.expense;
+            return [
+              { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
+              { label: 'Saídas', value: formatBRL(displayExpense), icon: 'arrow_upward', color: 'text-danger' },
+              { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
+              { label: 'Saldo', value: formatBRL(summary.balance), icon: 'account_balance_wallet', color: 'text-primary' },
+            ];
+        })().map((item, idx) => (
+          <motion.div 
+              key={idx}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/reports')}
+              className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
+          >
+              <div className={`flex items-center gap-2 ${item.color} mb-2`}>
+                  <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  <p className="text-sm font-semibold text-text-secondary">{item.label}</p>
+              </div>
+              <p className="text-lg font-bold text-text-primary">{item.value}</p>
+          </motion.div>
         ))}
       </motion.section>
 
