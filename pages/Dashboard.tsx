@@ -232,14 +232,14 @@ const Dashboard: React.FC = () => {
         >{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</button>
       </div>
       {showMonthPicker && (
-        <div className="flex justify-end">
-          <div className="mt-2 rounded-xl bg-surface-dark p-3 border border-surface-light">
+        <div className="flex justify-center">
+          <div className="mt-2 w-full max-w-[680px] mx-2 rounded-xl bg-surface-dark p-3 border border-surface-light">
             <div className="flex items-center justify-between mb-3">
               <button onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-surface-light"><span className="material-symbols-outlined">chevron_left</span></button>
               <span className="text-sm font-bold">{selectedYear}</span>
               <button onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-surface-light"><span className="material-symbols-outlined">chevron_right</span></button>
             </div>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
               {monthNames.map((m, idx) => (
                 <button
                   key={m}
