@@ -325,8 +325,8 @@ const Dashboard: React.FC = () => {
                       initial={{ height: 0 }}
                       animate={{ height: `${h}%` }}
                       transition={{ duration: 1, delay: i * 0.05 }}
-                      className={`${chartType === 'expense' ? (i === highlightIndex ? 'bg-danger' : 'bg-danger/30') : (i === highlightIndex ? 'bg-primary-green' : 'bg-primary-green/30')} rounded-t-sm relative flex items-center justify-center w-[14px] sm:w-[16px]`}
-                      style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: i === highlightIndex ? 1 : 0.3, minHeight: period === 'month' ? `${minPx}px` : undefined }}
+                      className={`${chartType === 'expense' ? 'bg-danger' : 'bg-primary-green'} rounded-t-sm relative flex items-center justify-center w-[14px] sm:w-[16px]`}
+                      style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: 1, minHeight: period === 'month' ? `${minPx}px` : undefined }}
                     >
                       {period === 'month' && (
                         <span className="rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none">
