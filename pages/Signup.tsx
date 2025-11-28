@@ -1,14 +1,36 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/success');
+    setError(null);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, lastName, username, whatsapp }
+      }
+    });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    if (data?.user) {
+      navigate('/success');
+    }
   };
 
   return (
@@ -27,21 +49,56 @@ const Signup: React.FC = () => {
 
       <form onSubmit={handleSignup} className="flex flex-1 flex-col gap-5">
         <div className="space-y-4">
-            {[
-                { label: 'Nome', placeholder: 'Insira seu nome', type: 'text' },
-                { label: 'Sobrenome', placeholder: 'Insira seu sobrenome', type: 'text' },
-                { label: 'Nome de Usuário', placeholder: 'Escolha um nome de usuário', type: 'text' },
-                { label: 'Telefone', placeholder: '(00) 00000-0000', type: 'tel' },
-            ].map((field) => (
-                <div key={field.label} className="space-y-2">
-                    <label className="text-sm font-medium text-text-primary ml-1">{field.label}</label>
-                    <input 
-                        type={field.type} 
-                        placeholder={field.placeholder}
-                        className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
-                    />
-                </div>
-            ))}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-primary ml-1">Nome</label>
+              <input 
+                type="text" 
+                placeholder="Insira seu nome"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-primary ml-1">Sobrenome</label>
+              <input 
+                type="text" 
+                placeholder="Insira seu sobrenome"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-primary ml-1">Nome de Usuário</label>
+              <input 
+                type="text" 
+                placeholder="Escolha um nome de usuário"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-primary ml-1">Telefone</label>
+              <input 
+                type="tel" 
+                placeholder="(00) 00000-0000"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-primary ml-1">E-mail</label>
+              <input 
+                type="email" 
+                placeholder="Seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+              />
+            </div>
 
             <div className="space-y-2">
                 <label className="text-sm font-medium text-text-primary ml-1">Senha</label>
@@ -49,6 +106,8 @@ const Signup: React.FC = () => {
                     <input 
                         type={showPassword ? "text" : "password"} 
                         placeholder="Crie uma senha"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 pr-12 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
                     />
                     <button
@@ -76,6 +135,9 @@ const Signup: React.FC = () => {
             >
                 Cadastrar
             </motion.button>
+            {error && (
+              <p className="text-danger text-sm">{error}</p>
+            )}
             <p className="text-sm text-text-secondary">
                 Já tem uma conta?{' '}
                 <button onClick={() => navigate('/login')} className="font-bold text-primary-teal hover:underline">

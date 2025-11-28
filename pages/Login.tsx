@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    navigate('/');
+    setError(null);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    if (data?.user) {
+      navigate('/');
+    }
   };
 
   return (
@@ -39,6 +50,8 @@ const Login: React.FC = () => {
             <input 
               type="email" 
               placeholder="Seu e-mail seguro"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-inner"
             />
           </div>
@@ -49,6 +62,8 @@ const Login: React.FC = () => {
               <input 
                 type={showPassword ? "text" : "password"} 
                 placeholder="Sua senha secreta"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 pr-12 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-inner"
               />
               <button
@@ -77,6 +92,9 @@ const Login: React.FC = () => {
           >
             Acessar Conta
           </motion.button>
+          {error && (
+            <p className="mt-2 text-danger text-sm">{error}</p>
+          )}
         </form>
 
         <div className="mt-8 text-center">

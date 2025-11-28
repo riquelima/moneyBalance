@@ -1,9 +1,176 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0 });
+  const [displayName, setDisplayName] = useState<string>('Usuário');
+  const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const [chart, setChart] = useState<{ values: number[]; labels: string[] }>({ values: [], labels: [] });
+
+  const dataMap: Record<'day' | 'month', { values: number[]; labels: string[] }> = {
+    day: {
+      values: [35, 48, 52, 68, 75, 60, 40],
+      labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+    },
+    month: {
+      values: [45, 52, 60, 58, 66, 72, 64],
+      labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul']
+    }
+  };
+
+  const getWeeksOfCurrentMonth = (): { values: number[]; labels: string[] } => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const startDowMonday = (first.getDay() + 6) % 7;
+    const daysInMonth = last.getDate();
+    const weeks = Math.ceil((startDowMonday + daysInMonth) / 7);
+    const labels = Array.from({ length: weeks }, (_, i) => `Sem${i + 1}`);
+    const values = Array.from({ length: weeks }, (_, i) => 50 + ((i * 8 + month * 3) % 30));
+    return { values, labels };
+  };
+
+  const last12MonthsLabels = (): string[] => {
+    const now = new Date();
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+      return monthNames[d.getMonth()];
+    });
+  };
+
+  const current = chart.labels.length ? chart : (period === 'week' ? getWeeksOfCurrentMonth() : (period === 'month' ? { labels: last12MonthsLabels(), values: Array(12).fill(6) } : dataMap.day));
+  const now = new Date();
+  const highlightIndex = period === 'month' ? Math.max(0, current.labels.length - 1) : 3;
+
+  useEffect(() => {
+    const loadSummary = async () => {
+      const { data, error } = await supabase.rpc('get_balance_summary');
+      if (!error && data) {
+        const r = Array.isArray(data) ? (data[0] || {}) : (data as any);
+        setSummary({
+          income: Number(r.total_income || 0),
+          expense: Number(r.total_expense || 0),
+          pending: Number(r.pending_expense || 0),
+          balance: Number(r.balance || 0)
+        });
+      }
+    };
+
+    const loadProfile = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (user) {
+        const metaName = (user.user_metadata?.name as string) || '';
+        const metaLast = (user.user_metadata?.lastName as string) || '';
+        const metaUsername = (user.user_metadata?.username as string) || '';
+        const candidate = metaName || metaUsername || user.email || 'Usuário';
+        // Try user_profiles if available
+        const { data: prof } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        setDisplayName((prof?.display_name as string) || (metaName && metaLast ? `${metaName} ${metaLast}` : candidate));
+      }
+    };
+
+    loadSummary();
+    loadProfile();
+  }, [location.key]);
+
+  useEffect(() => {
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const normalize = (vals: number[]) => {
+      const max = Math.max(0, ...vals);
+      if (max === 0) return vals.map(() => 6);
+      return vals.map(v => Math.max(6, Math.round((v / max) * 90)));
+    };
+    const buildChart = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) {
+        if (period === 'month') setChart({ labels: last12MonthsLabels(), values: Array(12).fill(6) });
+        else if (period === 'week') setChart(getWeeksOfCurrentMonth());
+        else setChart(dataMap.day);
+        return;
+      }
+      if (period === 'day') {
+        const today = new Date();
+        const mondayOffset = (today.getDay() + 6) % 7;
+        const start = new Date(today);
+        start.setDate(today.getDate() - mondayOffset);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        const { data } = await supabase
+          .from('user_transactions')
+          .select('amount, date')
+          .eq('user_id', user.id)
+          .gte('date', fmt(start))
+          .lte('date', fmt(end));
+        const vals = Array(7).fill(0);
+        (data || []).forEach((t: any) => {
+          const d = new Date(t.date);
+          const idx = (d.getDay() + 6) % 7; // Mon=0
+          vals[idx] += Number(t.amount || 0);
+        });
+        setChart({ labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals) });
+      } else if (period === 'week') {
+        const nowD = new Date();
+        const year = nowD.getFullYear();
+        const month = nowD.getMonth();
+        const first = new Date(year, month, 1);
+        const last = new Date(year, month + 1, 0);
+        const startDowMonday = (first.getDay() + 6) % 7;
+        const daysInMonth = last.getDate();
+        const weeks = Math.ceil((startDowMonday + daysInMonth) / 7);
+        const labels = Array.from({ length: weeks }, (_, i) => `Sem${i + 1}`);
+        const { data } = await supabase
+          .from('user_transactions')
+          .select('amount, date')
+          .eq('user_id', user.id)
+          .gte('date', fmt(first))
+          .lte('date', fmt(last));
+        const vals = Array(weeks).fill(0);
+        (data || []).forEach((t: any) => {
+          const d = new Date(t.date);
+          // week index within month
+          const dayIndex = d.getDate();
+          const totalOffset = startDowMonday + dayIndex - 1;
+          const w = Math.floor(totalOffset / 7);
+          vals[w] += Number(t.amount || 0);
+        });
+        setChart({ labels, values: normalize(vals) });
+      } else {
+        const nowD = new Date();
+        const from = new Date(nowD.getFullYear(), nowD.getMonth() - 11, 1);
+        const to = new Date(nowD.getFullYear(), nowD.getMonth() + 1, 0);
+        const { data } = await supabase
+          .from('user_transactions')
+          .select('amount, date')
+          .eq('user_id', user.id)
+          .gte('date', fmt(from))
+          .lte('date', fmt(to));
+        const labels = last12MonthsLabels();
+        const vals = Array(12).fill(0);
+        (data || []).forEach((t: any) => {
+          const d = new Date(t.date);
+          const offset = (nowD.getFullYear() - d.getFullYear()) * 12 + (nowD.getMonth() - d.getMonth());
+          const idx = 11 - Math.max(0, Math.min(11, offset));
+          vals[idx] += Number(t.amount || 0);
+        });
+        setChart({ labels, values: normalize(vals) });
+      }
+    };
+    buildChart();
+  }, [period]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -38,7 +205,7 @@ const Dashboard: React.FC = () => {
             />
             <div>
                 <p className="text-sm font-medium text-text-secondary">Bem-vindo(a),</p>
-                <h1 className="text-xl font-bold text-text-primary">Usuário</h1>
+                <h1 className="text-xl font-bold text-text-primary">{displayName}</h1>
             </div>
         </div>
         <div className="flex items-center gap-4">
@@ -57,15 +224,15 @@ const Dashboard: React.FC = () => {
         className="rounded-2xl bg-surface-dark/40 p-6 border border-surface-light"
       >
         <p className="text-sm font-medium text-text-secondary mb-1">Total de Saldo</p>
-        <h2 className="text-4xl font-extrabold tracking-tight text-text-primary">R$ 12.456,78</h2>
+        <h2 className="text-4xl font-extrabold tracking-tight text-text-primary">{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
         {[
-            { label: 'Entradas', value: 'R$ 5.800,00', icon: 'arrow_downward', color: 'text-success' },
-            { label: 'Saídas', value: 'R$ 2.150,25', icon: 'arrow_upward', color: 'text-danger' },
-            { label: 'Pendentes', value: 'R$ 345,00', icon: 'hourglass_empty', color: 'text-warning' },
-            { label: 'Saldo', value: 'R$ 3.649,75', icon: 'account_balance_wallet', color: 'text-primary' },
+            { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
+            { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger' },
+            { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
+            { label: 'Saldo', value: formatBRL(summary.balance), icon: 'account_balance_wallet', color: 'text-primary' },
         ].map((item, idx) => (
             <motion.div 
                 key={idx}
@@ -87,27 +254,56 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-text-primary">Tendências Financeiras</h3>
             <div className="flex items-center gap-1 rounded-lg bg-surface-dark p-1 border border-surface-light">
-                <button className="rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary">Dia</button>
-                <button className="rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary">Semana</button>
-                <button className="rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm">Mês</button>
+                <button
+                  onClick={() => setPeriod('day')}
+                  className={period === 'day' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
+                >Dia</button>
+                <button
+                  onClick={() => setPeriod('week')}
+                  className={period === 'week' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
+                >Semana</button>
+                <button
+                  onClick={() => setPeriod('month')}
+                  className={period === 'month' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
+                >Mês</button>
             </div>
         </div>
         
         {/* Custom CSS Bar Chart simulation */}
         <div className="flex h-56 w-full flex-col justify-end rounded-xl bg-surface-dark/30 p-4 border border-surface-light relative overflow-hidden">
-            <div className="flex h-full w-full items-end justify-between px-2 gap-2">
-                {[40, 60, 50, 75, 85, 65, 90].map((h, i) => (
+            <div className="flex h-full w-full flex-col">
+              {period === 'month' ? (
+                <div className="overflow-x-auto">
+                  <div key={`month-scroll-${current.labels.join('-')}`} className="min-w-[700px] flex h-56 items-end justify-between px-2 gap-2">
+                    {current.values.map((h, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${h}%` }}
+                        transition={{ duration: 1, delay: i * 0.05 }}
+                        className={`w-full rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div key={period} className="flex h-full w-full items-end justify-between px-2 gap-2">
+                  {current.values.map((h, i) => (
                     <motion.div 
                         key={i}
                         initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
-                        transition={{ duration: 1, delay: i * 0.1 }}
-                        className={`w-full rounded-t-sm ${i === 3 ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                        transition={{ duration: 1, delay: i * 0.05 }}
+                        className={`w-full rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
                     />
-                ))}
+                  ))}
+                </div>
+              )}
             </div>
             <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
-                <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+                {current.labels.map((l, idx) => (
+                  <span key={idx}>{l}</span>
+                ))}
             </div>
         </div>
       </motion.section>

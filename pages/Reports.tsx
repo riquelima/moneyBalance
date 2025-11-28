@@ -1,9 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Reports: React.FC = () => {
   const navigate = useNavigate();
+  const [hasData, setHasData] = useState(false);
+  useEffect(() => {
+    const load = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) { setHasData(false); return; }
+      const { count, error } = await supabase
+        .from('user_transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      setHasData(!error && (count ?? 0) > 0);
+    };
+    load();
+  }, []);
 
   return (
     <motion.div 
@@ -23,65 +38,30 @@ const Reports: React.FC = () => {
       <section>
         <h2 className="text-2xl font-bold mb-4">Visão Geral das Despesas</h2>
         <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
-          <p className="text-text-secondary font-medium">Despesas por Categoria</p>
-          <p className="text-3xl font-bold mt-1 text-white">R$ 2.580,00</p>
-          <div className="flex items-center gap-2 mt-1 mb-6">
-            <span className="text-text-secondary text-sm">Mês Atual</span>
-            <span className="text-primary-green text-sm font-bold">+5.2%</span>
-          </div>
-
-          <div className="flex items-end justify-between h-40 gap-2">
-            {[
-                { label: 'Alim.', h: '60%' },
-                { label: 'Trans.', h: '30%' },
-                { label: 'Lazer', h: '20%' },
-                { label: 'Moradia', h: '50%' }
-            ].map((bar, i) => (
-                <div key={i} className="flex flex-col items-center flex-1 gap-2 h-full justify-end">
-                    <motion.div 
-                        initial={{ height: 0 }}
-                        animate={{ height: bar.h }}
-                        transition={{ duration: 0.8, delay: i * 0.1 }}
-                        className="w-full bg-primary-green/20 rounded-t-lg hover:bg-primary-green transition-colors cursor-pointer"
-                    />
-                    <span className="text-[10px] text-text-secondary font-bold uppercase">{bar.label}</span>
-                </div>
-            ))}
-          </div>
+          {hasData ? (
+            <p className="text-text-secondary">Em breve: gráficos e agregações reais por categoria.</p>
+          ) : (
+            <>
+              <p className="text-text-secondary font-medium">Sem dados</p>
+              <p className="text-3xl font-bold mt-1 text-white">R$ 0,00</p>
+              <p className="mt-2 text-text-secondary">Adicione transações para visualizar seus relatórios.</p>
+            </>
+          )}
         </div>
       </section>
 
       {/* Budgets */}
       <section>
         <h2 className="text-2xl font-bold mb-4">Orçamentos</h2>
-        <div className="space-y-4">
-            {[
-                { cat: 'Alimentação', spent: 450, total: 800, color: 'bg-primary-green' },
-                { cat: 'Lazer', spent: 280, total: 300, color: 'bg-warning' },
-                { cat: 'Transporte', spent: 150, total: 400, color: 'bg-primary-blue' },
-            ].map((b, i) => (
-                <motion.div 
-                    key={b.cat}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="bg-surface-dark rounded-xl p-4 border border-surface-light"
-                >
-                    <div className="flex justify-between mb-2">
-                        <span className="font-semibold">{b.cat}</span>
-                        <span className="text-text-secondary text-sm">R$ {b.spent} / R$ {b.total}</span>
-                    </div>
-                    <div className="h-2 w-full bg-surface-light rounded-full overflow-hidden">
-                        <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(b.spent / b.total) * 100}%` }}
-                            transition={{ duration: 1, delay: 0.5 }}
-                            className={`h-full ${b.color}`} 
-                        />
-                    </div>
-                </motion.div>
-            ))}
-        </div>
+        {hasData ? (
+          <div className="rounded-xl bg-surface-dark p-4 border border-surface-light text-text-secondary">
+            Em breve: criação de orçamentos por categoria.
+          </div>
+        ) : (
+          <div className="rounded-xl bg-surface-dark p-4 border border-surface-light text-text-secondary text-center">
+            Nenhum orçamento. Crie transações e categorias para começar.
+          </div>
+        )}
       </section>
 
       {/* AI FAB */}

@@ -1,17 +1,65 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const AddTransaction: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
   const [isPaid, setIsPaid] = useState(true);
+  const [description, setDescription] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [categoryName, setCategoryName] = useState<string>('');
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const categories = [
+    'Moradia',
+    'Contas da casa',
+    'Alimentação',
+    'Transporte',
+    'Saúde',
+    'Educação e desenvolvimento',
+    'Lazer e social',
+    'Imprevistos',
+    'Investimentos / economias'
+  ];
 
   // Colors based on type
   const activeColor = type === 'expense' ? '#FF455F' : '#00D68F'; // Pink/Red for expense, Green for income
   const activeClass = type === 'expense' ? 'bg-[#FF455F]' : 'bg-[#00D68F]';
   const textClass = type === 'expense' ? 'text-[#FF455F]' : 'text-[#00D68F]';
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('edit');
+    if (id) {
+      setEditId(id);
+      (async () => {
+        const { data } = await supabase
+          .from('user_transactions')
+          .select('id, description, amount, type, date, is_paid, category_id')
+          .eq('id', id)
+          .maybeSingle();
+        if (data) {
+          setType(data.type as any);
+          setDescription(data.description || '');
+          setIsPaid(!!data.is_paid);
+          setAmount(String(Number(data.amount)).replace('.', ','));
+          if (data.category_id) {
+            const { data: cat } = await supabase
+              .from('user_categories')
+              .select('name')
+              .eq('id', data.category_id)
+              .maybeSingle();
+            setCategoryName((cat as any)?.name || '');
+          }
+        }
+      })();
+    }
+  }, [location.search]);
 
   return (
     <motion.div 
@@ -84,19 +132,34 @@ const AddTransaction: React.FC = () => {
                     <input 
                         type="text"
                         placeholder="Descrição"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                         className="w-full h-14 rounded-xl bg-[#2C2C2E] border-none px-4 text-white placeholder:text-text-secondary/70 focus:ring-2 focus:ring-opacity-50 transition-all"
                         style={{ '--tw-ring-color': activeColor } as React.CSSProperties}
                     />
                 </div>
 
                 {/* Category */}
-                <button className="w-full h-14 rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between group active:scale-[0.99] transition-transform">
+                <button onClick={() => setShowCategoryPicker(v => !v)} className="w-full h-14 rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between group active:scale-[0.99] transition-transform">
                     <span className="text-text-secondary group-hover:text-white transition-colors">Categoria</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">Alimentação</span>
+                        <span className="text-white font-medium">{categoryName || 'Selecione'}</span>
                         <span className="material-symbols-outlined text-text-secondary">chevron_right</span>
                     </div>
                 </button>
+                {showCategoryPicker && (
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {categories.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => { setCategoryName(c); setShowCategoryPicker(false); }}
+                        className={`px-3 py-2 rounded-lg text-sm border ${categoryName === c ? 'border-primary text-white' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex gap-4">
                      {/* Date */}
@@ -124,11 +187,94 @@ const AddTransaction: React.FC = () => {
         <div className="p-6 pt-2 bg-surface-dark pb-8">
             <motion.button 
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate(-1)} // Just go back for demo
+                onClick={async () => {
+                  if (saving) return;
+                  setError(null);
+                  const normalized = amount
+                    .replace(/\./g, '')
+                    .replace(/,/g, '.')
+                    .trim();
+                  const value = Number(normalized);
+                  if (!value || value <= 0) {
+                    setError('Informe um valor válido');
+                    return;
+                  }
+                  setSaving(true);
+                  const { data: userData } = await supabase.auth.getUser();
+                  const user = userData?.user;
+                  if (!user) {
+                    setError('Faça login para salvar a transação');
+                    setSaving(false);
+                    return;
+                  }
+                  const today = new Date();
+                  const dateStr = today.toISOString().slice(0, 10);
+                  let categoryId: string | null = null;
+                  if (categoryName) {
+                    const { data: catData, error: catErr } = await supabase
+                      .from('user_categories')
+                      .upsert({ user_id: user.id, name: categoryName, type }, { onConflict: 'user_id,name' })
+                      .select('id')
+                      .maybeSingle();
+                    if (!catErr) categoryId = (catData as any)?.id ?? null;
+                  }
+                  let dbError = null as any;
+                  if (editId) {
+                    const { error: updateError } = await supabase
+                      .from('user_transactions')
+                      .update({
+                        amount: value,
+                        type,
+                        description: description || null,
+                        date: dateStr,
+                        is_paid: isPaid,
+                        category_id: categoryId
+                      })
+                      .eq('id', editId);
+                    dbError = updateError;
+                  } else {
+                    const { error: insertError } = await supabase
+                      .from('user_transactions')
+                      .insert({
+                        user_id: user.id,
+                        amount: value,
+                        type,
+                        description: description || null,
+                        date: dateStr,
+                        is_paid: isPaid,
+                        category_id: categoryId
+                      });
+                    dbError = insertError;
+                  }
+                  setSaving(false);
+                  if (dbError) {
+                    setError(dbError.message);
+                    return;
+                  }
+                  navigate(-1);
+                }}
                 className={`w-full h-14 rounded-xl font-bold text-lg shadow-lg text-white transition-colors ${activeClass}`}
+                disabled={saving}
             >
-                Salvar Transação
+                {editId ? 'Atualizar Transação' : 'Salvar Transação'}
             </motion.button>
+            {editId && (
+              <button
+                onClick={async () => {
+                  if (!editId) return;
+                  const { error: delError } = await supabase
+                    .from('user_transactions')
+                    .delete()
+                    .eq('id', editId);
+                  if (delError) { setError(delError.message); return; }
+                  navigate(-1);
+                }}
+                className="mt-3 w-full h-12 rounded-xl font-bold text-sm bg-danger text-white"
+              >Excluir</button>
+            )}
+            {error && (
+              <p className="mt-2 text-danger text-sm">{error}</p>
+            )}
         </div>
       </div>
     </motion.div>
