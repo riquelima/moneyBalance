@@ -1,0 +1,17 @@
+{
+  "name": "Money Balance",
+  "short_name": "MoneyBalance",
+  "description": "Controle financeiro pessoal",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#13ec5b",
+  "icons": [
+    { "src": "https://i.imgur.com/fH0lMQq.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://i.imgur.com/fH0lMQq.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "https://i.imgur.com/fH0lMQq.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable any" },
+    { "src": "https://i.imgur.com/fH0lMQq.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable any" },
+    { "src": "https://i.imgur.com/fH0lMQq.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -13,6 +13,7 @@ const Dashboard: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>('https://picsum.photos/100/100');
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const [chart, setChart] = useState<{ values: number[]; labels: string[] }>({ values: [], labels: [] });
+  const [monthViewportStart, setMonthViewportStart] = useState(0);
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[] }> = {
     day: {
@@ -187,6 +188,13 @@ const Dashboard: React.FC = () => {
     buildChart();
   }, [period]);
 
+  useEffect(() => {
+    if (period === 'month') {
+      const start = Math.max(0, (chart.labels.length || 0) - 4);
+      setMonthViewportStart(start);
+    }
+  }, [period, chart.labels]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -288,25 +296,48 @@ const Dashboard: React.FC = () => {
         <div className="flex h-56 w-full flex-col justify-end rounded-xl bg-surface-dark/30 p-4 border border-surface-light relative overflow-hidden">
             <div className="flex h-full w-full flex-col">
               {period === 'month' ? (
-                <div className="overflow-x-auto">
-                  <div key={`month-scroll-${current.labels.join('-')}`} className="min-w-[700px] flex h-56 items-end justify-between px-2 gap-2">
-                    {current.values.map((h, i) => (
-                      <motion.div 
-                        key={i}
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        transition={{ duration: 1, delay: i * 0.05 }}
-                        className={`w-full rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
-                      />
+                <motion.div
+                  key={`month-viewport-${monthViewportStart}`}
+                  className="overflow-hidden"
+                  drag="x"
+                  dragConstraints={{ left: -80, right: 80 }}
+                  dragElastic={0.05}
+                  dragMomentum={false}
+                  onDragEnd={(e, info) => {
+                    if (info.offset.x < -40 && monthViewportStart < Math.max(0, current.values.length - 4)) {
+                      setMonthViewportStart(s => Math.min(s + 1, Math.max(0, current.values.length - 4)));
+                    } else if (info.offset.x > 40 && monthViewportStart > 0) {
+                      setMonthViewportStart(s => Math.max(s - 1, 0));
+                    }
+                  }}
+                >
+                  <div className="flex h-56 items-end justify-between px-2 gap-2">
+                    {current.values.slice(monthViewportStart, monthViewportStart + 4).map((h, i) => {
+                      const globalIndex = monthViewportStart + i;
+                      const isHighlight = globalIndex === current.labels.length - 1;
+                      return (
+                        <motion.div
+                          key={globalIndex}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${h}%` }}
+                          transition={{ duration: 0.6, delay: i * 0.05 }}
+                          className={`w-full rounded-t-sm ${isHighlight ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
+                    {current.labels.slice(monthViewportStart, monthViewportStart + 4).map((l, idx) => (
+                      <span key={`${monthViewportStart}-${idx}`}>{l}</span>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               ) : (
                 <div key={period} className="flex h-full w-full items-end justify-between px-2 gap-2">
                   {current.values.map((h, i) => (
                     <motion.div 
-                        key={i}
-                        initial={{ height: 0 }}
+                      key={i}
+                      initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
                         transition={{ duration: 1, delay: i * 0.05 }}
                         className={`w-full rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
@@ -315,11 +346,13 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
-                {current.labels.map((l, idx) => (
-                  <span key={idx}>{l}</span>
-                ))}
-            </div>
+            {period !== 'month' && (
+              <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
+                  {current.labels.map((l, idx) => (
+                    <span key={idx}>{l}</span>
+                  ))}
+              </div>
+            )}
         </div>
       </motion.section>
     </motion.div>

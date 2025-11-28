@@ -9,6 +9,8 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><rect x='0' y='0' width='64' height='64' rx='12' fill='#13ec5b'/><rect x='14' y='22' width='36' height='22' rx='6' fill='#8d5a3a' stroke='#2d2d2d' stroke-width='2'/><circle cx='44' cy='33' r='3' fill='#2d2d2d'/><rect x='20' y='16' width='20' height='10' rx='2' fill='#14d86a'/></svg>`;
+  const fallbackLogo = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,13 +37,16 @@ const Login: React.FC = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-background-dark text-primary shadow-metallic border border-surface-light"
+          className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-background-dark shadow-metallic border border-surface-light"
         >
-          <span className="material-symbols-outlined !text-5xl">trending_up</span>
+          <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-16 w-16 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }} />
         </motion.div>
         
-        <h1 className="text-text-primary mb-8 text-center text-3xl font-bold leading-tight tracking-wide">
-          Bem-vindo,<br/>Investidor.
+        <h1 
+          className="text-text-primary mb-8 text-center text-3xl leading-tight tracking-wide"
+          style={{ fontFamily: '"Poetsen One", cursive' }}
+        >
+          Money Balance
         </h1>
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
