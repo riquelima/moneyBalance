@@ -269,15 +269,12 @@ const Dashboard: React.FC = () => {
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
-        {(() => {
-            const displayExpense = (chart.raw && chart.raw[selectedMonth] !== undefined) ? chart.raw[selectedMonth] : summary.expense;
-            return [
-              { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
-              { label: 'Saídas', value: formatBRL(displayExpense), icon: 'arrow_upward', color: 'text-danger' },
-              { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
-              { label: 'Saldo', value: formatBRL(summary.balance), icon: 'account_balance_wallet', color: 'text-primary' },
-            ];
-        })().map((item, idx) => (
+        {[
+          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
+          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger' },
+          { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
+          { label: 'Saldo', value: formatBRL(summary.balance), icon: 'account_balance_wallet', color: 'text-primary' },
+        ].map((item, idx) => (
           <motion.div 
               key={idx}
               whileHover={{ scale: 1.02 }}
