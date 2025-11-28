@@ -13,8 +13,7 @@ const Reports: React.FC = () => {
   const [budgets, setBudgets] = useState<Record<string, number>>({});
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [tempLimit, setTempLimit] = useState<string>('');
-  const [budgetsStart, setBudgetsStart] = useState(0);
-  const budgetNames = ['Moradia','Contas da casa','Alimentação','Transporte','Saúde','Educação e desenvolvimento','Lazer e social','Imprevistos','Investimentos / economias'];
+  const budgetNames = ['Moradia','Contas da casa','Alimentação','Transporte','Saúde','Educação e desenvolvimento','Lazer e social','Imprevistos','Investimentos / economias','Salário','Rendimentos','Dinheiro Extra'];
   const budgetCats = useMemo(() => budgetNames.map(n => ({ name: n, amount: (categories.find(c => c.name === n)?.amount || 0) })), [categories]);
 
   useEffect(() => {
@@ -107,9 +106,7 @@ const Reports: React.FC = () => {
     try { localStorage.setItem('budgets_limits_v1', JSON.stringify(budgets)); } catch {}
   }, [budgets]);
 
-  useEffect(() => {
-    setBudgetsStart(0);
-  }, [categories.length]);
+  
 
   const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const changePct = useMemo(() => {
@@ -147,7 +144,7 @@ const Reports: React.FC = () => {
       </header>
 
       <section>
-        <h2 className="text-2xl font-bold mb-4">Visão Geral das Despesas</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Visão Geral das Despesas</h2>
         <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
           {hasData ? (
             <div className="flex flex-col gap-2">
@@ -187,25 +184,9 @@ const Reports: React.FC = () => {
 
       {/* Budgets */}
       <section>
-        <h2 className="text-2xl font-bold mb-4">Orçamentos</h2>
-        <motion.div
-          key={`budgets-viewport-${budgetsStart}`}
-          className="flex flex-col gap-4"
-          drag="y"
-          dragConstraints={{ top: -80, bottom: 80 }}
-          dragElastic={0.05}
-          dragMomentum={false}
-          onDragEnd={(e, info) => {
-            const total = budgetCats.length;
-            const visible = 3;
-            if (info.offset.y > 30 && budgetsStart < Math.max(0, total - visible)) {
-              setBudgetsStart(s => Math.min(s + 1, Math.max(0, total - visible)));
-            } else if (info.offset.y < -30 && budgetsStart > 0) {
-              setBudgetsStart(s => Math.max(s - 1, 0));
-            }
-          }}
-        >
-          {budgetCats.slice(budgetsStart, budgetsStart + 3).map((c) => {
+        <h2 className="text-2xl font-bold mb-4 text-center">Orçamentos</h2>
+        <div className="flex flex-col gap-4 max-h-72 overflow-y-auto no-scrollbar pr-1">
+          {budgetCats.map((c) => {
             const limit = Number(budgets[c.name] || 0);
             const spent = Number(c.amount || 0);
             const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
@@ -232,7 +213,7 @@ const Reports: React.FC = () => {
               <p className="text-center">Nenhum orçamento cadastrado.</p>
             </div>
           )}
-        </motion.div>
+        </div>
         {editingCat && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
             <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md rounded-2xl bg-background-dark p-6 border border-surface-light">
@@ -276,13 +257,13 @@ const Reports: React.FC = () => {
         whileHover={{ scale: 1.1, rotate: 10 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => navigate('/chat')}
-        className="fixed bottom-24 right-4 h-16 w-16 rounded-full bg-primary-green text-background-dark flex items-center justify-center shadow-lg shadow-primary-green/40 z-40"
+        className="fixed bottom-24 right-4 h-14 w-14 rounded-full bg-primary-green text-background-dark flex items-center justify-center shadow-lg shadow-primary-green/40 z-40"
       >
-        <span className="material-symbols-outlined !text-3xl">auto_awesome</span>
+        <span className="material-symbols-outlined !text-2xl">auto_awesome</span>
       </motion.button>
 
       <section>
-        <h2 className="text-2xl font-bold mb-4">Projeções Futuras</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Projeções Futuras</h2>
         <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
           <div className="flex min-w-72 flex-1 flex-col gap-2">
             <p className="text-text-secondary text-base font-medium">Projeção de Saldo</p>
