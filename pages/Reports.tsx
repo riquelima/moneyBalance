@@ -13,6 +13,9 @@ const Reports: React.FC = () => {
   const [budgets, setBudgets] = useState<Record<string, number>>({});
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [tempLimit, setTempLimit] = useState<string>('');
+  const [incomeTotal, setIncomeTotal] = useState(0);
+  const [lastIncomeTotal, setLastIncomeTotal] = useState(0);
+  const [incomeCategories, setIncomeCategories] = useState<Array<{ name: string; amount: number }>>([]);
   const budgetNames = ['Moradia','Contas da casa','Alimentação','Transporte','Saúde','Educação e desenvolvimento','Lazer e social','Imprevistos','Investimentos / economias','Salário','Rendimentos','Dinheiro Extra'];
   const budgetCats = useMemo(() => budgetNames.map(n => ({ name: n, amount: (categories.find(c => c.name === n)?.amount || 0) })), [categories]);
 
@@ -90,6 +93,27 @@ const Reports: React.FC = () => {
       const values = [totalNet, proj1, proj2];
       setProjection({ labels, values, total: totalNet, percent });
 
+      setIncomeTotal(incomeCur);
+      setLastIncomeTotal(incomePrev);
+
+      const mapInc = new Map<string, number>();
+      (curTx || []).filter((t: any) => t.type === 'income').forEach((t: any) => {
+        const key = t.category_id || 'none';
+        mapInc.set(key, (mapInc.get(key) || 0) + Number(t.amount));
+      });
+      const idsInc = Array.from(mapInc.keys()).filter(k => k !== 'none');
+      let catsByIdInc: Record<string, string> = {};
+      if (idsInc.length) {
+        const { data: catsInc } = await supabase
+          .from('user_categories')
+          .select('id, name')
+          .in('id', idsInc);
+        (catsInc || []).forEach((c: any) => { catsByIdInc[c.id as string] = String(c.name || 'Categoria'); });
+      }
+      const arrInc = Array.from(mapInc.entries()).map(([id, amt]) => ({ name: id === 'none' ? 'Sem Categoria' : (catsByIdInc[id] || 'Categoria'), amount: amt }));
+      arrInc.sort((a, b) => b.amount - a.amount);
+      setIncomeCategories(arrInc);
+
       setHasData(((curTx || []).length + (prevTx || []).length) > 0);
     };
     load();
@@ -114,6 +138,11 @@ const Reports: React.FC = () => {
     return ((monthTotal - lastMonthTotal) / lastMonthTotal) * 100;
   }, [monthTotal, lastMonthTotal]);
   const topCats = useMemo(() => categories.slice(0, 4), [categories]);
+  const incomeChangePct = useMemo(() => {
+    if (!lastIncomeTotal) return 0;
+    return ((incomeTotal - lastIncomeTotal) / lastIncomeTotal) * 100;
+  }, [incomeTotal, lastIncomeTotal]);
+  const topIncomeCats = useMemo(() => incomeCategories.slice(0, 4), [incomeCategories]);
   const makeLinePath = (vals: number[], width = 478, height = 150) => {
     if (!vals.length) return '';
     const min = Math.min(...vals);
@@ -144,13 +173,44 @@ const Reports: React.FC = () => {
       </header>
 
       <section>
+        <h2 className="text-2xl font-bold mb-4 text-center">Visão Geral das Receitas</h2>
+        <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
+          <div className="flex flex-col gap-2 items-center">
+            <p className="text-text-secondary text-base font-medium text-center">Receitas por Categoria</p>
+            <p className="text-white text-3xl font-bold text-center">{fmtBRL(incomeTotal)}</p>
+            <div className="flex gap-1 justify-center">
+              <p className="text-text-secondary text-base">Mês Atual</p>
+              <p className={`${incomeChangePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${incomeChangePct >= 0 ? '+' : ''}${incomeChangePct.toFixed(1)}%`}</p>
+            </div>
+            <div className="grid min-h-[180px] grid-flow-col gap-4 grid-rows-[1fr_auto] items-end justify-items-center px-1 pt-4">
+              {topIncomeCats.map((c) => {
+                const max = topIncomeCats.length ? Math.max(...topIncomeCats.map(x => x.amount)) : 1;
+                const pct = Math.round((c.amount / (max || 1)) * 100);
+                const h = Math.max(10, Math.min(100, pct));
+                return (
+                  <div key={c.name} className="w-full flex flex-col items-center justify-end gap-2">
+                    <div className="bg-primary-green/30 w-full rounded-t-md" style={{ height: `${h}%` }}></div>
+                    <p className="text-text-secondary text-[13px] font-bold tracking-[0.015em]">{c.name}</p>
+                    <p className="text-success text-[13px] font-bold">+ {fmtBRL(c.amount)}</p>
+                  </div>
+                );
+              })}
+              {topIncomeCats.length === 0 && (
+                <p className="col-span-4 text-text-secondary text-sm">Sem receitas neste mês.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
         <h2 className="text-2xl font-bold mb-4 text-center">Visão Geral das Despesas</h2>
         <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
           {hasData ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-text-secondary text-base font-medium">Despesas por Categoria</p>
-              <p className="text-white text-3xl font-bold">{fmtBRL(monthTotal)}</p>
-              <div className="flex gap-1">
+            <div className="flex flex-col gap-2 items-center">
+              <p className="text-text-secondary text-base font-medium text-center">Despesas por Categoria</p>
+              <p className="text-white text-3xl font-bold text-center">{fmtBRL(monthTotal)}</p>
+              <div className="flex gap-1 justify-center">
                 <p className="text-text-secondary text-base">Mês Atual</p>
                 <p className={`${changePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${changePct >= 0 ? '+' : ''}${changePct.toFixed(1)}%`}</p>
               </div>
