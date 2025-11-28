@@ -48,6 +48,9 @@ const Login: React.FC = () => {
         >
           Money Balance
         </h1>
+        <p className="-mt-6 mb-8 text-center text-text-secondary text-sm font-medium">
+          Gestão Financeira Inteligente
+        </p>
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
           <div className="space-y-2">
