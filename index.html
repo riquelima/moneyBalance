@@ -46,10 +46,10 @@
         theme: {
           extend: {
             colors: {
-              primary: "#D4AF37", // Gold
-              "primary-green": "#13ec5b", // Green
-              "primary-blue": "#135bec", // Blue
-              "primary-teal": "#00D18B", // Teal
+              primary: "#D4AF37",
+              "primary-green": "#13ec5b",
+              "primary-blue": "#135bec",
+              "primary-teal": "#00D18B",
               "background-dark": "#0A0A0A",
               "surface-dark": "#1A1A1A",
               "surface-light": "#2A2A2A",
@@ -67,7 +67,13 @@
               'glow-green': '0 0 15px rgba(19, 236, 91, 0.2)',
             }
           }
-        }
+        },
+        safelist: [
+          'bg-danger',
+          'bg-danger/30',
+          'bg-primary-green',
+          'bg-primary-green/30'
+        ]
       }
     </script>
   

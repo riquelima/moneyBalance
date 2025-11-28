@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { categories } from '../categories';
 
 const AddTransaction: React.FC = () => {
   const navigate = useNavigate();
@@ -19,20 +20,6 @@ const AddTransaction: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerYear, setPickerYear] = useState<number>(new Date().getFullYear());
   const [pickerMonth, setPickerMonth] = useState<number>(new Date().getMonth());
-  const categories = [
-    'Moradia',
-    'Contas da casa',
-    'Alimentação',
-    'Transporte',
-    'Saúde',
-    'Educação e desenvolvimento',
-    'Lazer e social',
-    'Imprevistos',
-    'Investimentos / economias',
-    'Salário',
-    'Rendimentos',
-    'Dinheiro Extra'
-  ];
 
   // Colors based on type
   const activeColor = type === 'expense' ? '#FF455F' : '#00D68F'; // Pink/Red for expense, Green for income

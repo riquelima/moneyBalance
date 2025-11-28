@@ -7,12 +7,13 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
+  const [chartType, setChartType] = useState<'income' | 'expense'>('expense');
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0 });
   const [displayName, setDisplayName] = useState<string>('Usuário');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const [chart, setChart] = useState<{ values: number[]; labels: string[] }>({ values: [], labels: [] });
+  const [chart, setChart] = useState<{ values: number[]; labels: string[]; raw?: number[] }>({ values: [], labels: [] });
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [showMonthPicker, setShowMonthPicker] = useState<boolean>(false);
@@ -119,8 +120,9 @@ const Dashboard: React.FC = () => {
         end.setDate(start.getDate() + 6);
         const { data } = await supabase
           .from('user_transactions')
-          .select('amount, date')
+          .select('amount, date, type')
           .eq('user_id', user.id)
+          .eq('type', chartType)
           .gte('date', fmt(start))
           .lte('date', fmt(end));
         const vals = Array(7).fill(0);
@@ -139,8 +141,9 @@ const Dashboard: React.FC = () => {
         const labels = Array.from({ length: weeks }, (_, i) => `Sem${i + 1}`);
         const { data } = await supabase
           .from('user_transactions')
-          .select('amount, date')
+          .select('amount, date, type')
           .eq('user_id', user.id)
+          .eq('type', chartType)
           .gte('date', fmt(first))
           .lte('date', fmt(last));
         const vals = Array(weeks).fill(0);
@@ -158,8 +161,9 @@ const Dashboard: React.FC = () => {
         const to = new Date(selectedYear, 11, 31);
         const { data } = await supabase
           .from('user_transactions')
-          .select('amount, date')
+          .select('amount, date, type')
           .eq('user_id', user.id)
+          .eq('type', chartType)
           .gte('date', fmt(from))
           .lte('date', fmt(to));
         const labels = last12MonthsLabels();
@@ -169,11 +173,11 @@ const Dashboard: React.FC = () => {
           const idx = d.getMonth();
           vals[idx] += Number(t.amount || 0);
         });
-        setChart({ labels, values: normalize(vals) });
+        setChart({ labels, values: normalize(vals), raw: vals });
       }
     };
     buildChart();
-  }, [period, selectedYear, selectedMonth]);
+  }, [period, selectedYear, selectedMonth, chartType]);
 
   
 
@@ -285,8 +289,9 @@ const Dashboard: React.FC = () => {
 
       <motion.section variants={itemVariants}>
         <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-text-primary">Tendências Financeiras</h3>
-            <div className="flex items-center gap-1 rounded-lg bg-surface-dark p-1 border border-surface-light">
+            <h3 className="text-lg font-bold text-text-primary">Gráficos</h3>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 rounded-lg bg-surface-dark p-1 border border-surface-light">
                 <button
                   onClick={() => setPeriod('day')}
                   className={period === 'day' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
@@ -299,24 +304,43 @@ const Dashboard: React.FC = () => {
                   onClick={() => setPeriod('month')}
                   className={period === 'month' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
                 >Mês</button>
+              </div>
+              <button
+                onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
+                className={chartType === 'expense' ? 'rounded px-3 py-1 text-xs font-bold text-white bg-danger shadow-sm' : 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-success shadow-sm'}
+              >{chartType === 'expense' ? 'Saídas' : 'Entradas'}</button>
             </div>
         </div>
         
-        <div className="flex h-56 w-full flex-col justify-end rounded-xl bg-surface-dark/30 p-4 border border-surface-light relative overflow-hidden">
-            <div className="flex h-full w-full items-end justify-between px-2 gap-2">
-              {current.values.map((h, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
-                  transition={{ duration: 1, delay: i * 0.05 }}
-                  className={`flex-1 rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
-                />
-              ))}
+        <div className="flex h-56 w-full flex-col justify-end rounded-xl bg-surface-dark/30 p-4 border border-surface-light relative overflow-visible">
+            <div className="grid grid-cols-12 h-full w-full items-end gap-1">
+              {current.values.map((h, i) => {
+                const rawVal = (chart.raw || current.raw || [])[i] || 0;
+                const labelText = formatBRL(rawVal);
+                const charCount = labelText.replace(/\s/g, '').length;
+                const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
+                return (
+                  <div key={i} className="relative flex flex-col justify-end items-center">
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${h}%` }}
+                      transition={{ duration: 1, delay: i * 0.05 }}
+                      className={`${chartType === 'expense' ? (i === highlightIndex ? 'bg-danger' : 'bg-danger/30') : (i === highlightIndex ? 'bg-primary-green' : 'bg-primary-green/30')} rounded-t-sm relative flex items-center justify-center w-[14px] sm:w-[16px]`}
+                      style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: i === highlightIndex ? 1 : 0.3, minHeight: period === 'month' ? `${minPx}px` : undefined }}
+                    >
+                      {period === 'month' && (
+                        <span className="rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none">
+                          {labelText}
+                        </span>
+                      )}
+                    </motion.div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-white font-medium">
+            <div className="mt-3 grid grid-cols-12 w-full border-t border-surface-light pt-2 text-xs text-white font-medium">
                 {current.labels.map((l, idx) => (
-                  <span key={idx}>{l}</span>
+                  <span key={idx} className="text-center">{l}</span>
                 ))}
             </div>
         </div>

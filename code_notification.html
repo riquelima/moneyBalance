@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Central de Notificações</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#0A0A0A", // Very dark background
+                        secondary: "#D4AF37", // Metallic gold accent
+                        "text-primary": "#E0E0E0", // Light text on dark background
+                        "text-secondary": "#B0B0B0", // Slightly darker secondary text
+                        "background-dark": "#0A0A0A", // Dark background for the body
+                        "input-bg": "#1A1A1A", // Darker input background
+                        "input-border": "#444444", // Subtle border for inputs
+                        "accent-dark": "#2A2A2A", // Used for subtle dividers/shadows
+                        "success": "#22C55E",
+                        "danger": "#EF4444",
+                    },
+                    fontFamily: {
+                        display: "Manrope"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem", // Slightly larger radius for robust feel
+                        lg: "0.75rem",
+                        xl: "1rem",
+                        full: "9999px"
+                    },
+                    boxShadow: {
+                        'metallic': '0 0 15px rgba(212, 175, 55, 0.4)', // Gold glow
+                        'inner-dark': 'inset 0 2px 4px rgba(0,0,0,0.6)', // For robust inputs
+                    },
+                    ringColor: {
+                        'secondary': '#D4AF37', // Gold ring focus
+                    }
+                }
+            }
+        };
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .icon-shadow-danger {
+            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+        }
+        .icon-shadow-warning {
+            filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.6));
+        }
+        .icon-shadow-info {
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display text-text-primary">
+<div class="relative min-h-screen w-full blur-sm dark">
+<div class="flex w-full flex-col p-4 pt-8">
+<header class="flex items-center justify-between pb-8">
+<div class="flex items-center gap-4">
+<img alt="Foto do perfil do usuário" class="h-12 w-12 rounded-full border-2 border-secondary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKnXoNlAsM8TIx6iZ4o_JIlLvgjjzDV8VzsDKj3TChUhRIx3Q_iJcsD7BVqCrrakg-qbESoPOxEnzw77U1ohIy5T1Ytu7GBQgHCNapwuvCO_rIkUhiNBL5Cq2L3suo6kDhrxxuq9v5rt_kp4VMieeYOlw5Cv23gbSG7W2D0IGiDleckXCJ3TwellJNEo_vnPXHtmtEm7S60AFN8B5vIKFADgoH0AZGJS9dhwv9p5ZHP8pjOGZep4SxR9pFDZROCxtdmL0Kwbz_WZk"/>
+<div>
+<p class="text-sm font-medium text-text-secondary">Bem-vindo(a),</p>
+<h1 class="text-xl font-bold text-text-primary">Usuário</h1>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative">
+<span class="material-symbols-outlined text-text-secondary">notifications</span>
+</button>
+<button>
+<span class="material-symbols-outlined text-text-secondary">settings</span>
+</button>
+</div>
+</header>
+<section class="mb-6 rounded-xl bg-accent-dark/30 p-6">
+<p class="text-base font-medium text-text-secondary">Total de Saldo</p>
+<div class="flex items-baseline gap-2">
+<h2 class="text-4xl font-extrabold tracking-tight text-text-primary">R$ 12.456,78</h2>
+</div>
+</section>
+</div>
+</div>
+<div class="absolute inset-0 flex flex-col bg-black/50 backdrop-blur-sm">
+<div class="flex h-full w-full flex-col justify-end">
+<div class="flex h-[95%] w-full flex-col rounded-t-3xl border-t border-input-border bg-background-dark/95">
+<div class="mx-auto mt-4 h-1.5 w-16 rounded-full bg-input-border"></div>
+<header class="flex items-center justify-between p-6">
+<h1 class="text-2xl font-bold text-text-primary">Central de Notificações</h1>
+<button class="text-text-secondary hover:text-secondary">
+<span class="material-symbols-outlined !text-3xl">close</span>
+</button>
+</header>
+<div class="flex-1 overflow-y-auto px-6 pb-6">
+<div class="flex flex-col gap-4">
+<div class="flex items-start gap-4 rounded-xl border border-danger/50 bg-accent-dark/50 p-4">
+<div class="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-danger/20 text-danger icon-shadow-danger">
+<span class="material-symbols-outlined">priority_high</span>
+</div>
+<div class="flex-1">
+<h2 class="font-bold text-text-primary">Vencimento de Fatura</h2>
+<p class="text-sm text-text-secondary">Sua fatura do cartão de crédito no valor de R$ 850,00 vence amanhã.</p>
+<span class="mt-2 inline-block text-xs font-medium text-danger">Urgente</span>
+</div>
+<span class="text-xs text-text-secondary">Agora</span>
+</div>
+<div class="flex items-start gap-4 rounded-xl border border-yellow-500/50 bg-accent-dark/50 p-4">
+<div class="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 icon-shadow-warning">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div class="flex-1">
+<h2 class="font-bold text-text-primary">Alerta de Orçamento</h2>
+<p class="text-sm text-text-secondary">Você atingiu 85% do seu orçamento para a categoria "Restaurantes".</p>
+<span class="mt-2 inline-block text-xs font-medium text-yellow-500">Atenção</span>
+</div>
+<span class="text-xs text-text-secondary">2h atrás</span>
+</div>
+<div class="flex items-start gap-4 rounded-xl border border-blue-500/50 bg-accent-dark/50 p-4">
+<div class="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-500 icon-shadow-info">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<div class="flex-1">
+<h2 class="font-bold text-text-primary">Lembrete de Pagamento</h2>
+<p class="text-sm text-text-secondary">Lembre-se de pagar sua conta de internet. Vencimento em 3 dias.</p>
+<span class="mt-2 inline-block text-xs font-medium text-blue-500">Lembrete</span>
+</div>
+<span class="text-xs text-text-secondary">Ontem</span>
+</div>
+<div class="flex items-start gap-4 rounded-xl border border-transparent bg-accent-dark/30 p-4 opacity-60">
+<div class="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-input-bg text-text-secondary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex-1">
+<h2 class="font-bold text-text-secondary">Transferência Recebida</h2>
+<p class="text-sm text-text-secondary">Você recebeu uma transferência de R$ 250,00 de Maria Silva.</p>
+</div>
+<span class="text-xs text-text-secondary">2 dias</span>
+</div>
+<div class="flex items-start gap-4 rounded-xl border border-transparent bg-accent-dark/30 p-4 opacity-60">
+<div class="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-input-bg text-text-secondary">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div class="flex-1">
+<h2 class="font-bold text-text-secondary">Pagamento Confirmado</h2>
+<p class="text-sm text-text-secondary">Seu pagamento da conta de energia foi processado com sucesso.</p>
+</div>
+<span class="text-xs text-text-secondary">4 dias</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

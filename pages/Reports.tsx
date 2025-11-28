@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { categories as categoryNames } from '../categories';
 
 const Reports: React.FC = () => {
   const navigate = useNavigate();
@@ -20,8 +21,12 @@ const Reports: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const budgetNames = ['Moradia','Contas da casa','Alimentação','Transporte','Saúde','Educação e desenvolvimento','Lazer e social','Imprevistos','Investimentos / economias','Salário','Rendimentos','Dinheiro Extra'];
-  const budgetCats = useMemo(() => budgetNames.map(n => ({ name: n, amount: (categories.find(c => c.name === n)?.amount || 0) })), [categories]);
+  const budgetNames = categoryNames.slice();
+  const incomeNames = ['Salário','Rendimentos','Dinheiro Extra'];
+  const budgetCats = useMemo(() => budgetNames.map(n => {
+    const src = incomeNames.includes(n) ? incomeCategories : categories;
+    return { name: n, amount: (src.find(c => c.name === n)?.amount || 0) };
+  }), [categories, incomeCategories]);
 
   useEffect(() => {
     const ac = new AbortController();

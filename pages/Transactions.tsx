@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { categories } from '../categories';
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +14,34 @@ const Transactions: React.FC = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [monthFilter, setMonthFilter] = useState<number | 'all'>('all');
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const categoryOrder = [...categories, 'Sem Categoria'];
+  const hues = [15, 35, 55, 85, 160, 190, 210, 235, 255, 275, 300, 330, 350];
+  const hashCode = (s: string) => {
+    let h = 7;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h;
+  };
+  const styleForBadge = (n: string) => {
+    if (n === 'Salário') {
+      const hue = 140;
+      return {
+        backgroundColor: `hsla(${hue}, 85%, 55%, 0.15)`,
+        color: `hsl(${hue}, 85%, 60%)`,
+        borderColor: `hsla(${hue}, 85%, 60%, 0.30)`
+      } as React.CSSProperties;
+    }
+    const idx = categoryOrder.indexOf(n);
+    const i = idx >= 0 ? idx : (hashCode(n) % hues.length);
+    const hue = hues[i];
+    return {
+      backgroundColor: `hsla(${hue}, 85%, 55%, 0.15)`,
+      color: `hsl(${hue}, 85%, 60%)`,
+      borderColor: `hsla(${hue}, 85%, 60%, 0.30)`
+    } as React.CSSProperties;
+  };
   const badgeClass = (name: string, typ?: 'income' | 'expense') => {
     const palette: Record<string, string> = {
       'Alimentação': 'bg-primary-green/15 text-primary-green border-primary-green/30',
@@ -81,23 +110,26 @@ const Transactions: React.FC = () => {
   }, [location.key]);
 
   const categoriesForFilter = useMemo(() => {
-    const ids = Array.from(new Set(items.map(i => i.category_id).filter(Boolean))) as string[];
-    const arr = ids.map(id => ({ id, name: catMap[id]?.name || 'Categoria' }));
     const hasNone = items.some(i => !i.category_id);
-    if (hasNone) arr.unshift({ id: 'none', name: 'Sem Categoria' });
-    return arr;
-  }, [items, catMap]);
+    const names = hasNone ? (['Sem Categoria', ...categories]) : categories.slice();
+    return names;
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     let arr = items.slice();
     if (statusFilter === 'paid') arr = arr.filter(t => t.is_paid);
     if (statusFilter === 'pending') arr = arr.filter(t => !t.is_paid);
+    if (typeFilter !== 'all') arr = arr.filter(t => t.type === typeFilter);
+    if (monthFilter !== 'all') arr = arr.filter(t => new Date(t.date).getMonth() === monthFilter);
     if (categoryFilter !== 'all') {
-      if (categoryFilter === 'none') arr = arr.filter(t => !t.category_id);
-      else arr = arr.filter(t => t.category_id === categoryFilter);
+      if (categoryFilter === 'Sem Categoria') arr = arr.filter(t => !t.category_id);
+      else arr = arr.filter(t => {
+        const nm = t.category_id ? catMap[t.category_id]?.name : null;
+        return nm === categoryFilter;
+      });
     }
     return arr;
-  }, [items, statusFilter, categoryFilter]);
+  }, [items, statusFilter, typeFilter, monthFilter, categoryFilter]);
 
   const grouped = useMemo(() => {
     const acc: Record<string, typeof items> = {} as any;
@@ -142,17 +174,21 @@ const Transactions: React.FC = () => {
             className="w-full bg-transparent text-text-primary placeholder:text-text-secondary outline-none border-none focus:ring-0 p-0"
           />
         </div>
-        {((statusFilter !== 'all') || (categoryFilter !== 'all')) && (
+        {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (categoryFilter !== 'all')) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {statusFilter !== 'all' && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
             )}
-            {categoryFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">
-                {categoryFilter === 'none' ? 'Sem Categoria' : (catMap[categoryFilter]?.name || 'Categoria')}
-              </span>
+            {typeFilter !== 'all' && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
             )}
-            <button onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/10 text-danger border border-danger/30">Limpar</button>
+            {monthFilter !== 'all' && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{monthNames[monthFilter as number]}</span>
+            )}
+            {categoryFilter !== 'all' && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{categoryFilter}</span>
+            )}
+            <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/10 text-danger border border-danger/30">Limpar</button>
           </div>
         )}
       </div>
@@ -224,11 +260,12 @@ const Transactions: React.FC = () => {
                       {(() => {
                         const cat = t.category_id ? catMap[t.category_id as string] : null;
                         const name = cat?.name || 'Sem Categoria';
-                        const klass = badgeClass(name, cat?.type);
+                        const style = styleForBadge(name);
                         return (
-                          <span className={`mt-0 inline-flex w-fit self-start items-center px-1 py-0 rounded-full text-[10px] leading-none font-semibold border ${klass}`}>{name}</span>
+                          <span className={`mt-0 inline-flex w-fit self-start items-center px-1 py-0 rounded-full text-[10px] leading-none font-semibold border`} style={style}>{name}</span>
                         );
                       })()}
+                      <p className="mt-1 text-xs text-text-secondary">Prazo: {new Date(t.date).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <p className={`font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'} self-center`}>
                       {formatBRL(Number(t.amount))}
@@ -265,6 +302,40 @@ const Transactions: React.FC = () => {
               </div>
             </div>
             <div className="mb-4">
+              <p className="text-sm font-bold mb-2">Tipo</p>
+              <div className="grid grid-cols-3 gap-2">
+                {['all','income','expense'].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter(t as any)}
+                    className={`px-3 py-2 rounded-lg text-sm border ${typeFilter === t ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                  >
+                    {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm font-bold mb-2">Mês</p>
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  onClick={() => setMonthFilter('all')}
+                  className={`px-3 py-2 rounded-lg text-sm border ${monthFilter === 'all' ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                >
+                  Todos
+                </button>
+                {monthNames.map((m, idx) => (
+                  <button
+                    key={m}
+                    onClick={() => setMonthFilter(idx)}
+                    className={`px-3 py-2 rounded-lg text-sm border ${monthFilter === idx ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
               <p className="text-sm font-bold mb-2">Categoria</p>
               <div className="grid grid-cols-3 gap-2">
                 <button
@@ -273,19 +344,19 @@ const Transactions: React.FC = () => {
                 >
                   Todas
                 </button>
-                {categoriesForFilter.map((c) => (
+                {categoriesForFilter.map((name) => (
                   <button
-                    key={c.id}
-                    onClick={() => setCategoryFilter(c.id)}
-                    className={`px-3 py-2 rounded-lg text-sm border ${categoryFilter === c.id ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                    key={name}
+                    onClick={() => setCategoryFilter(name)}
+                    className={`px-3 py-2 rounded-lg text-sm border ${categoryFilter === name ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
                   >
-                    {c.name}
+                    {name}
                   </button>
                 ))}
               </div>
             </div>
             <div className="mt-6 flex gap-3">
-              <button onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Limpar</button>
+              <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Limpar</button>
               <button onClick={() => setShowFilter(false)} className="flex-1 rounded-xl bg-primary-green py-3 font-bold text-background-dark">Aplicar</button>
             </div>
           </motion.div>
