@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (period === 'month') {
-      const start = Math.max(0, (chart.labels.length || 0) - 4);
+      const start = Math.max(0, (chart.labels.length || 0) - 3);
       setMonthViewportStart(start);
     }
   }, [period, chart.labels]);
@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
             </div>
         </div>
         <div className="flex items-center gap-4">
-            <button className="relative p-2 rounded-full hover:bg-surface-light transition-colors">
+            <button onClick={() => navigate('/notifications')} className="relative p-2 rounded-full hover:bg-surface-light transition-colors">
                 <span className="material-symbols-outlined text-text-secondary">notifications</span>
                 <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-background-dark"></span>
             </button>
@@ -304,32 +304,40 @@ const Dashboard: React.FC = () => {
                   dragElastic={0.05}
                   dragMomentum={false}
                   onDragEnd={(e, info) => {
-                    if (info.offset.x < -40 && monthViewportStart < Math.max(0, current.values.length - 4)) {
-                      setMonthViewportStart(s => Math.min(s + 1, Math.max(0, current.values.length - 4)));
+                    if (info.offset.x < -40 && monthViewportStart < Math.max(0, current.values.length - 3)) {
+                      setMonthViewportStart(s => Math.min(s + 1, Math.max(0, current.values.length - 3)));
                     } else if (info.offset.x > 40 && monthViewportStart > 0) {
                       setMonthViewportStart(s => Math.max(s - 1, 0));
                     }
                   }}
                 >
                   <div className="flex h-56 items-end justify-between px-2 gap-2">
-                    {current.values.slice(monthViewportStart, monthViewportStart + 4).map((h, i) => {
-                      const globalIndex = monthViewportStart + i;
-                      const isHighlight = globalIndex === current.labels.length - 1;
-                      return (
-                        <motion.div
-                          key={globalIndex}
-                          initial={{ height: 0 }}
-                          animate={{ height: `${h}%` }}
-                          transition={{ duration: 0.6, delay: i * 0.05 }}
-                          className={`w-full rounded-t-sm ${isHighlight ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
-                        />
-                      );
-                    })}
+                    {(() => {
+                      const sliceVals = current.values.slice(monthViewportStart, monthViewportStart + 3);
+                      const vals = sliceVals.slice().reverse();
+                      return vals.map((h, i) => {
+                        const globalIndex = monthViewportStart + (sliceVals.length - 1 - i);
+                        const isHighlight = globalIndex === current.labels.length - 1;
+                        return (
+                          <motion.div
+                            key={globalIndex}
+                            initial={{ height: 0 }}
+                            animate={{ height: `${h}%` }}
+                            transition={{ duration: 0.6, delay: i * 0.05 }}
+                            className={`w-full rounded-t-sm ${isHighlight ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                          />
+                        );
+                      });
+                    })()}
                   </div>
                   <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
-                    {current.labels.slice(monthViewportStart, monthViewportStart + 4).map((l, idx) => (
-                      <span key={`${monthViewportStart}-${idx}`}>{l}</span>
-                    ))}
+                    {(() => {
+                      const sliceLabs = current.labels.slice(monthViewportStart, monthViewportStart + 3);
+                      const labs = sliceLabs.slice().reverse();
+                      return labs.map((l, idx) => (
+                        <span key={`${monthViewportStart}-${idx}`}>{l}</span>
+                      ));
+                    })()}
                   </div>
                 </motion.div>
               ) : (

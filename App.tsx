@@ -13,6 +13,7 @@ import CategoryExpenses from './pages/CategoryExpenses';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import AddTransaction from './pages/AddTransaction';
+import Notifications from './pages/Notifications';
 
 // Components
 import BottomNav from './components/BottomNav';
@@ -51,6 +52,7 @@ const AnimatedRoutes: React.FC = () => {
         
         {/* Full Screen Modal Routes */}
         <Route path="/add-transaction" element={<AddTransaction />} />
+        <Route path="/notifications" element={<Notifications />} />
         
       </Routes>
     </AnimatePresence>
