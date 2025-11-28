@@ -6,9 +6,31 @@ import { supabase } from '../supabaseClient';
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [items, setItems] = useState<Array<{ id: string; description: string | null; amount: number; type: 'income' | 'expense'; date: string; is_paid: boolean }>>([]);
+  const [items, setItems] = useState<Array<{ id: string; description: string | null; amount: number; type: 'income' | 'expense'; date: string; is_paid: boolean; category_id: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [catMap, setCatMap] = useState<Record<string, { name: string; type: 'income' | 'expense' }>>({});
+  const badgeClass = (name: string, typ?: 'income' | 'expense') => {
+    const palette: Record<string, string> = {
+      'Alimentação': 'bg-primary-green/15 text-primary-green border-primary-green/30',
+      'Transporte': 'bg-primary-blue/15 text-primary-blue border-primary-blue/30',
+      'Lazer': 'bg-warning/15 text-warning border-warning/30',
+      'Lazer e social': 'bg-warning/15 text-warning border-warning/30',
+      'Moradia': 'bg-primary/15 text-primary border-primary/30',
+      'Contas da casa': 'bg-primary-teal/15 text-primary-teal border-primary-teal/30',
+      'Saúde': 'bg-success/15 text-success border-success/30',
+      'Educação e desenvolvimento': 'bg-surface-light/20 text-text-primary border-surface-light/40',
+      'Imprevistos': 'bg-danger/15 text-danger border-danger/30',
+      'Investimentos / economias': 'bg-primary-blue/15 text-primary-blue border-primary-blue/30',
+      'Salário': 'bg-success/15 text-success border-success/30',
+      'Rendimentos': 'bg-primary-teal/15 text-primary-teal border-primary-teal/30',
+      'Dinheiro Extra': 'bg-primary-green/15 text-primary-green border-primary-green/30',
+    };
+    if (palette[name]) return palette[name];
+    return typ === 'income'
+      ? 'bg-success/15 text-success border-success/30'
+      : 'bg-danger/15 text-danger border-danger/30';
+  };
 
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const labelForDate = (iso: string) => {
@@ -29,12 +51,24 @@ const Transactions: React.FC = () => {
       if (!user) { setItems([]); setLoading(false); return; }
       const { data, error } = await supabase
         .from('user_transactions')
-        .select('id, description, amount, type, date, is_paid')
+        .select('id, description, amount, type, date, is_paid, category_id')
         .eq('user_id', user.id)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false });
       if (!error && data) {
         setItems(data as any);
+        const ids = Array.from(new Set((data as any[]).map((x: any) => x.category_id).filter(Boolean)));
+        if (ids.length) {
+          const { data: cats } = await supabase
+            .from('user_categories')
+            .select('id, name, type')
+            .in('id', ids);
+          const m: Record<string, { name: string; type: 'income' | 'expense' }> = {};
+          (cats || []).forEach((c: any) => { if (c?.id) m[c.id as string] = { name: String(c.name || 'Categoria'), type: (c.type as any) || 'expense' }; });
+          setCatMap(m);
+        } else {
+          setCatMap({});
+        }
       } else {
         setItems([]);
       }
@@ -62,13 +96,12 @@ const Transactions: React.FC = () => {
       <header className="sticky top-0 z-10 flex items-center justify-between bg-background-dark/80 backdrop-blur-md p-4 border-b border-surface-light">
         <div className="w-10"></div>
         <h1 className="text-lg font-bold">Transações</h1>
-        <button className="flex w-10 items-center justify-center text-primary">
-          <span
-            className="material-symbols-outlined text-3xl"
-            onClick={() => navigate('/add-transaction')}
-          >
-            add_circle
-          </span>
+        <button
+          type="button"
+          onClick={() => navigate('/add-transaction')}
+          className="flex w-10 items-center justify-center text-primary"
+        >
+          <span className="material-symbols-outlined text-3xl">add_circle</span>
         </button>
       </header>
 
@@ -89,7 +122,13 @@ const Transactions: React.FC = () => {
         ) : items.length === 0 ? (
           <div className="px-6 py-12 text-center text-text-secondary">
             <p>Nenhuma transação cadastrada.</p>
-            <button onClick={() => navigate('/add-transaction')} className="mt-2 text-primary hover:underline">Adicionar transação</button>
+            <button
+              type="button"
+              onClick={() => navigate('/add-transaction')}
+              className="mt-2 text-primary hover:underline"
+            >
+              Adicionar transação
+            </button>
           </div>
         ) : (
           Object.entries(grouped).map(([date, groupItems], groupIndex) => (
@@ -99,10 +138,14 @@ const Transactions: React.FC = () => {
                 <div key={t.id} className="relative overflow-hidden">
                   <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-4 z-0">
                     <button
+                      type="button"
                       onClick={() => navigate(`/add-transaction?edit=${t.id}`)}
-                      className="px-3 py-1 rounded-lg bg-primary text-background-dark text-xs font-bold"
-                    >Editar</button>
+                      className="px-2 py-1 rounded-lg bg-primary text-background-dark text-xs font-bold flex items-center"
+                    >
+                      <img src="https://cdn-icons-png.flaticon.com/512/860/860814.png" alt="Editar" className="h-4 w-4" />
+                    </button>
                     <button
+                      type="button"
                       onClick={async () => {
                         const { error } = await supabase
                           .from('user_transactions')
@@ -113,8 +156,10 @@ const Transactions: React.FC = () => {
                           setOpenId(null);
                         }
                       }}
-                      className="px-3 py-1 rounded-lg bg-danger text-white text-xs font-bold"
-                    >Excluir</button>
+                      className="px-2 py-1 rounded-lg bg-danger text-white text-xs font-bold flex items-center"
+                    >
+                      <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" alt="Excluir" className="h-4 w-4" />
+                    </button>
                   </div>
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
@@ -130,14 +175,21 @@ const Transactions: React.FC = () => {
                     }}
                     className="relative z-10 flex items-center gap-4 px-6 py-4 bg-background-dark hover:bg-surface-dark/80 active:bg-surface-dark/80 transition-colors border-b border-surface-light/30 last:border-0"
                   >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-light text-text-primary">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-light text-text-primary self-center">
                     <span className={`material-symbols-outlined ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
                   </div>
                     <div className="flex flex-1 flex-col">
                       <p className="font-medium text-text-primary line-clamp-1">{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
-                      <p className="text-xs text-text-secondary">{t.is_paid ? 'Pago' : 'Pendente'}</p>
+                      {(() => {
+                        const cat = t.category_id ? catMap[t.category_id as string] : null;
+                        const name = cat?.name || 'Sem Categoria';
+                        const klass = badgeClass(name, cat?.type);
+                        return (
+                          <span className={`mt-0 inline-flex w-fit self-start items-center px-1 py-0 rounded-full text-[10px] leading-none font-semibold border ${klass}`}>{name}</span>
+                        );
+                      })()}
                     </div>
-                    <p className={`font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
+                    <p className={`font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'} self-center`}>
                       {formatBRL(Number(t.amount))}
                     </p>
                   </motion.div>

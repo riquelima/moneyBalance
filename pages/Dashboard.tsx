@@ -10,6 +10,7 @@ const Dashboard: React.FC = () => {
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0 });
   const [displayName, setDisplayName] = useState<string>('Usuário');
+  const [avatarUrl, setAvatarUrl] = useState<string>('https://picsum.photos/100/100');
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const [chart, setChart] = useState<{ values: number[]; labels: string[] }>({ values: [], labels: [] });
 
@@ -52,16 +53,29 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const loadSummary = async () => {
-      const { data, error } = await supabase.rpc('get_balance_summary');
-      if (!error && data) {
-        const r = Array.isArray(data) ? (data[0] || {}) : (data as any);
-        setSummary({
-          income: Number(r.total_income || 0),
-          expense: Number(r.total_expense || 0),
-          pending: Number(r.pending_expense || 0),
-          balance: Number(r.balance || 0)
-        });
-      }
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const fmt = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dd}`;
+      };
+      const now = new Date();
+      const startCur = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endCur = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const { data: tx } = await supabase
+        .from('user_transactions')
+        .select('amount, type, is_paid, date')
+        .eq('user_id', user.id)
+        .gte('date', fmt(startCur))
+        .lte('date', fmt(endCur));
+      const income = (tx || []).filter((t: any) => t.type === 'income').reduce((a: number, t: any) => a + Number(t.amount), 0);
+      const expense = (tx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
+      const pending = (tx || []).filter((t: any) => t.type === 'expense' && !t.is_paid).reduce((a: number, t: any) => a + Number(t.amount), 0);
+      const balance = income - expense;
+      setSummary({ income, expense, pending, balance });
     };
 
     const loadProfile = async () => {
@@ -75,10 +89,11 @@ const Dashboard: React.FC = () => {
         // Try user_profiles if available
         const { data: prof } = await supabase
           .from('user_profiles')
-          .select('display_name')
+          .select('display_name, avatar_url')
           .eq('id', user.id)
           .maybeSingle();
         setDisplayName((prof?.display_name as string) || (metaName && metaLast ? `${metaName} ${metaLast}` : candidate));
+        if (prof?.avatar_url) setAvatarUrl(prof.avatar_url as string);
       }
     };
 
@@ -198,7 +213,7 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center gap-4">
             <motion.img 
                 whileHover={{ scale: 1.1 }}
-                src="https://picsum.photos/100/100" 
+                src={avatarUrl}
                 alt="Profile" 
                 className="h-12 w-12 rounded-full border-2 border-primary object-cover"
                 onClick={() => navigate('/settings')}

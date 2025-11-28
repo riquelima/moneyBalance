@@ -74,7 +74,7 @@ const Settings: React.FC = () => {
       <div className="px-4">
         <SectionHeader title="Conta" />
         <div className="flex flex-col rounded-xl overflow-hidden border border-surface-light">
-             <div className="flex items-center gap-4 p-4 bg-surface-dark border-b border-surface-light">
+             <div className="flex items-center gap-4 p-4 bg-surface-dark">
                 <button
                   onClick={() => fileRef.current?.click()}
                   className="rounded-full overflow-hidden h-14 w-14 border border-surface-light"
@@ -95,13 +95,14 @@ const Settings: React.FC = () => {
                     if (!user) return;
                     const ext = file.name.split('.').pop() || 'jpg';
                     const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-                    const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+                    const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' });
                     if (upErr) return;
                     const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
                     const url = pub?.publicUrl || '';
-                    await supabase
+                    const { error: profErr } = await supabase
                       .from('user_profiles')
                       .upsert({ id: user.id, avatar_url: url }, { onConflict: 'id' });
+                    if (profErr) return;
                     setProfile((p) => p ? { ...p, avatarUrl: url } : p);
                   }}
                 />
@@ -110,7 +111,6 @@ const Settings: React.FC = () => {
                     <p className="text-sm text-text-secondary">{profile?.email || ''}</p>
                 </div>
              </div>
-             <SettingItem icon="workspace_premium" label="Gerenciar Assinatura" />
         </div>
 
         <SectionHeader title="Segurança" />
