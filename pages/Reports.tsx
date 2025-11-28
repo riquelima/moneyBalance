@@ -10,6 +10,12 @@ const Reports: React.FC = () => {
   const [lastMonthTotal, setLastMonthTotal] = useState(0);
   const [categories, setCategories] = useState<Array<{ name: string; amount: number }>>([]);
   const [projection, setProjection] = useState<{ labels: string[]; values: number[]; total: number; percent: number }>({ labels: [], values: [], total: 0, percent: 0 });
+  const [budgets, setBudgets] = useState<Record<string, number>>({});
+  const [editingCat, setEditingCat] = useState<string | null>(null);
+  const [tempLimit, setTempLimit] = useState<string>('');
+  const [budgetsStart, setBudgetsStart] = useState(0);
+  const budgetNames = ['Moradia','Contas da casa','Alimentação','Transporte','Saúde','Educação e desenvolvimento','Lazer e social','Imprevistos','Investimentos / economias'];
+  const budgetCats = useMemo(() => budgetNames.map(n => ({ name: n, amount: (categories.find(c => c.name === n)?.amount || 0) })), [categories]);
 
   useEffect(() => {
     const load = async () => {
@@ -90,6 +96,21 @@ const Reports: React.FC = () => {
     load();
   }, []);
 
+  useEffect(() => {
+    const s = localStorage.getItem('budgets_limits_v1');
+    if (s) {
+      try { setBudgets(JSON.parse(s)); } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('budgets_limits_v1', JSON.stringify(budgets)); } catch {}
+  }, [budgets]);
+
+  useEffect(() => {
+    setBudgetsStart(0);
+  }, [categories.length]);
+
   const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const changePct = useMemo(() => {
     if (!lastMonthTotal) return 0;
@@ -167,9 +188,87 @@ const Reports: React.FC = () => {
       {/* Budgets */}
       <section>
         <h2 className="text-2xl font-bold mb-4">Orçamentos</h2>
-        <div className="rounded-xl bg-surface-dark p-4 border border-surface-light text-text-secondary">
-          <p className="text-center">Nenhum orçamento cadastrado.</p>
-        </div>
+        <motion.div
+          key={`budgets-viewport-${budgetsStart}`}
+          className="flex flex-col gap-4"
+          drag="y"
+          dragConstraints={{ top: -80, bottom: 80 }}
+          dragElastic={0.05}
+          dragMomentum={false}
+          onDragEnd={(e, info) => {
+            const total = budgetCats.length;
+            const visible = 3;
+            if (info.offset.y > 30 && budgetsStart < Math.max(0, total - visible)) {
+              setBudgetsStart(s => Math.min(s + 1, Math.max(0, total - visible)));
+            } else if (info.offset.y < -30 && budgetsStart > 0) {
+              setBudgetsStart(s => Math.max(s - 1, 0));
+            }
+          }}
+        >
+          {budgetCats.slice(budgetsStart, budgetsStart + 3).map((c) => {
+            const limit = Number(budgets[c.name] || 0);
+            const spent = Number(c.amount || 0);
+            const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
+            const bar = pct >= 90 ? 'bg-warning' : 'bg-primary-green';
+            const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / Definir`;
+            return (
+              <button
+                key={c.name}
+                onClick={() => { setEditingCat(c.name); setTempLimit(limit ? String(limit) : ''); }}
+                className="rounded-xl bg-surface-dark p-4 border border-surface-light text-text-primary text-left hover:border-text-secondary/40 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-bold">{c.name}</p>
+                  <p className="text-sm text-text-secondary font-medium">{right}</p>
+                </div>
+                <div className="mt-3 h-2 w-full rounded-full bg-surface-light">
+                  <div className={`h-2 rounded-full ${bar}`} style={{ width: `${pct}%` }}></div>
+                </div>
+              </button>
+            );
+          })}
+          {budgetCats.length === 0 && (
+            <div className="rounded-xl bg-surface-dark p-4 border border-surface-light text-text-secondary">
+              <p className="text-center">Nenhum orçamento cadastrado.</p>
+            </div>
+          )}
+        </motion.div>
+        {editingCat && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
+            <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md rounded-2xl bg-background-dark p-6 border border-surface-light">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold">Definir limite</h3>
+                <button onClick={() => setEditingCat(null)} className="text-text-secondary">
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <p className="text-sm text-text-secondary mb-3">{editingCat}</p>
+              <input
+                type="text"
+                value={tempLimit}
+                onChange={(e) => setTempLimit(e.target.value)}
+                placeholder="Ex: 800"
+                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <div className="mt-6 mb-1 flex gap-3">
+                <button onClick={() => setEditingCat(null)} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Cancelar</button>
+                <button
+                  onClick={() => {
+                    const n = Number(String(tempLimit).replace(/[^0-9.,]/g, '').replace(',', '.'));
+                    if (!Number.isNaN(n) && n >= 0 && editingCat) {
+                      setBudgets((b) => ({ ...b, [editingCat]: n }));
+                      setEditingCat(null);
+                      setTempLimit('');
+                    }
+                  }}
+                  className="flex-1 rounded-xl bg-primary-green py-3 font-bold text-background-dark"
+                >
+                  Salvar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </section>
 
       {/* AI FAB */}

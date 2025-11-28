@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0 });
   const [displayName, setDisplayName] = useState<string>('Usuário');
-  const [avatarUrl, setAvatarUrl] = useState<string>('https://picsum.photos/100/100');
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const [chart, setChart] = useState<{ values: number[]; labels: string[] }>({ values: [], labels: [] });
   const [monthViewportStart, setMonthViewportStart] = useState(0);
@@ -219,13 +219,14 @@ const Dashboard: React.FC = () => {
     >
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-            <motion.img 
-                whileHover={{ scale: 1.1 }}
+            {avatarUrl && (
+              <img 
                 src={avatarUrl}
                 alt="Profile" 
                 className="h-12 w-12 rounded-full border-2 border-primary object-cover"
                 onClick={() => navigate('/settings')}
-            />
+              />
+            )}
             <div>
                 <p className="text-sm font-medium text-text-secondary">Bem-vindo(a),</p>
                 <h1 className="text-xl font-bold text-text-primary">{displayName}</h1>
