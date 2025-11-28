@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
@@ -15,6 +15,10 @@ const AddTransaction: React.FC = () => {
   const [categoryName, setCategoryName] = useState<string>('');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerYear, setPickerYear] = useState<number>(new Date().getFullYear());
+  const [pickerMonth, setPickerMonth] = useState<number>(new Date().getMonth());
   const categories = [
     'Moradia',
     'Contas da casa',
@@ -24,13 +28,37 @@ const AddTransaction: React.FC = () => {
     'Educação e desenvolvimento',
     'Lazer e social',
     'Imprevistos',
-    'Investimentos / economias'
+    'Investimentos / economias',
+    'Salário',
+    'Rendimentos',
+    'Dinheiro Extra'
   ];
 
   // Colors based on type
   const activeColor = type === 'expense' ? '#FF455F' : '#00D68F'; // Pink/Red for expense, Green for income
   const activeClass = type === 'expense' ? 'bg-[#FF455F]' : 'bg-[#00D68F]';
   const textClass = type === 'expense' ? 'text-[#FF455F]' : 'text-[#00D68F]';
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const isSameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const displayDateLabel = useMemo(() => {
+    const today = new Date();
+    return isSameDay(selectedDate, today) ? 'Hoje' : selectedDate.toLocaleDateString('pt-BR');
+  }, [selectedDate]);
+  const toLocalISO = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  };
+  const monthGrid = useMemo(() => {
+    const first = new Date(pickerYear, pickerMonth, 1);
+    const startDowMonday = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(pickerYear, pickerMonth + 1, 0).getDate();
+    const arr: (number | null)[] = Array(startDowMonday).fill(null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
+    while (arr.length % 7 !== 0) arr.push(null);
+    if (arr.length < 42) while (arr.length < 42) arr.push(null);
+    return arr;
+  }, [pickerYear, pickerMonth]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -123,6 +151,53 @@ const AddTransaction: React.FC = () => {
                         className="bg-transparent border-none p-0 text-6xl font-bold text-white placeholder-text-secondary/30 focus:ring-0 w-48 text-center"
                     />
                 </div>
+                {showDatePicker && (
+                  <div className="mt-3 w-full max-w-full rounded-2xl bg-[#2C2C2E] border border-surface-light p-3 sm:p-4 select-none">
+                    <div className="flex items-center justify-between mb-3">
+                      <button
+                        onClick={() => {
+                          const m = pickerMonth - 1; const y = pickerYear + (m < 0 ? -1 : 0);
+                          setPickerYear(y); setPickerMonth((m + 12) % 12);
+                        }}
+                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-surface-dark border border-surface-light text-text-secondary flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined">chevron_left</span>
+                      </button>
+                      <span className="text-white font-semibold text-sm sm:text-base">{monthNames[pickerMonth]} {pickerYear}</span>
+                      <button
+                        onClick={() => {
+                          const m = pickerMonth + 1; const y = pickerYear + (m > 11 ? 1 : 0);
+                          setPickerYear(y); setPickerMonth(m % 12);
+                        }}
+                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-surface-dark border border-surface-light text-text-secondary flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined">chevron_right</span>
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-[2px] sm:gap-1 text-[11px] sm:text-xs text-text-secondary mb-2">
+                      {['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d => (
+                        <div key={d} className="text-center">{d}</div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-7 gap-[2px] sm:gap-1">
+                      {monthGrid.map((d, i) => {
+                        if (!d) return <div key={i} className="h-9 sm:h-10 rounded-lg bg-surface-dark/40" />;
+                        const curr = new Date(pickerYear, pickerMonth, d);
+                        const isSel = isSameDay(curr, selectedDate);
+                        const isToday = isSameDay(curr, new Date());
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => { setSelectedDate(curr); setShowDatePicker(false); }}
+                            className={`h-9 sm:h-10 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center border ${isSel ? 'bg-primary text-background-dark border-primary' : 'bg-surface-dark text-white border-surface-light'} ${isToday && !isSel ? 'ring-1 ring-primary' : ''}`}
+                          >
+                            {String(d)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
             </div>
 
             {/* Form Fields */}
@@ -162,10 +237,10 @@ const AddTransaction: React.FC = () => {
                 )}
 
                 <div className="flex gap-4">
-                     {/* Date */}
-                    <button className="flex-1 h-14 rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
+                    {/* Date */}
+                    <button onClick={() => setShowDatePicker(v => !v)} className="flex-1 h-14 rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
                         <span className="text-xs text-text-secondary">Data</span>
-                        <span className="text-white font-medium">Hoje</span>
+                        <span className="text-white font-medium">{displayDateLabel}</span>
                     </button>
 
                     {/* Paid Toggle */}
@@ -207,8 +282,7 @@ const AddTransaction: React.FC = () => {
                     setSaving(false);
                     return;
                   }
-                  const today = new Date();
-                  const dateStr = today.toISOString().slice(0, 10);
+                  const dateStr = toLocalISO(selectedDate);
                   let categoryId: string | null = null;
                   if (categoryName) {
                     const { data: catData, error: catErr } = await supabase

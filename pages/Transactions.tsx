@@ -128,11 +128,11 @@ const Transactions: React.FC = () => {
                     onDragEnd={(e, info) => {
                       setOpenId(info.offset.x < -60 ? t.id : null);
                     }}
-                    className="relative z-10 flex items-center gap-4 px-6 py-4 hover:bg-surface-dark/30 active:bg-surface-dark/50 transition-colors border-b border-surface-light/30 last:border-0"
+                    className="relative z-10 flex items-center gap-4 px-6 py-4 bg-background-dark hover:bg-surface-dark/80 active:bg-surface-dark/80 transition-colors border-b border-surface-light/30 last:border-0"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-light text-text-primary">
-                      <span className="material-symbols-outlined">{t.type === 'income' ? 'south' : 'north'}</span>
-                    </div>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-light text-text-primary">
+                    <span className={`material-symbols-outlined ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
+                  </div>
                     <div className="flex flex-1 flex-col">
                       <p className="font-medium text-text-primary line-clamp-1">{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
                       <p className="text-xs text-text-secondary">{t.is_paid ? 'Pago' : 'Pendente'}</p>

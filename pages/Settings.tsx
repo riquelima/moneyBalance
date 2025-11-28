@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ name: string; lastName: string; email: string; avatarUrl: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const email = user.email || '';
+      const metaName = (user.user_metadata?.name as string) || '';
+      const metaLast = (user.user_metadata?.lastName as string) || '';
+      const { data: prof } = await supabase
+        .from('user_profiles')
+        .select('display_name, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      let name = metaName;
+      let lastName = metaLast;
+      if (!name && prof?.display_name) {
+        const parts = String(prof.display_name).split(' ');
+        name = parts[0] || '';
+        lastName = parts.slice(1).join(' ');
+      }
+      setProfile({ name: name || email.split('@')[0], lastName: lastName || '', email, avatarUrl: (prof as any)?.avatar_url || 'https://picsum.photos/100/100' });
+    };
+    load();
+  }, []);
 
   const SectionHeader = ({ title }: { title: string }) => (
     <h2 className="px-4 pt-6 pb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">{title}</h2>
@@ -47,10 +75,39 @@ const Settings: React.FC = () => {
         <SectionHeader title="Conta" />
         <div className="flex flex-col rounded-xl overflow-hidden border border-surface-light">
              <div className="flex items-center gap-4 p-4 bg-surface-dark border-b border-surface-light">
-                <img src="https://picsum.photos/100/100" alt="Avatar" className="h-14 w-14 rounded-full" />
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="rounded-full overflow-hidden h-14 w-14 border border-surface-light"
+                  title="Alterar foto"
+                >
+                  <img src={profile?.avatarUrl || 'https://picsum.photos/100/100'} alt="Avatar" className="h-14 w-14 object-cover" />
+                </button>
+                <input 
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const { data: userData } = await supabase.auth.getUser();
+                    const user = userData?.user;
+                    if (!user) return;
+                    const ext = file.name.split('.').pop() || 'jpg';
+                    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+                    const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+                    if (upErr) return;
+                    const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+                    const url = pub?.publicUrl || '';
+                    await supabase
+                      .from('user_profiles')
+                      .upsert({ id: user.id, avatar_url: url }, { onConflict: 'id' });
+                    setProfile((p) => p ? { ...p, avatarUrl: url } : p);
+                  }}
+                />
                 <div>
-                    <p className="font-bold">João Silva</p>
-                    <p className="text-sm text-text-secondary">joao.silva@email.com</p>
+                    <p className="font-bold">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'Usuário'}</p>
+                    <p className="text-sm text-text-secondary">{profile?.email || ''}</p>
                 </div>
              </div>
              <SettingItem icon="workspace_premium" label="Gerenciar Assinatura" />
