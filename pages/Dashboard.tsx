@@ -13,7 +13,9 @@ const Dashboard: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const [chart, setChart] = useState<{ values: number[]; labels: string[] }>({ values: [], labels: [] });
-  const [monthViewportStart, setMonthViewportStart] = useState(0);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [showMonthPicker, setShowMonthPicker] = useState<boolean>(false);
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[] }> = {
     day: {
@@ -26,10 +28,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getWeeksOfCurrentMonth = (): { values: number[]; labels: string[] } => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+  const getWeeksOfMonth = (year: number, month: number): { values: number[]; labels: string[] } => {
     const first = new Date(year, month, 1);
     const last = new Date(year, month + 1, 0);
     const startDowMonday = (first.getDay() + 6) % 7;
@@ -40,17 +39,11 @@ const Dashboard: React.FC = () => {
     return { values, labels };
   };
 
-  const last12MonthsLabels = (): string[] => {
-    const now = new Date();
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
-      return monthNames[d.getMonth()];
-    });
-  };
+  const last12MonthsLabels = (): string[] => monthNames.slice();
 
-  const current = chart.labels.length ? chart : (period === 'week' ? getWeeksOfCurrentMonth() : (period === 'month' ? { labels: last12MonthsLabels(), values: Array(12).fill(6) } : dataMap.day));
+  const current = chart.labels.length ? chart : (period === 'week' ? getWeeksOfMonth(selectedYear, selectedMonth) : (period === 'month' ? { labels: last12MonthsLabels(), values: Array(12).fill(6) } : dataMap.day));
   const now = new Date();
-  const highlightIndex = period === 'month' ? Math.max(0, current.labels.length - 1) : 3;
+  const highlightIndex = period === 'month' ? selectedMonth : 3;
 
   useEffect(() => {
     const loadSummary = async () => {
@@ -63,9 +56,8 @@ const Dashboard: React.FC = () => {
         const dd = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${dd}`;
       };
-      const now = new Date();
-      const startCur = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endCur = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const startCur = new Date(selectedYear, selectedMonth, 1);
+      const endCur = new Date(selectedYear, selectedMonth + 1, 0);
       const { data: tx } = await supabase
         .from('user_transactions')
         .select('amount, type, is_paid, date')
@@ -100,7 +92,7 @@ const Dashboard: React.FC = () => {
 
     loadSummary();
     loadProfile();
-  }, [location.key]);
+  }, [location.key, selectedYear, selectedMonth]);
 
   useEffect(() => {
     const fmt = (d: Date) => d.toISOString().slice(0, 10);
@@ -114,7 +106,7 @@ const Dashboard: React.FC = () => {
       const user = userData?.user;
       if (!user) {
         if (period === 'month') setChart({ labels: last12MonthsLabels(), values: Array(12).fill(6) });
-        else if (period === 'week') setChart(getWeeksOfCurrentMonth());
+        else if (period === 'week') setChart(getWeeksOfMonth(selectedYear, selectedMonth));
         else setChart(dataMap.day);
         return;
       }
@@ -139,11 +131,8 @@ const Dashboard: React.FC = () => {
         });
         setChart({ labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals) });
       } else if (period === 'week') {
-        const nowD = new Date();
-        const year = nowD.getFullYear();
-        const month = nowD.getMonth();
-        const first = new Date(year, month, 1);
-        const last = new Date(year, month + 1, 0);
+        const first = new Date(selectedYear, selectedMonth, 1);
+        const last = new Date(selectedYear, selectedMonth + 1, 0);
         const startDowMonday = (first.getDay() + 6) % 7;
         const daysInMonth = last.getDate();
         const weeks = Math.ceil((startDowMonday + daysInMonth) / 7);
@@ -165,9 +154,8 @@ const Dashboard: React.FC = () => {
         });
         setChart({ labels, values: normalize(vals) });
       } else {
-        const nowD = new Date();
-        const from = new Date(nowD.getFullYear(), nowD.getMonth() - 11, 1);
-        const to = new Date(nowD.getFullYear(), nowD.getMonth() + 1, 0);
+        const from = new Date(selectedYear, 0, 1);
+        const to = new Date(selectedYear, 11, 31);
         const { data } = await supabase
           .from('user_transactions')
           .select('amount, date')
@@ -178,22 +166,16 @@ const Dashboard: React.FC = () => {
         const vals = Array(12).fill(0);
         (data || []).forEach((t: any) => {
           const d = new Date(t.date);
-          const offset = (nowD.getFullYear() - d.getFullYear()) * 12 + (nowD.getMonth() - d.getMonth());
-          const idx = 11 - Math.max(0, Math.min(11, offset));
+          const idx = d.getMonth();
           vals[idx] += Number(t.amount || 0);
         });
         setChart({ labels, values: normalize(vals) });
       }
     };
     buildChart();
-  }, [period]);
+  }, [period, selectedYear, selectedMonth]);
 
-  useEffect(() => {
-    if (period === 'month') {
-      const start = Math.max(0, (chart.labels.length || 0) - 3);
-      setMonthViewportStart(start);
-    }
-  }, [period, chart.labels]);
+  
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -215,7 +197,7 @@ const Dashboard: React.FC = () => {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="flex flex-col p-4 pt-8 gap-6"
+      className="flex flex-col p-4 pt-6 gap-4"
     >
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -242,6 +224,33 @@ const Dashboard: React.FC = () => {
             </button>
         </div>
       </header>
+
+      <div className="flex items-center justify-end mt-2">
+        <button
+          onClick={() => setShowMonthPicker(s => !s)}
+          className="text-primary-green font-bold text-sm bg-primary-green/10 px-3 py-1 rounded-full"
+        >{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</button>
+      </div>
+      {showMonthPicker && (
+        <div className="flex justify-end">
+          <div className="mt-2 rounded-xl bg-surface-dark p-3 border border-surface-light">
+            <div className="flex items-center justify-between mb-3">
+              <button onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-surface-light"><span className="material-symbols-outlined">chevron_left</span></button>
+              <span className="text-sm font-bold">{selectedYear}</span>
+              <button onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-surface-light"><span className="material-symbols-outlined">chevron_right</span></button>
+            </div>
+            <div className="grid grid-cols-6 gap-2">
+              {monthNames.map((m, idx) => (
+                <button
+                  key={m}
+                  onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
+                  className={idx === selectedMonth ? 'px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold' : 'px-3 py-2 rounded-lg bg-surface-light text-xs font-medium hover:bg-surface-light/80'}
+                >{m}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <motion.section 
         variants={itemVariants}
@@ -293,75 +302,23 @@ const Dashboard: React.FC = () => {
             </div>
         </div>
         
-        {/* Custom CSS Bar Chart simulation */}
         <div className="flex h-56 w-full flex-col justify-end rounded-xl bg-surface-dark/30 p-4 border border-surface-light relative overflow-hidden">
-            <div className="flex h-full w-full flex-col">
-              {period === 'month' ? (
-                <motion.div
-                  key={`month-viewport-${monthViewportStart}`}
-                  className="overflow-hidden"
-                  drag="x"
-                  dragConstraints={{ left: -80, right: 80 }}
-                  dragElastic={0.05}
-                  dragMomentum={false}
-                  onDragEnd={(e, info) => {
-                    if (info.offset.x < -40 && monthViewportStart < Math.max(0, current.values.length - 3)) {
-                      setMonthViewportStart(s => Math.min(s + 1, Math.max(0, current.values.length - 3)));
-                    } else if (info.offset.x > 40 && monthViewportStart > 0) {
-                      setMonthViewportStart(s => Math.max(s - 1, 0));
-                    }
-                  }}
-                >
-                  <div className="flex h-56 items-end justify-between px-2 gap-2">
-                    {(() => {
-                      const sliceVals = current.values.slice(monthViewportStart, monthViewportStart + 3);
-                      const vals = sliceVals.slice().reverse();
-                      return vals.map((h, i) => {
-                        const globalIndex = monthViewportStart + (sliceVals.length - 1 - i);
-                        const isHighlight = globalIndex === current.labels.length - 1;
-                        return (
-                          <motion.div
-                            key={globalIndex}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${h}%` }}
-                            transition={{ duration: 0.6, delay: i * 0.05 }}
-                            className={`flex-1 rounded-t-sm bg-primary ${isHighlight ? 'shadow-metallic' : ''}`}
-                          />
-                        );
-                      });
-                    })()}
-                  </div>
-                  <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
-                    {(() => {
-                      const sliceLabs = current.labels.slice(monthViewportStart, monthViewportStart + 3);
-                      const labs = sliceLabs.slice().reverse();
-                      return labs.map((l, idx) => (
-                        <span key={`${monthViewportStart}-${idx}`}>{l}</span>
-                      ));
-                    })()}
-                  </div>
-                </motion.div>
-              ) : (
-                <div key={period} className="flex h-full w-full items-end justify-between px-2 gap-2">
-                  {current.values.map((h, i) => (
-                    <motion.div 
-                      key={i}
-                      initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        transition={{ duration: 1, delay: i * 0.05 }}
-                        className={`flex-1 rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
-                    />
-                  ))}
-                </div>
-              )}
+            <div className="flex h-full w-full items-end justify-between px-2 gap-2">
+              {current.values.map((h, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 1, delay: i * 0.05 }}
+                  className={`flex-1 rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                />
+              ))}
             </div>
-            {period !== 'month' && (
-              <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-text-secondary font-medium">
-                  {current.labels.map((l, idx) => (
-                    <span key={idx}>{l}</span>
-                  ))}
-              </div>
-            )}
+            <div className="mt-3 flex w-full justify-between border-t border-surface-light pt-2 text-xs text-white font-medium">
+                {current.labels.map((l, idx) => (
+                  <span key={idx}>{l}</span>
+                ))}
+            </div>
         </div>
       </motion.section>
     </motion.div>

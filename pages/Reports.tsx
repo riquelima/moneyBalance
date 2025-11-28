@@ -25,6 +25,7 @@ const Reports: React.FC = () => {
 
   useEffect(() => {
     const ac = new AbortController();
+    let tid: number | undefined;
     const load = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
@@ -121,8 +122,9 @@ const Reports: React.FC = () => {
 
       setHasData(((curTx || []).length + (prevTx || []).length) > 0);
     };
-    load().catch(() => {});
-    return () => ac.abort();
+    // debounce para reduzir aborts ao alternar mês/ano rapidamente
+    tid = window.setTimeout(() => { load().catch(() => {}); }, 250);
+    return () => { if (tid) clearTimeout(tid); ac.abort(); };
   }, [selectedYear, selectedMonth]);
 
   useEffect(() => {

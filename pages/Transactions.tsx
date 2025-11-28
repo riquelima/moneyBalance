@@ -10,6 +10,9 @@ const Transactions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [catMap, setCatMap] = useState<Record<string, { name: string; type: 'income' | 'expense' }>>({});
+  const [showFilter, setShowFilter] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const badgeClass = (name: string, typ?: 'income' | 'expense') => {
     const palette: Record<string, string> = {
       'Alimentação': 'bg-primary-green/15 text-primary-green border-primary-green/30',
@@ -77,15 +80,34 @@ const Transactions: React.FC = () => {
     load();
   }, [location.key]);
 
+  const categoriesForFilter = useMemo(() => {
+    const ids = Array.from(new Set(items.map(i => i.category_id).filter(Boolean))) as string[];
+    const arr = ids.map(id => ({ id, name: catMap[id]?.name || 'Categoria' }));
+    const hasNone = items.some(i => !i.category_id);
+    if (hasNone) arr.unshift({ id: 'none', name: 'Sem Categoria' });
+    return arr;
+  }, [items, catMap]);
+
+  const filteredItems = useMemo(() => {
+    let arr = items.slice();
+    if (statusFilter === 'paid') arr = arr.filter(t => t.is_paid);
+    if (statusFilter === 'pending') arr = arr.filter(t => !t.is_paid);
+    if (categoryFilter !== 'all') {
+      if (categoryFilter === 'none') arr = arr.filter(t => !t.category_id);
+      else arr = arr.filter(t => t.category_id === categoryFilter);
+    }
+    return arr;
+  }, [items, statusFilter, categoryFilter]);
+
   const grouped = useMemo(() => {
     const acc: Record<string, typeof items> = {} as any;
-    items.forEach((t) => {
+    filteredItems.forEach((t) => {
       const label = labelForDate(t.date);
       acc[label] = acc[label] || [];
       acc[label].push(t as any);
     });
     return acc;
-  }, [items]);
+  }, [filteredItems]);
 
   return (
     <motion.div 
@@ -94,7 +116,13 @@ const Transactions: React.FC = () => {
       className="flex flex-col min-h-screen pb-24"
     >
       <header className="sticky top-0 z-10 flex items-center justify-between bg-background-dark/80 backdrop-blur-md p-4 border-b border-surface-light">
-        <div className="w-10"></div>
+        <button
+          type="button"
+          onClick={() => setShowFilter(true)}
+          className="flex w-10 items-center justify-center text-text-primary"
+        >
+          <span className="material-symbols-outlined text-2xl">filter_alt</span>
+        </button>
         <h1 className="text-lg font-bold">Transações</h1>
         <button
           type="button"
@@ -114,12 +142,25 @@ const Transactions: React.FC = () => {
             className="w-full bg-transparent text-text-primary placeholder:text-text-secondary outline-none border-none focus:ring-0 p-0"
           />
         </div>
+        {((statusFilter !== 'all') || (categoryFilter !== 'all')) && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {statusFilter !== 'all' && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
+            )}
+            {categoryFilter !== 'all' && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">
+                {categoryFilter === 'none' ? 'Sem Categoria' : (catMap[categoryFilter]?.name || 'Categoria')}
+              </span>
+            )}
+            <button onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/10 text-danger border border-danger/30">Limpar</button>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <p className="px-6 py-4 text-text-secondary">Carregando...</p>
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="px-6 py-12 text-center text-text-secondary">
             <p>Nenhuma transação cadastrada.</p>
             <button
@@ -199,6 +240,57 @@ const Transactions: React.FC = () => {
           ))
         )}
       </div>
+
+      {showFilter && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
+          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md rounded-2xl bg-background-dark p-6 border border-surface-light">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Filtrar transações</h3>
+              <button onClick={() => setShowFilter(false)} className="text-text-secondary">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm font-bold mb-2">Status</p>
+              <div className="grid grid-cols-3 gap-2">
+                {['all','paid','pending'].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s as any)}
+                    className={`px-3 py-2 rounded-lg text-sm border ${statusFilter === s ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                  >
+                    {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm font-bold mb-2">Categoria</p>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setCategoryFilter('all')}
+                  className={`px-3 py-2 rounded-lg text-sm border ${categoryFilter === 'all' ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                >
+                  Todas
+                </button>
+                {categoriesForFilter.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setCategoryFilter(c.id)}
+                    className={`px-3 py-2 rounded-lg text-sm border ${categoryFilter === c.id ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Limpar</button>
+              <button onClick={() => setShowFilter(false)} className="flex-1 rounded-xl bg-primary-green py-3 font-bold text-background-dark">Aplicar</button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
