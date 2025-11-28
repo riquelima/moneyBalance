@@ -325,7 +325,7 @@ const Dashboard: React.FC = () => {
                             initial={{ height: 0 }}
                             animate={{ height: `${h}%` }}
                             transition={{ duration: 0.6, delay: i * 0.05 }}
-                            className={`w-full rounded-t-sm ${isHighlight ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                            className={`flex-1 rounded-t-sm bg-primary ${isHighlight ? 'shadow-metallic' : ''}`}
                           />
                         );
                       });
@@ -349,7 +349,7 @@ const Dashboard: React.FC = () => {
                       initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
                         transition={{ duration: 1, delay: i * 0.05 }}
-                        className={`w-full rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
+                        className={`flex-1 rounded-t-sm ${i === highlightIndex ? 'bg-primary shadow-metallic' : 'bg-primary/30'}`}
                     />
                   ))}
                 </div>

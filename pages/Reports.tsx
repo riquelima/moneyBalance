@@ -16,10 +16,15 @@ const Reports: React.FC = () => {
   const [incomeTotal, setIncomeTotal] = useState(0);
   const [lastIncomeTotal, setLastIncomeTotal] = useState(0);
   const [incomeCategories, setIncomeCategories] = useState<Array<{ name: string; amount: number }>>([]);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const budgetNames = ['Moradia','Contas da casa','Alimentação','Transporte','Saúde','Educação e desenvolvimento','Lazer e social','Imprevistos','Investimentos / economias','Salário','Rendimentos','Dinheiro Extra'];
   const budgetCats = useMemo(() => budgetNames.map(n => ({ name: n, amount: (categories.find(c => c.name === n)?.amount || 0) })), [categories]);
 
   useEffect(() => {
+    const ac = new AbortController();
     const load = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
@@ -30,25 +35,26 @@ const Reports: React.FC = () => {
         const dd = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${dd}`;
       };
-      const now = new Date();
-      const startCur = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endCur = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      const startPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const endPrev = new Date(now.getFullYear(), now.getMonth(), 0);
+      const startCur = new Date(selectedYear, selectedMonth, 1);
+      const endCur = new Date(selectedYear, selectedMonth + 1, 0);
+      const startPrev = new Date(selectedYear, selectedMonth - 1, 1);
+      const endPrev = new Date(selectedYear, selectedMonth, 0);
 
       const { data: curTx } = await supabase
         .from('user_transactions')
         .select('amount, type, date, category_id')
         .eq('user_id', user.id)
         .gte('date', fmt(startCur))
-        .lte('date', fmt(endCur));
+        .lte('date', fmt(endCur))
+        .abortSignal(ac.signal);
 
       const { data: prevTx } = await supabase
         .from('user_transactions')
         .select('amount, type, date')
         .eq('user_id', user.id)
         .gte('date', fmt(startPrev))
-        .lte('date', fmt(endPrev));
+        .lte('date', fmt(endPrev))
+        .abortSignal(ac.signal);
 
       const expCur = (curTx || []).filter((t: any) => t.type === 'expense');
       const totalCur = expCur.reduce((acc: number, t: any) => acc + Number(t.amount), 0);
@@ -82,11 +88,10 @@ const Reports: React.FC = () => {
       const prevNet = incomePrev - expensePrev;
       const percent = prevNet ? ((totalNet - prevNet) / prevNet) * 100 : 0;
 
-      const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
       const labels = [
-        monthNames[now.getMonth()],
-        monthNames[(now.getMonth() + 1) % 12],
-        monthNames[(now.getMonth() + 2) % 12]
+        monthNames[(selectedMonth + 0) % 12],
+        monthNames[(selectedMonth + 1) % 12],
+        monthNames[(selectedMonth + 2) % 12]
       ];
       const proj1 = totalNet * (1 + percent / 100);
       const proj2 = proj1 * (1 + percent / 100);
@@ -116,19 +121,29 @@ const Reports: React.FC = () => {
 
       setHasData(((curTx || []).length + (prevTx || []).length) > 0);
     };
-    load();
-  }, []);
+    load().catch(() => {});
+    return () => ac.abort();
+  }, [selectedYear, selectedMonth]);
 
   useEffect(() => {
-    const s = localStorage.getItem('budgets_limits_v1');
-    if (s) {
-      try { setBudgets(JSON.parse(s)); } catch {}
-    }
-  }, []);
-
-  useEffect(() => {
-    try { localStorage.setItem('budgets_limits_v1', JSON.stringify(budgets)); } catch {}
-  }, [budgets]);
+    let cancelled = false;
+    const loadBudgets = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const { data: rows } = await supabase
+        .from('user_budgets')
+        .select('category, limit_amount')
+        .eq('user_id', user.id)
+        .eq('year', selectedYear)
+        .eq('month', selectedMonth);
+      const map: Record<string, number> = {};
+      (rows || []).forEach((r: any) => { map[String(r.category)] = Number(r.limit_amount || 0); });
+      if (!cancelled) setBudgets(map);
+    };
+    loadBudgets();
+    return () => { cancelled = true; };
+  }, [selectedYear, selectedMonth]);
 
   
 
@@ -169,8 +184,46 @@ const Reports: React.FC = () => {
             <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
         <h1 className="text-lg font-bold">Relatórios</h1>
-        <button className="text-primary-green font-bold text-sm bg-primary-green/10 px-3 py-1 rounded-full">Este Mês</button>
+        <button onClick={() => setShowMonthPicker(true)} className="text-primary-green font-bold text-sm bg-primary-green/10 px-3 py-1 rounded-full">
+          {(() => {
+            const d = new Date();
+            return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
+              ? 'Este Mês'
+              : `${monthNames[selectedMonth]} ${selectedYear}`;
+          })()}
+        </button>
       </header>
+
+      {showMonthPicker && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
+          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md rounded-2xl bg-background-dark p-6 border border-surface-light">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => setSelectedYear(y => y - 1)} className="rounded-full p-2 hover:bg-surface-light">
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+              <p className="text-sm font-bold">{selectedYear}</p>
+              <button onClick={() => setSelectedYear(y => y + 1)} className="rounded-full p-2 hover:bg-surface-light">
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {monthNames.map((m, i) => (
+                <button
+                  key={m}
+                  onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
+                  className={`px-3 py-2 rounded-lg text-sm border ${i === selectedMonth ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Mês atual</button>
+              <button onClick={() => setShowMonthPicker(false)} className="flex-1 rounded-xl bg-primary-green py-3 font-bold text-background-dark">Fechar</button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       <section>
         <h2 className="text-2xl font-bold mb-4 text-center">Visão Geral das Receitas</h2>
@@ -294,9 +347,16 @@ const Reports: React.FC = () => {
               <div className="mt-6 mb-1 flex gap-3">
                 <button onClick={() => setEditingCat(null)} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Cancelar</button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const n = Number(String(tempLimit).replace(/[^0-9.,]/g, '').replace(',', '.'));
                     if (!Number.isNaN(n) && n >= 0 && editingCat) {
+                      const { data: userData } = await supabase.auth.getUser();
+                      const user = userData?.user;
+                      if (user) {
+                        await supabase
+                          .from('user_budgets')
+                          .upsert({ user_id: user.id, year: selectedYear, month: selectedMonth, category: editingCat, limit_amount: n }, { onConflict: 'user_id,year,month,category' });
+                      }
                       setBudgets((b) => ({ ...b, [editingCat]: n }));
                       setEditingCat(null);
                       setTempLimit('');
