@@ -329,7 +329,7 @@ const Dashboard: React.FC = () => {
         {[
           { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
           { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger' },
-          { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
+          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
           { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'account_balance_wallet', color: 'text-primary' },
         ].map((item, idx) => (
           <motion.div 
@@ -339,7 +339,7 @@ const Dashboard: React.FC = () => {
               onClick={() => {
                 if (item.label === 'Entradas') scrollTo(entriesRef);
                 else if (item.label === 'Saídas') scrollTo(expensesRef);
-                else if (item.label === 'Pendentes') navigate(`/transactions?status=pending&type=expense&month=${selectedMonth}`);
+                else if (item.label === 'Não Pagos') navigate(`/transactions?status=pending&type=expense&month=${selectedMonth}`);
                 else navigate('/reports');
               }}
               className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
@@ -347,6 +347,8 @@ const Dashboard: React.FC = () => {
               <div className={`flex items-center gap-2 ${item.color} mb-2`}>
                   {item.label === 'Já pagos' ? (
                     <img src="https://cdn-icons-png.flaticon.com/512/5709/5709755.png" alt="Feito" className="h-5 w-5" />
+                  ) : item.label === 'Não Pagos' ? (
+                    <img src="https://cdn-icons-png.flaticon.com/512/9426/9426995.png" alt="Pendente" className="h-5 w-5" />
                   ) : (
                     <span className="material-symbols-outlined text-xl">{item.icon}</span>
                   )}
@@ -420,7 +422,10 @@ const Dashboard: React.FC = () => {
       <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={entriesRef}
       >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-bold text-text-primary">Entradas</h3>
+          <div className="flex items-center gap-2 text-success">
+            <span className="material-symbols-outlined text-xl">arrow_downward</span>
+            <p className="text-lg font-bold text-text-primary">Entradas</p>
+          </div>
           <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
         </div>
         <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
@@ -442,7 +447,10 @@ const Dashboard: React.FC = () => {
       <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={expensesRef}
       >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-bold text-text-primary">Saídas</h3>
+          <div className="flex items-center gap-2 text-danger">
+            <span className="material-symbols-outlined text-xl">arrow_upward</span>
+            <p className="text-lg font-bold text-text-primary">Saídas</p>
+          </div>
           <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
         </div>
         <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
