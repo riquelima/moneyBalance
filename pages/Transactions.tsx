@@ -16,6 +16,7 @@ const Transactions: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [monthFilter, setMonthFilter] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const categoryOrder = [...categories, 'Sem Categoria'];
   const hues = [15, 35, 55, 85, 160, 190, 210, 235, 255, 275, 300, 330, 350];
@@ -115,6 +116,21 @@ const Transactions: React.FC = () => {
     return names;
   }, [items]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status');
+    const type = params.get('type');
+    const month = params.get('month');
+    if (status === 'pending') setStatusFilter('pending');
+    if (status === 'paid') setStatusFilter('paid');
+    if (type === 'expense' || type === 'income') setTypeFilter(type as any);
+    if (month !== null) {
+      const m = Number(month);
+      if (!Number.isNaN(m) && m >= 0 && m <= 11) setMonthFilter(m);
+    }
+    setCategoryFilter('all');
+  }, [location.search]);
+
   const filteredItems = useMemo(() => {
     let arr = items.slice();
     if (statusFilter === 'paid') arr = arr.filter(t => t.is_paid);
@@ -128,18 +144,22 @@ const Transactions: React.FC = () => {
         return nm === categoryFilter;
       });
     }
+    arr.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return arr;
-  }, [items, statusFilter, typeFilter, monthFilter, categoryFilter]);
+  }, [items, statusFilter, typeFilter, monthFilter, categoryFilter, searchQuery]);
 
   const grouped = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     const acc: Record<string, typeof items> = {} as any;
     filteredItems.forEach((t) => {
+      const title = String(t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')).toLowerCase();
+      if (q && !title.includes(q)) return;
       const label = labelForDate(t.date);
       acc[label] = acc[label] || [];
       acc[label].push(t as any);
     });
     return acc;
-  }, [filteredItems]);
+  }, [filteredItems, searchQuery]);
 
   return (
     <motion.div 
@@ -171,6 +191,8 @@ const Transactions: React.FC = () => {
           <input 
             type="text" 
             placeholder="Buscar transações"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent text-text-primary placeholder:text-text-secondary outline-none border-none focus:ring-0 p-0"
           />
         </div>
