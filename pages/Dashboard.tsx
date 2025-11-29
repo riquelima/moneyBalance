@@ -340,6 +340,7 @@ const Dashboard: React.FC = () => {
                 if (item.label === 'Entradas') scrollTo(entriesRef);
                 else if (item.label === 'Saídas') scrollTo(expensesRef);
                 else if (item.label === 'Não Pagos') navigate(`/transactions?status=pending&type=expense&month=${selectedMonth}`);
+                else if (item.label === 'Já pagos') navigate(`/transactions?status=paid&type=expense&month=${selectedMonth}`);
                 else navigate('/reports');
               }}
               className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
@@ -348,7 +349,7 @@ const Dashboard: React.FC = () => {
                   {item.label === 'Já pagos' ? (
                     <img src="https://cdn-icons-png.flaticon.com/512/5709/5709755.png" alt="Feito" className="h-5 w-5" />
                   ) : item.label === 'Não Pagos' ? (
-                    <img src="https://cdn-icons-png.flaticon.com/512/9426/9426995.png" alt="Pendente" className="h-5 w-5" />
+                    <img src="https://cdn-icons-png.flaticon.com/512/9247/9247838.png" alt="Pendente" className="h-5 w-5" />
                   ) : (
                     <span className="material-symbols-outlined text-xl">{item.icon}</span>
                   )}
