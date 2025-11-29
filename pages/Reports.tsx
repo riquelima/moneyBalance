@@ -302,23 +302,26 @@ const Reports: React.FC = () => {
                   </div>
                   <div className="pt-4">
                     <Pie data={categories} colors={expenseColors} denominator={incomeTotal} />
-                    {categories.length === 0 && (
-                      <p className="text-center text-text-secondary text-sm mt-2">Sem despesas neste mês.</p>
+                  </div>
+                  <div className="mt-4 w-full h-28 overflow-y-auto overscroll-contain pr-1">
+                    {categories.length === 0 ? (
+                      <div className="h-full flex items-center justify-center">
+                        <p className="text-center text-text-secondary text-sm">Sem despesas neste mês.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {categories.map((d, i) => (
+                          <div key={`${d.name}-${i}`} className="flex items-start gap-2">
+                            <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></span>
+                            <div className="flex-1">
+                              <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
+                              <p className="text-danger text-[13px] font-bold">- {fmtBRL(d.amount)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  {categories.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 gap-3 w-full max-h-28 overflow-y-auto overscroll-contain pr-1">
-                      {categories.map((d, i) => (
-                        <div key={`${d.name}-${i}`} className="flex items-start gap-2">
-                          <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></span>
-                          <div className="flex-1">
-                            <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
-                            <p className="text-danger text-[13px] font-bold">- {fmtBRL(d.amount)}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -332,23 +335,26 @@ const Reports: React.FC = () => {
                   </div>
                   <div className="pt-4">
                     <Pie data={incomeCategories} colors={incomeColors} />
-                    {incomeCategories.length === 0 && (
-                      <p className="text-center text-text-secondary text-sm mt-2">Sem receitas neste mês.</p>
+                  </div>
+                  <div className="mt-4 w-full h-28 overflow-y-auto overscroll-contain pr-1">
+                    {incomeCategories.length === 0 ? (
+                      <div className="h-full flex items-center justify-center">
+                        <p className="text-center text-text-secondary text-sm">Sem receitas neste mês.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {incomeCategories.map((d, i) => (
+                          <div key={`${d.name}-${i}`} className="flex items-start gap-2">
+                            <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></span>
+                            <div className="flex-1">
+                              <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
+                              <p className="text-success text-[13px] font-bold">+ {fmtBRL(d.amount)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  {incomeCategories.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 gap-3 w-full max-h-28 overflow-y-auto overscroll-contain pr-1">
-                      {incomeCategories.map((d, i) => (
-                        <div key={`${d.name}-${i}`} className="flex items-start gap-2">
-                          <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></span>
-                          <div className="flex-1">
-                            <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
-                            <p className="text-success text-[13px] font-bold">+ {fmtBRL(d.amount)}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

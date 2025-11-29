@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
- 
+import ReactMarkdown from 'react-markdown';
 
 const Chat: React.FC = () => {
   const navigate = useNavigate();
@@ -92,8 +92,15 @@ const Chat: React.FC = () => {
     const ct = resp.headers.get('content-type') || '';
     if (ct.includes('application/json')) {
       const data = await resp.json();
-      const txt = (data && (data.message || data.text || data.answer)) ?? JSON.stringify(data);
-      return typeof txt === 'string' ? txt : JSON.stringify(txt);
+      let txt: any = undefined;
+      if (Array.isArray(data)) {
+        const first = data[0] || {};
+        txt = first.output ?? first.message ?? first.text ?? first.answer ?? undefined;
+      } else {
+        txt = data.output ?? data.message ?? data.text ?? data.answer ?? undefined;
+      }
+      if (typeof txt === 'string') return txt;
+      return JSON.stringify(data);
     }
     return await resp.text();
   };
@@ -149,7 +156,11 @@ const Chat: React.FC = () => {
                         ? 'bg-primary-blue text-white rounded-br-none' 
                         : 'bg-surface-light text-text-primary rounded-bl-none'
                 }`}>
-                    {msg.text}
+                    {msg.sender === 'ai' ? (
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    ) : (
+                      msg.text
+                    )}
                 </div>
             </div>
 
