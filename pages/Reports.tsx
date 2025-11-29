@@ -185,8 +185,9 @@ const Reports: React.FC = () => {
   });
   const incomeColors = useMemo(() => makeColors(incomeCategories.length), [incomeCategories.length]);
   const expenseColors = useMemo(() => makeColors(categories.length), [categories.length]);
-  const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number }> = ({ data, colors, size = 200, thickness = 30 }) => {
-    const total = data.reduce((a, d) => a + Number(d.amount || 0), 0);
+  const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number; denominator?: number }> = ({ data, colors, size = 200, thickness = 30, denominator }) => {
+    const totalData = data.reduce((a, d) => a + Number(d.amount || 0), 0);
+    const denom = typeof denominator === 'number' && denominator > 0 ? denominator : totalData;
     const R = size / 2 - thickness / 2;
     const C = 2 * Math.PI * R;
     let acc = 0;
@@ -195,7 +196,7 @@ const Reports: React.FC = () => {
         <g transform={`translate(${size / 2},${size / 2})`}>
           <circle r={R} cx={0} cy={0} fill="none" stroke="#2C2C2E" strokeWidth={thickness} />
           {data.map((d, i) => {
-            const p = total ? Number(d.amount || 0) / total : 0;
+            const p = denom ? Number(d.amount || 0) / denom : 0;
             const len = p * C;
             const dash = `${len} ${C - len}`;
             const offset = C * (1 - acc);
@@ -211,7 +212,7 @@ const Reports: React.FC = () => {
               <>
                 <circle key={`arc-${i}`} r={R} cx={0} cy={0} fill="none" stroke={colors[i % colors.length]} strokeWidth={thickness} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90)" />
                 {p > 0 && (
-                  <text key={`lbl-${i}`} x={rx} y={ry} fill="#fff" fontSize={10} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
+                  <text key={`lbl-${i}`} x={rx} y={ry} fill="#000" fontSize={10} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
                     {pctLabel}
                   </text>
                 )}
@@ -288,7 +289,7 @@ const Reports: React.FC = () => {
                     <p className="text-danger text-base font-medium">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
                   </div>
                   <div className="pt-4">
-                    <Pie data={categories} colors={expenseColors} />
+                    <Pie data={categories} colors={expenseColors} denominator={incomeTotal} />
                     {categories.length === 0 && (
                       <p className="text-center text-text-secondary text-sm mt-2">Sem despesas neste mês.</p>
                     )}
