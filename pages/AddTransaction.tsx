@@ -225,32 +225,32 @@ const AddTransaction: React.FC = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-3 gap-3 items-center">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 items-center">
                     {/* Date */}
-                    <button onClick={() => setShowDatePicker(v => !v)} className="h-14 w-full rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
+                    <button onClick={() => setShowDatePicker(v => !v)} className="h-12 w-full rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
                         <span className="text-xs text-text-secondary">Data</span>
                         <span className="text-white font-medium truncate w-full">{displayDateLabel}</span>
                     </button>
 
                     {/* Paid Toggle */}
-                    <div className="h-14 w-full rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
-                        <span className="text-white font-medium">Pago</span>
+                    <div className="h-12 w-full rounded-xl bg-[#2C2C2E] px-3 flex items-center justify-between">
+                        <span className="text-white text-sm font-medium">Pago</span>
                         <button 
                             onClick={() => setIsPaid(!isPaid)}
-                            className={`w-12 h-7 rounded-full relative overflow-hidden transition-colors ${isPaid ? activeClass : 'bg-gray-600'}`}
+                            className={`w-10 h-6 rounded-full relative overflow-hidden transition-colors ${isPaid ? activeClass : 'bg-gray-600'}`}
                         >
-                            <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-5' : 'translate-x-0'}`} />
+                            <div className={`absolute top-1 left-1 bg-white h-4 w-4 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-4' : 'translate-x-0'}`} />
                         </button>
                     </div>
 
                     {/* Recurring Toggle */}
-                    <div className="h-14 w-full rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
-                        <span className="text-white font-medium">Recorrente</span>
+                    <div className="h-12 w-full rounded-xl bg-[#2C2C2E] px-3 flex items-center justify-between">
+                        <span className="text-white text-sm font-medium">Recorrente</span>
                         <button 
                             onClick={() => setIsRecurring(!isRecurring)}
-                            className={`w-12 h-7 rounded-full relative overflow-hidden transition-colors ${isRecurring ? activeClass : 'bg-gray-600'}`}
+                            className={`w-10 h-6 rounded-full relative overflow-hidden transition-colors ${isRecurring ? activeClass : 'bg-gray-600'}`}
                         >
-                            <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-5' : 'translate-x-0'}`} />
+                            <div className={`absolute top-1 left-1 bg-white h-4 w-4 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-4' : 'translate-x-0'}`} />
                         </button>
                     </div>
                 </div>
