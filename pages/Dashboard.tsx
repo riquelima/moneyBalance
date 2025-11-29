@@ -9,7 +9,7 @@ const Dashboard: React.FC = () => {
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
   const [chartType, setChartType] = useState<'income' | 'expense'>('expense');
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0 });
+  const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0, paid: 0 });
   const [displayName, setDisplayName] = useState<string>('Usuário');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -88,8 +88,9 @@ const Dashboard: React.FC = () => {
       const income = (tx || []).filter((t: any) => t.type === 'income').reduce((a: number, t: any) => a + Number(t.amount), 0);
       const expense = (tx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
       const pending = (tx || []).filter((t: any) => t.type === 'expense' && !t.is_paid).reduce((a: number, t: any) => a + Number(t.amount), 0);
+      const paid = (tx || []).filter((t: any) => t.type === 'expense' && t.is_paid).reduce((a: number, t: any) => a + Number(t.amount), 0);
       const balance = income - expense;
-      setSummary({ income, expense, pending, balance });
+      setSummary({ income, expense, pending, balance, paid });
     };
 
     const loadProfile = async () => {
@@ -320,8 +321,8 @@ const Dashboard: React.FC = () => {
         variants={itemVariants}
         className="rounded-2xl bg-surface-dark/40 p-6 border border-surface-light"
       >
-        <p className="text-sm font-medium text-text-secondary mb-1">Total de Saldo</p>
-        <h2 className="text-4xl font-extrabold tracking-tight text-text-primary">{formatBRL(summary.balance)}</h2>
+        <p className="text-sm font-medium text-text-secondary mb-1 text-center">Total de Saldo</p>
+        <h2 className="text-4xl font-extrabold tracking-tight text-text-primary text-center">{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
@@ -329,7 +330,7 @@ const Dashboard: React.FC = () => {
           { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
           { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger' },
           { label: 'Pendentes', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
-          { label: 'Saldo', value: formatBRL(summary.balance), icon: 'account_balance_wallet', color: 'text-primary' },
+          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'account_balance_wallet', color: 'text-primary' },
         ].map((item, idx) => (
           <motion.div 
               key={idx}
@@ -338,6 +339,7 @@ const Dashboard: React.FC = () => {
               onClick={() => {
                 if (item.label === 'Entradas') scrollTo(entriesRef);
                 else if (item.label === 'Saídas') scrollTo(expensesRef);
+                else if (item.label === 'Pendentes') navigate(`/transactions?status=pending&type=expense&month=${selectedMonth}`);
                 else navigate('/reports');
               }}
               className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
