@@ -237,7 +237,7 @@ const AddTransaction: React.FC = () => {
                         <span className="text-white font-medium">Pago</span>
                         <button 
                             onClick={() => setIsPaid(!isPaid)}
-                            className={`w-12 h-7 rounded-full relative transition-colors ${isPaid ? activeClass : 'bg-gray-600'}`}
+                            className={`w-12 h-7 rounded-full relative overflow-hidden transition-colors ${isPaid ? activeClass : 'bg-gray-600'}`}
                         >
                             <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
@@ -248,7 +248,7 @@ const AddTransaction: React.FC = () => {
                         <span className="text-white font-medium">Recorrente</span>
                         <button 
                             onClick={() => setIsRecurring(!isRecurring)}
-                            className={`w-12 h-7 rounded-full relative transition-colors ${isRecurring ? activeClass : 'bg-gray-600'}`}
+                            className={`w-12 h-7 rounded-full relative overflow-hidden transition-colors ${isRecurring ? activeClass : 'bg-gray-600'}`}
                         >
                             <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
