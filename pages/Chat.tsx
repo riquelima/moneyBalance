@@ -50,7 +50,6 @@ const Chat: React.FC = () => {
     const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY as string | undefined;
     if (!apiKey) throw new Error('missing_api_key');
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const { user, transactions, budgets, categories } = await fetchUserData();
     if (!user) return 'Faça login para que eu consiga acessar seus dados e responder.';
     const now = new Date();
@@ -90,9 +89,20 @@ Se apropriado, mostre totais, listas, projeções simples e recomendações obje
 Pergunta: ${question}
 Dados:
 ${JSON.stringify(context)}`;
-    const resp = await model.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] });
-    const txt = resp.response.text();
-    return txt;
+    const tryModels = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-1.5-flash'];
+    let lastErr: any = null;
+    for (const m of tryModels) {
+      try {
+        const mdl = genAI.getGenerativeModel({ model: m });
+        const resp = await mdl.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] });
+        const txt = resp.response.text();
+        if (txt) return txt;
+      } catch (err: any) {
+        lastErr = err;
+      }
+    }
+    if (lastErr) throw lastErr;
+    throw new Error('gemini_request_failed');
   };
 
   const handleSend = async () => {
