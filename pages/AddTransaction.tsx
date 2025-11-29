@@ -234,7 +234,7 @@ const AddTransaction: React.FC = () => {
 
                     {/* Paid Toggle */}
                     <div className="h-12 w-full rounded-xl bg-[#2C2C2E] px-3 flex items-center justify-between">
-                        <span className="text-white text-sm font-medium">Pago</span>
+                        <span className="text-white text-sm font-medium">{type === 'income' ? 'Recebido' : 'Pago'}</span>
                         <button 
                             onClick={() => setIsPaid(!isPaid)}
                             className={`w-10 h-6 rounded-full relative overflow-hidden transition-colors ${isPaid ? activeClass : 'bg-gray-600'}`}
