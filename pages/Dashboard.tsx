@@ -249,6 +249,13 @@ const Dashboard: React.FC = () => {
     show: { opacity: 1, y: 0 }
   };
 
+  const entriesRef = useRef<HTMLDivElement | null>(null);
+  const expensesRef = useRef<HTMLDivElement | null>(null);
+  const scrollTo = (ref: React.MutableRefObject<HTMLDivElement | null>) => {
+    const el = ref.current;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -453,9 +460,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-  const entriesRef = useRef<HTMLDivElement | null>(null);
-  const expensesRef = useRef<HTMLDivElement | null>(null);
-  const scrollTo = (ref: React.MutableRefObject<HTMLDivElement | null>) => {
-    const el = ref.current;
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
