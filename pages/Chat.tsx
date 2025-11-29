@@ -166,7 +166,7 @@ const Chat: React.FC = () => {
             
             <div className={`flex flex-col gap-1 max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                 <span className="text-xs text-text-secondary ml-1">{msg.sender === 'ai' ? 'IA' : 'Você'}</span>
-                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed font-zain font-light ${
                     msg.sender === 'user' 
                         ? 'bg-primary-blue text-white rounded-br-none' 
                         : 'bg-surface-light text-text-primary rounded-bl-none'
