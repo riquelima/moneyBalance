@@ -13,6 +13,7 @@ const Chat: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,6 +22,20 @@ const Chat: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const { data: prof } = await supabase
+        .from('user_profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      if ((prof as any)?.avatar_url) setAvatarUrl((prof as any).avatar_url as string);
+    })();
+  }, []);
 
   const fetchUserData = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -165,8 +180,12 @@ const Chat: React.FC = () => {
             </div>
 
             {msg.sender === 'user' && (
-                <div className="h-8 w-8 rounded-full bg-surface-light flex items-center justify-center shrink-0 overflow-hidden">
-                     <span className="material-symbols-outlined">person</span>
+                <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-surface-light">
+                     {avatarUrl ? (
+                       <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                     ) : (
+                       <span className="material-symbols-outlined">person</span>
+                     )}
                 </div>
             )}
           </motion.div>
