@@ -20,6 +20,7 @@ const AddTransaction: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerYear, setPickerYear] = useState<number>(new Date().getFullYear());
   const [pickerMonth, setPickerMonth] = useState<number>(new Date().getMonth());
+  const [isRecurring, setIsRecurring] = useState(false);
 
   // Colors based on type
   const activeColor = type === 'expense' ? '#FF455F' : '#00D68F'; // Pink/Red for expense, Green for income
@@ -240,6 +241,17 @@ const AddTransaction: React.FC = () => {
                             <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
                     </div>
+
+                    {/* Recurring Toggle */}
+                    <div className="flex-1 h-14 rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
+                        <span className="text-white font-medium">Recorrente</span>
+                        <button 
+                            onClick={() => setIsRecurring(!isRecurring)}
+                            className={`w-12 h-7 rounded-full relative transition-colors ${isRecurring ? activeClass : 'bg-gray-600'}`}
+                        >
+                            <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -306,6 +318,33 @@ const AddTransaction: React.FC = () => {
                         category_id: categoryId
                       });
                     dbError = insertError;
+
+                    if (!dbError && isRecurring) {
+                      const y = selectedDate.getFullYear();
+                      const baseDay = selectedDate.getDate();
+                      const startMonth = selectedDate.getMonth() + 1;
+                      const rows: any[] = [];
+                      for (let m = startMonth; m < 12; m++) {
+                        const daysInMonth = new Date(y, m + 1, 0).getDate();
+                        const day = Math.min(baseDay, daysInMonth);
+                        const d = new Date(y, m, day);
+                        rows.push({
+                          user_id: user.id,
+                          amount: value,
+                          type,
+                          description: description || null,
+                          date: toLocalISO(d),
+                          is_paid: false,
+                          category_id: categoryId
+                        });
+                      }
+                      if (rows.length) {
+                        const { error: recErr } = await supabase
+                          .from('user_transactions')
+                          .insert(rows);
+                        if (recErr) dbError = recErr;
+                      }
+                    }
                   }
                   setSaving(false);
                   if (dbError) {
