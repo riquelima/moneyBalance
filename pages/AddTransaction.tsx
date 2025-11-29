@@ -108,6 +108,7 @@ const AddTransaction: React.FC = () => {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="max-w-md mx-auto">
             
             {/* Type Segmented Control */}
             <div className="flex bg-[#2C2C2E] rounded-xl p-1 mb-8">
@@ -224,15 +225,15 @@ const AddTransaction: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex gap-4">
+                <div className="grid grid-cols-3 gap-3 items-center">
                     {/* Date */}
-                    <button onClick={() => setShowDatePicker(v => !v)} className="flex-1 h-14 rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
+                    <button onClick={() => setShowDatePicker(v => !v)} className="h-14 w-full rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
                         <span className="text-xs text-text-secondary">Data</span>
-                        <span className="text-white font-medium">{displayDateLabel}</span>
+                        <span className="text-white font-medium truncate w-full">{displayDateLabel}</span>
                     </button>
 
                     {/* Paid Toggle */}
-                    <div className="flex-1 h-14 rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
+                    <div className="h-14 w-full rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
                         <span className="text-white font-medium">Pago</span>
                         <button 
                             onClick={() => setIsPaid(!isPaid)}
@@ -243,7 +244,7 @@ const AddTransaction: React.FC = () => {
                     </div>
 
                     {/* Recurring Toggle */}
-                    <div className="flex-1 h-14 rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
+                    <div className="h-14 w-full rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between">
                         <span className="text-white font-medium">Recorrente</span>
                         <button 
                             onClick={() => setIsRecurring(!isRecurring)}
@@ -255,6 +256,7 @@ const AddTransaction: React.FC = () => {
                 </div>
             </div>
 
+          </div>
         </div>
 
         {/* Footer Button */}
@@ -320,23 +322,27 @@ const AddTransaction: React.FC = () => {
                     dbError = insertError;
 
                     if (!dbError && isRecurring) {
-                      const y = selectedDate.getFullYear();
                       const baseDay = selectedDate.getDate();
-                      const startMonth = selectedDate.getMonth() + 1;
+                      const start = new Date(selectedDate);
+                      start.setMonth(start.getMonth() + 1);
+                      const recurringEndYear = 2026;
                       const rows: any[] = [];
-                      for (let m = startMonth; m < 12; m++) {
-                        const daysInMonth = new Date(y, m + 1, 0).getDate();
-                        const day = Math.min(baseDay, daysInMonth);
-                        const d = new Date(y, m, day);
-                        rows.push({
-                          user_id: user.id,
-                          amount: value,
-                          type,
-                          description: description || null,
-                          date: toLocalISO(d),
-                          is_paid: false,
-                          category_id: categoryId
-                        });
+                      for (let yr = start.getFullYear(); yr <= recurringEndYear; yr++) {
+                        const monthStart = yr === start.getFullYear() ? start.getMonth() : 0;
+                        for (let m = monthStart; m < 12; m++) {
+                          const daysInMonth = new Date(yr, m + 1, 0).getDate();
+                          const day = Math.min(baseDay, daysInMonth);
+                          const d = new Date(yr, m, day);
+                          rows.push({
+                            user_id: user.id,
+                            amount: value,
+                            type,
+                            description: description || null,
+                            date: toLocalISO(d),
+                            is_paid: false,
+                            category_id: categoryId
+                          });
+                        }
                       }
                       if (rows.length) {
                         const { error: recErr } = await supabase
