@@ -37,6 +37,22 @@ const Chat: React.FC = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_chat_messages')
+        .select('id, role, message, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(200);
+      const arr = (data || []).map((d: any) => ({ id: d.id, sender: d.role, text: d.message }));
+      if (arr.length) setMessages(arr as any);
+    })();
+  }, []);
+
   const fetchUserData = async () => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
@@ -120,6 +136,15 @@ const Chat: React.FC = () => {
     return await resp.text();
   };
 
+  const persistMessage = async (role: 'user' | 'ai', text: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) return;
+    await supabase
+      .from('user_chat_messages')
+      .insert({ user_id: user.id, role, message: text });
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim()) return;
     const newMsg = { id: Date.now(), sender: 'user', text: inputValue };
@@ -127,12 +152,15 @@ const Chat: React.FC = () => {
     setInputValue('');
     setIsTyping(true);
     try {
+      await persistMessage('user', newMsg.text);
       const answer = await askGemini(newMsg.text);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: answer }]);
+      await persistMessage('ai', answer);
     } catch (e: any) {
       const msg = typeof e?.message === 'string' ? e.message : 'Ocorreu um erro ao contactar o webhook.';
       setError(msg);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: msg }]);
+      await persistMessage('ai', msg);
     } finally {
       setIsTyping(false);
     }
@@ -159,13 +187,13 @@ const Chat: React.FC = () => {
             className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
           >
             {msg.sender === 'ai' && (
-                <div className="h-8 w-8 rounded-full bg-primary-blue flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-white text-sm">smart_toy</span>
+                <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-surface-light">
+                    <img src="https://cdn-icons-png.flaticon.com/512/10881/10881863.png" alt="IA" className="h-full w-full object-cover" />
                 </div>
             )}
             
             <div className={`flex flex-col gap-1 max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <span className="text-xs text-text-secondary ml-1">{msg.sender === 'ai' ? 'IA' : 'Você'}</span>
+                <span className="text-xs text-text-secondary ml-1">{msg.sender === 'ai' ? 'Good Money - Assitente IA' : 'Você'}</span>
                 <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed font-zain font-light ${
                     msg.sender === 'user' 
                         ? 'bg-primary-blue text-white rounded-br-none' 
@@ -193,8 +221,8 @@ const Chat: React.FC = () => {
 
         {isTyping && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-3">
-                 <div className="h-8 w-8 rounded-full bg-primary-blue flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-white text-sm">smart_toy</span>
+                 <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-surface-light">
+                    <img src="https://cdn-icons-png.flaticon.com/512/10881/10881863.png" alt="IA" className="h-full w-full object-cover" />
                 </div>
                 <div className="bg-surface-light px-4 py-3 rounded-2xl rounded-bl-none flex gap-1">
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
@@ -207,15 +235,24 @@ const Chat: React.FC = () => {
       </div>
 
       <div className="p-4 bg-background-dark border-t border-surface-light">
-        <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar">
-            {['Maior gasto?', 'Resumo da semana', 'Dicas'].map(chip => (
-              <button 
-                key={chip} 
-                onClick={() => setInputValue(chip)}
-                className="whitespace-nowrap px-4 py-2 rounded-full bg-surface-light hover:bg-surface-light/80 text-xs font-medium border border-surface-light"
-              >
-                {chip}
-              </button>
+        <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
+            {[
+              'Maior gasto mês atual',
+              'Resumo do mês atual',
+              'O que posso te perguntar?',
+              'Estou dentro do meu orçamento para esse mês?',
+              'Qual a soma de todas as entradas futuras recorrentes para 2026?',
+              'Qual a soma de todas as saídas futuras recorrentes para 2026?',
+              'Onde devo economizar?'
+            ].map((chip) => (
+              <div key={chip} className="shrink-0 snap-start">
+                <button 
+                  onClick={() => setInputValue(chip)}
+                  className="whitespace-nowrap px-4 py-2 rounded-full bg-surface-light hover:bg-surface-light/80 text-xs font-medium border border-surface-light"
+                >
+                  {chip}
+                </button>
+              </div>
             ))}
         </div>
         <div className="flex items-center gap-2">
