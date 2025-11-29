@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+ 
 
 const Chat: React.FC = () => {
   const navigate = useNavigate();
@@ -47,9 +47,6 @@ const Chat: React.FC = () => {
 
   const askGemini = async (question: string) => {
     setError(null);
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY as string | undefined;
-    if (!apiKey) throw new Error('missing_api_key');
-    const genAI = new GoogleGenerativeAI(apiKey);
     const { user, transactions, budgets, categories } = await fetchUserData();
     if (!user) return 'Faça login para que eu consiga acessar seus dados e responder.';
     const now = new Date();
@@ -83,26 +80,22 @@ const Chat: React.FC = () => {
       orcamentos: (budgets || []).map((b: any) => ({ categoria: String(b.category || ''), limite: Number(b.limit_amount || 0) })),
       amostraTransacoesRecentes: recent.slice(0, 40).map((t: any) => ({ descricao: t.description || (t.type === 'income' ? 'Entrada' : 'Despesa'), valor: Number(t.amount || 0), tipo: t.type, data: t.date, pago: !!t.is_paid, categoria: t.category_id ? (catMap[String(t.category_id)] || 'Categoria') : 'Sem Categoria' }))
     };
-    const prompt = `Você é uma IA financeira. Responda em português do Brasil, usando valores em BRL.
-Use apenas os dados fornecidos a seguir como base. Se algo não estiver nos dados, explique a limitação e diga o que seria necessário.
-Se apropriado, mostre totais, listas, projeções simples e recomendações objetivas.
-Pergunta: ${question}
-Dados:
-${JSON.stringify(context)}`;
-    const tryModels = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-1.5-flash'];
-    let lastErr: any = null;
-    for (const m of tryModels) {
-      try {
-        const mdl = genAI.getGenerativeModel({ model: m });
-        const resp = await mdl.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] });
-        const txt = resp.response.text();
-        if (txt) return txt;
-      } catch (err: any) {
-        lastErr = err;
-      }
+    const resp = await fetch('https://n8n.intelektus.tech/webhook/moneyBalanceChatEntry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, context })
+    });
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => '');
+      throw new Error(errText || 'webhook_request_failed');
     }
-    if (lastErr) throw lastErr;
-    throw new Error('gemini_request_failed');
+    const ct = resp.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const data = await resp.json();
+      const txt = (data && (data.message || data.text || data.answer)) ?? JSON.stringify(data);
+      return typeof txt === 'string' ? txt : JSON.stringify(txt);
+    }
+    return await resp.text();
   };
 
   const handleSend = async () => {
@@ -115,7 +108,7 @@ ${JSON.stringify(context)}`;
       const answer = await askGemini(newMsg.text);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: answer }]);
     } catch (e: any) {
-      const msg = e?.message === 'missing_api_key' ? 'Configure a chave da Gemini em VITE_GEMINI_API_KEY para ativar a IA.' : 'Ocorreu um erro ao processar sua pergunta.';
+      const msg = typeof e?.message === 'string' ? e.message : 'Ocorreu um erro ao contactar o webhook.';
       setError(msg);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: msg }]);
     } finally {

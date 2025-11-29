@@ -225,9 +225,9 @@ const AddTransaction: React.FC = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 items-center">
+                <div className="grid grid-cols-2 gap-3 items-center">
                     {/* Date */}
-                    <button onClick={() => setShowDatePicker(v => !v)} className="h-12 w-full rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
+                    <button onClick={() => setShowDatePicker(v => !v)} className="col-span-2 h-12 w-full rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
                         <span className="text-xs text-text-secondary">Data</span>
                         <span className="text-white font-medium truncate w-full">{displayDateLabel}</span>
                     </button>

@@ -19,6 +19,8 @@ const Dashboard: React.FC = () => {
   const [showMonthPicker, setShowMonthPicker] = useState<boolean>(false);
   const [incomeItems, setIncomeItems] = useState<any[]>([]);
   const [expenseItems, setExpenseItems] = useState<any[]>([]);
+  const [entriesCollapsed, setEntriesCollapsed] = useState<boolean>(false);
+  const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
   const labelForDate = (iso: string) => {
     const d = new Date(iso);
     const today = new Date();
@@ -420,54 +422,70 @@ const Dashboard: React.FC = () => {
         </div>
       </motion.section>
 
-      <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={entriesRef}
-      >
+      <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={entriesRef}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 text-success">
             <span className="material-symbols-outlined text-xl">arrow_downward</span>
-            <p className="text-lg font-bold text-text-primary">Entradas</p>
+            <p className="text-lg font-bold text-text-primary cursor-pointer" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
           </div>
-          <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+            {entriesCollapsed && (
+              <button onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-full hover:bg-surface-light">
+                <span className="material-symbols-outlined text-sm">expand_more</span>
+              </button>
+            )}
+          </div>
         </div>
-        <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
-          {incomeItems.length === 0 && (
-            <p className="text-sm text-text-secondary">Nenhuma entrada neste mês</p>
-          )}
-          {incomeItems.map((it) => (
-            <div key={it.id} className="flex items-center justify-between py-2">
-              <div className="flex flex-col">
-                <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
-                <span className="text-sm font-medium text-text-primary">{it.description || 'Sem descrição'}</span>
+        {!entriesCollapsed && (
+          <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
+            {incomeItems.length === 0 && (
+              <p className="text-sm text-text-secondary">Nenhuma entrada neste mês</p>
+            )}
+            {incomeItems.map((it) => (
+              <div key={it.id} className="flex items-center justify-between py-2">
+                <div className="flex flex-col">
+                  <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
+                  <span className="text-sm font-medium text-text-primary">{it.description || 'Sem descrição'}</span>
+                </div>
+                <span className="text-sm font-bold text-success">{formatBRL(Number(it.amount || 0))}</span>
               </div>
-              <span className="text-sm font-bold text-success">{formatBRL(Number(it.amount || 0))}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.section>
 
-      <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={expensesRef}
-      >
+      <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={expensesRef}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 text-danger">
             <span className="material-symbols-outlined text-xl">arrow_upward</span>
-            <p className="text-lg font-bold text-text-primary">Saídas</p>
+            <p className="text-lg font-bold text-text-primary cursor-pointer" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
           </div>
-          <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+            {expensesCollapsed && (
+              <button onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-full hover:bg-surface-light">
+                <span className="material-symbols-outlined text-sm">expand_more</span>
+              </button>
+            )}
+          </div>
         </div>
-        <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
-          {expenseItems.length === 0 && (
-            <p className="text-sm text-text-secondary">Nenhuma saída neste mês</p>
-          )}
-          {expenseItems.map((it) => (
-            <div key={it.id} className="flex items-center justify-between py-2">
-              <div className="flex flex-col">
-                <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
-                <span className="text-sm font-medium text-text-primary">{it.description || 'Sem descrição'}</span>
+        {!expensesCollapsed && (
+          <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
+            {expenseItems.length === 0 && (
+              <p className="text-sm text-text-secondary">Nenhuma saída neste mês</p>
+            )}
+            {expenseItems.map((it) => (
+              <div key={it.id} className="flex items-center justify-between py-2">
+                <div className="flex flex-col">
+                  <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
+                  <span className="text-sm font-medium text-text-primary">{it.description || 'Sem descrição'}</span>
+                </div>
+                <span className="text-sm font-bold text-danger">{formatBRL(Number(it.amount || 0))}</span>
               </div>
-              <span className="text-sm font-bold text-danger">{formatBRL(Number(it.amount || 0))}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.section>
 
     </motion.div>

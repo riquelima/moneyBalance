@@ -188,37 +188,49 @@ const Reports: React.FC = () => {
   const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number; denominator?: number }> = ({ data, colors, size = 200, thickness = 30, denominator }) => {
     const totalData = data.reduce((a, d) => a + Number(d.amount || 0), 0);
     const denom = typeof denominator === 'number' && denominator > 0 ? denominator : totalData;
-    const R = size / 2 - thickness / 2;
-    const C = 2 * Math.PI * R;
-    let acc = 0;
+    const R = size / 2; // raio total para pizza preenchida
+    let start = -Math.PI / 2; // começa no topo
+    const slices = data.map((d, i) => {
+      const p = denom ? Number(d.amount || 0) / denom : 0;
+      const ang = p * 2 * Math.PI;
+      const end = start + ang;
+      const x0 = Math.cos(start) * R, y0 = Math.sin(start) * R;
+      const x1 = Math.cos(end) * R, y1 = Math.sin(end) * R;
+      const large = ang > Math.PI ? 1 : 0;
+      const path = `M 0 0 L ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} Z`;
+      const mid = start + ang / 2;
+      const rx = Math.cos(mid) * (R * 0.6);
+      const ry = Math.sin(mid) * (R * 0.6);
+      start = end;
+      return { p, path, color: colors[i % colors.length], rx, ry };
+    });
+    const sumP = slices.reduce((a, s) => a + s.p, 0);
+    const rest = Math.max(0, 1 - sumP);
+    if (rest > 0) {
+      const ang = rest * 2 * Math.PI;
+      const end = start + ang;
+      const x0 = Math.cos(start) * R, y0 = Math.sin(start) * R;
+      const x1 = Math.cos(end) * R, y1 = Math.sin(end) * R;
+      const large = ang > Math.PI ? 1 : 0;
+      const path = `M 0 0 L ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} Z`;
+      const mid = start + ang / 2;
+      const rx = Math.cos(mid) * (R * 0.6);
+      const ry = Math.sin(mid) * (R * 0.6);
+      slices.push({ p: rest, path, color: '#2C2C2E', rx, ry });
+    }
     return (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
         <g transform={`translate(${size / 2},${size / 2})`}>
-          <circle r={R} cx={0} cy={0} fill="none" stroke="#2C2C2E" strokeWidth={thickness} />
-          {data.map((d, i) => {
-            const p = denom ? Number(d.amount || 0) / denom : 0;
-            const len = p * C;
-            const dash = `${len} ${C - len}`;
-            const offset = C * (1 - acc);
-            // posição do rótulo em ângulo médio do segmento (compensando rotação -90°)
-            const startAcc = acc; // acumulação antes deste segmento
-            acc += p;
-            const midFrac = startAcc + p / 2;
-            const angle = -Math.PI / 2 + 2 * Math.PI * midFrac;
-            const rx = Math.cos(angle) * (R);
-            const ry = Math.sin(angle) * (R);
-            const pctLabel = `${(p * 100).toFixed(1)}%`;
-            return (
-              <>
-                <circle key={`arc-${i}`} r={R} cx={0} cy={0} fill="none" stroke={colors[i % colors.length]} strokeWidth={thickness} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90)" />
-                {p > 0 && (
-                  <text key={`lbl-${i}`} x={rx} y={ry} fill="#000" fontSize={10} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
-                    {pctLabel}
-                  </text>
-                )}
-              </>
-            );
-          })}
+          {slices.map((s, i) => (
+            <g key={i}>
+              <path d={s.path} fill={s.color} />
+              {s.p > 0 && (
+                <text x={s.rx} y={s.ry} fill="#000" fontSize={10} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
+                  {(s.p * 100).toFixed(1)}%
+                </text>
+              )}
+            </g>
+          ))}
         </g>
       </svg>
     );
