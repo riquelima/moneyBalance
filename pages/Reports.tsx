@@ -179,6 +179,35 @@ const Reports: React.FC = () => {
     }).join(' ');
   };
   const linePath = makeLinePath(projection.values);
+  const makeColors = (n: number) => Array.from({ length: n }, (_, i) => {
+    const hue = Math.round((i * 137.508) % 360);
+    return `hsl(${hue}, 75%, 55%)`;
+  });
+  const incomeColors = useMemo(() => makeColors(incomeCategories.length), [incomeCategories.length]);
+  const expenseColors = useMemo(() => makeColors(categories.length), [categories.length]);
+  const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number }> = ({ data, colors, size = 200, thickness = 30 }) => {
+    const total = data.reduce((a, d) => a + Number(d.amount || 0), 0);
+    const R = size / 2 - thickness / 2;
+    const C = 2 * Math.PI * R;
+    let acc = 0;
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
+        <g transform={`translate(${size / 2},${size / 2})`}>
+          <circle r={R} cx={0} cy={0} fill="none" stroke="#2C2C2E" strokeWidth={thickness} />
+          {data.map((d, i) => {
+            const p = total ? Number(d.amount || 0) / total : 0;
+            const len = p * C;
+            const dash = `${len} ${C - len}`;
+            const offset = C * (1 - acc);
+            acc += p;
+            return (
+              <circle key={i} r={R} cx={0} cy={0} fill="none" stroke={colors[i % colors.length]} strokeWidth={thickness} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90)" />
+            );
+          })}
+        </g>
+      </svg>
+    );
+  };
 
   return (
     <motion.div 
@@ -233,72 +262,72 @@ const Reports: React.FC = () => {
       )}
 
       <section>
-        <h2 className="text-2xl font-bold mb-4 text-center">Visão Geral das Receitas</h2>
-        <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
-          <div className="flex flex-col gap-2 items-center">
-            <p className="text-text-secondary text-base font-medium text-center">Receitas por Categoria</p>
-            <p className="text-white text-3xl font-bold text-center">{fmtBRL(incomeTotal)}</p>
-            <div className="flex gap-1 justify-center">
-              <p className="text-text-secondary text-base">Mês Atual</p>
-              <p className={`${incomeChangePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${incomeChangePct >= 0 ? '+' : ''}${incomeChangePct.toFixed(1)}%`}</p>
-            </div>
-            <div className="grid min-h-[180px] grid-flow-col gap-4 grid-rows-[1fr_auto] items-end justify-items-center px-1 pt-4">
-              {topIncomeCats.map((c) => {
-                const max = topIncomeCats.length ? Math.max(...topIncomeCats.map(x => x.amount)) : 1;
-                const pct = Math.round((c.amount / (max || 1)) * 100);
-                const h = Math.max(10, Math.min(100, pct));
-                return (
-                  <div key={c.name} className="w-full flex flex-col items-center justify-end gap-2">
-                    <div className="bg-primary-green/30 w-full rounded-t-md" style={{ height: `${h}%` }}></div>
-                    <p className="text-text-secondary text-[13px] font-bold tracking-[0.015em]">{c.name}</p>
-                    <p className="text-success text-[13px] font-bold">+ {fmtBRL(c.amount)}</p>
+        <h2 className="text-2xl font-bold mb-4 text-center">Estatísticas</h2>
+        <div className="w-full">
+          <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4">
+            <div className="min-w-full snap-center">
+              <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
+                <div className="flex flex-col gap-2 items-center">
+                  <p className="text-text-secondary text-base font-medium text-center">Receitas por Categoria</p>
+                  <p className="text-white text-3xl font-bold text-center">{fmtBRL(incomeTotal)}</p>
+                  <div className="flex gap-1 justify-center">
+                    <p className="text-text-secondary text-base">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
+                    <p className={`${incomeChangePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${incomeChangePct >= 0 ? '+' : ''}${incomeChangePct.toFixed(1)}%`}</p>
                   </div>
-                );
-              })}
-              {topIncomeCats.length === 0 && (
-                <p className="col-span-4 text-text-secondary text-sm">Sem receitas neste mês.</p>
-              )}
+                  <div className="pt-4">
+                    <Pie data={incomeCategories} colors={incomeColors} />
+                    {incomeCategories.length === 0 && (
+                      <p className="text-center text-text-secondary text-sm mt-2">Sem receitas neste mês.</p>
+                    )}
+                  </div>
+                  {incomeCategories.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 gap-3 w-full max-h-28 overflow-y-auto overscroll-contain pr-1">
+                      {incomeCategories.map((d, i) => (
+                        <div key={`${d.name}-${i}`} className="flex items-start gap-2">
+                          <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></span>
+                          <div className="flex-1">
+                            <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
+                            <p className="text-success text-[13px] font-bold">+ {fmtBRL(d.amount)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="min-w-full snap-center">
+              <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
+                <div className="flex flex-col gap-2 items-center">
+                  <p className="text-text-secondary text-base font-medium text-center">Despesas por Categoria</p>
+                  <p className="text-white text-3xl font-bold text-center">{fmtBRL(monthTotal)}</p>
+                  <div className="flex gap-1 justify-center">
+                    <p className="text-text-secondary text-base">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
+                    <p className={`${changePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${changePct >= 0 ? '+' : ''}${changePct.toFixed(1)}%`}</p>
+                  </div>
+                  <div className="pt-4">
+                    <Pie data={categories} colors={expenseColors} />
+                    {categories.length === 0 && (
+                      <p className="text-center text-text-secondary text-sm mt-2">Sem despesas neste mês.</p>
+                    )}
+                  </div>
+                  {categories.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 gap-3 w-full max-h-28 overflow-y-auto overscroll-contain pr-1">
+                      {categories.map((d, i) => (
+                        <div key={`${d.name}-${i}`} className="flex items-start gap-2">
+                          <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></span>
+                          <div className="flex-1">
+                            <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
+                            <p className="text-danger text-[13px] font-bold">- {fmtBRL(d.amount)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-2xl font-bold mb-4 text-center">Visão Geral das Despesas</h2>
-        <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
-          {hasData ? (
-            <div className="flex flex-col gap-2 items-center">
-              <p className="text-text-secondary text-base font-medium text-center">Despesas por Categoria</p>
-              <p className="text-white text-3xl font-bold text-center">{fmtBRL(monthTotal)}</p>
-              <div className="flex gap-1 justify-center">
-                <p className="text-text-secondary text-base">Mês Atual</p>
-                <p className={`${changePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${changePct >= 0 ? '+' : ''}${changePct.toFixed(1)}%`}</p>
-              </div>
-              <div className="grid min-h-[180px] grid-flow-col gap-4 grid-rows-[1fr_auto] items-end justify-items-center px-1 pt-4">
-                {topCats.map((c) => {
-                  const max = topCats.length ? Math.max(...topCats.map(x => x.amount)) : 1;
-                  const pct = Math.round((c.amount / (max || 1)) * 100);
-                  const h = Math.max(10, Math.min(100, pct));
-                  return (
-                    <div key={c.name} className="w-full flex flex-col items-center justify-end gap-2">
-                      <div className="bg-primary-green/30 w-full rounded-t-md" style={{ height: `${h}%` }}></div>
-                      <p className="text-text-secondary text-[13px] font-bold tracking-[0.015em]">{c.name}</p>
-                      <p className="text-danger text-[13px] font-bold">- {fmtBRL(c.amount)}</p>
-                    </div>
-                  );
-                })}
-                {topCats.length === 0 && (
-                  <p className="col-span-4 text-text-secondary text-sm">Sem despesas neste mês.</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <>
-              <p className="text-text-secondary font-medium">Sem dados</p>
-              <p className="text-3xl font-bold mt-1 text-white">R$ 0,00</p>
-              <p className="mt-2 text-text-secondary">Adicione transações para visualizar seus relatórios.</p>
-            </>
-          )}
         </div>
       </section>
 
