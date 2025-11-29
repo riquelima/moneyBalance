@@ -120,10 +120,7 @@ const Notifications: React.FC = () => {
           <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-surface-light"></div>
           <header className="flex items-center justify-between p-6">
             <h1 className="text-2xl font-bold text-text-primary">Notificações</h1>
-            <div className="flex items-center gap-4">
-              <button onClick={() => setItems([])} className="text-text-secondary hover:text-danger">
-                <span className="material-symbols-outlined !text-3xl">delete_sweep</span>
-              </button>
+            <div className="flex items-center gap-2">
               <button onClick={() => navigate(-1)} className="text-text-secondary hover:text-primary">
                 <span className="material-symbols-outlined !text-3xl">close</span>
               </button>
@@ -135,18 +132,35 @@ const Notifications: React.FC = () => {
                 const cls = toneClasses(it.tone);
                 const faded = it.tone === 'neutral' ? 'opacity-60' : '';
                 return (
-                  <div key={idx} className={`flex items-start gap-4 rounded-xl border ${cls.border} bg-surface-dark/50 p-4 ${faded}`}>
-                    <div className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${cls.iconBg} ${cls.iconText}`}>
-                      <span className="material-symbols-outlined">{it.icon}</span>
+                  <div key={idx} className="relative">
+                    <div className="absolute inset-0 z-0 flex items-center justify-end pr-4">
+                      <button
+                        onClick={() => setItems(arr => arr.filter((_, i) => i !== idx))}
+                        className="flex items-center justify-center h-10 w-10 rounded-full bg-danger/20 text-danger hover:bg-danger/30"
+                      >
+                        <span className="material-symbols-outlined">delete</span>
+                      </button>
                     </div>
-                    <div className="flex-1">
-                      <h2 className={`font-bold ${it.tone === 'neutral' ? 'text-text-secondary' : 'text-text-primary'}`}>{it.title}</h2>
-                      <p className="text-sm text-text-secondary">{it.text}</p>
-                      {it.tag && (
-                        <span className={`mt-2 inline-block text-xs font-medium ${it.tagClass}`}>{it.tag}</span>
-                      )}
-                    </div>
-                    <span className="text-xs text-text-secondary">{it.time}</span>
+                    <motion.div
+                      drag="x"
+                      dragConstraints={{ left: -120, right: 0 }}
+                      dragElastic={0.06}
+                      dragMomentum={false}
+                      onDragEnd={(e, info) => { if (info.offset.x < -80) setItems(arr => arr.filter((_, i) => i !== idx)); }}
+                      className={`relative z-10 flex items-start gap-4 rounded-xl border ${cls.border} bg-surface-dark/50 p-4 ${faded}`}
+                    >
+                      <div className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${cls.iconBg} ${cls.iconText}`}>
+                        <span className="material-symbols-outlined">{it.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h2 className={`font-bold ${it.tone === 'neutral' ? 'text-text-secondary' : 'text-text-primary'}`}>{it.title}</h2>
+                        <p className="text-sm text-text-secondary">{it.text}</p>
+                        {it.tag && (
+                          <span className={`mt-2 inline-block text-xs font-medium ${it.tagClass}`}>{it.tag}</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-text-secondary">{it.time}</span>
+                    </motion.div>
                   </div>
                 );
               })}
