@@ -1,16 +1,97 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Notifications: React.FC = () => {
   const navigate = useNavigate();
-  const items: Array<{ icon: string; title: string; text: string; tag?: string; tagClass?: string; time: string; tone: 'danger' | 'warning' | 'info' | 'neutral' }> = [
-    { icon: 'priority_high', title: 'Vencimento de Fatura', text: 'Sua fatura do cartão de crédito no valor de R$ 850,00 vence amanhã.', tag: 'Urgente', tagClass: 'text-danger', time: 'Agora', tone: 'danger' },
-    { icon: 'warning', title: 'Alerta de Orçamento', text: 'Você atingiu 85% do seu orçamento para a categoria "Restaurantes".', tag: 'Atenção', tagClass: 'text-warning', time: '2h atrás', tone: 'warning' },
-    { icon: 'calendar_today', title: 'Lembrete de Pagamento', text: 'Lembre-se de pagar sua conta de internet. Vencimento em 3 dias.', tag: 'Lembrete', tagClass: 'text-primary-blue', time: 'Ontem', tone: 'info' },
-    { icon: 'check_circle', title: 'Transferência Recebida', text: 'Você recebeu uma transferência de R$ 250,00 de Maria Silva.', time: '2 dias', tone: 'neutral' },
-    { icon: 'receipt_long', title: 'Pagamento Confirmado', text: 'Seu pagamento da conta de energia foi processado com sucesso.', time: '4 dias', tone: 'neutral' },
-  ];
+  const [items, setItems] = useState<Array<{ icon: string; title: string; text: string; tag?: string; tagClass?: string; time: string; tone: 'danger' | 'warning' | 'info' | 'neutral' }>>([]);
+
+  useEffect(() => {
+    const fmt = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    };
+    const load = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) { setItems([]); return; }
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const { data: budgets } = await supabase
+        .from('user_budgets')
+        .select('category, limit_amount')
+        .eq('user_id', user.id)
+        .eq('year', now.getFullYear())
+        .eq('month', now.getMonth());
+
+      const { data: tx } = await supabase
+        .from('user_transactions')
+        .select('amount, type, date, category_id')
+        .eq('user_id', user.id)
+        .eq('type', 'expense')
+        .gte('date', fmt(start))
+        .lte('date', fmt(end));
+
+      const map = new Map<string, number>();
+      const idsSet = new Set<string>();
+      (tx || []).forEach((t: any) => {
+        const id = t.category_id || 'none';
+        idsSet.add(id);
+        map.set(id, (map.get(id) || 0) + Number(t.amount || 0));
+      });
+      const ids = Array.from(idsSet).filter(id => id !== 'none');
+      let byIdName: Record<string, string> = {};
+      if (ids.length) {
+        const { data: cats } = await supabase
+          .from('user_categories')
+          .select('id, name')
+          .in('id', ids);
+        (cats || []).forEach((c: any) => { byIdName[String(c.id)] = String(c.name || 'Categoria'); });
+      }
+      const spentByName: Record<string, number> = {};
+      Array.from(map.entries()).forEach(([id, amt]) => {
+        if (id === 'none') return;
+        const nm = byIdName[id] || 'Categoria';
+        spentByName[nm] = (spentByName[nm] || 0) + Number(amt || 0);
+      });
+
+      const alerts: Array<{ icon: string; title: string; text: string; tag?: string; tagClass?: string; time: string; tone: 'danger' | 'warning' | 'info' | 'neutral' }> = [];
+      (budgets || []).forEach((b: any) => {
+        const limit = Number(b.limit_amount || 0);
+        const name = String(b.category || 'Categoria');
+        if (limit > 0) {
+          const spent = Number(spentByName[name] || 0);
+          const pct = limit ? Math.round((spent / limit) * 100) : 0;
+          if (pct >= 80) {
+            alerts.push({ icon: 'warning', title: 'Alerta de Orçamento', text: `Você atingiu ${pct}% do seu orçamento para a categoria "${name}".`, tag: 'Atenção', tagClass: 'text-warning', time: 'Este mês', tone: 'warning' });
+          }
+        }
+      });
+
+      const twoDays = new Date(now);
+      twoDays.setDate(now.getDate() + 2);
+      const { data: upcoming } = await supabase
+        .from('user_transactions')
+        .select('description, amount, type, is_paid, date')
+        .eq('user_id', user.id)
+        .eq('type', 'expense')
+        .eq('is_paid', false)
+        .eq('date', fmt(twoDays));
+      (upcoming || []).forEach((t: any) => {
+        const desc = String(t.description || '').trim();
+        const amountStr = Number(t.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const suffix = desc ? ` ${desc}` : '';
+        alerts.push({ icon: 'calendar_today', title: 'Lembrete de Pagamento', text: `Lembre-se de pagar sua conta${suffix}. Vencimento em 2 dias.`, tag: 'Lembrete', tagClass: 'text-primary-blue', time: 'Hoje', tone: 'info' });
+      });
+      setItems(alerts);
+    };
+    load();
+  }, []);
 
   const toneClasses = (t: 'danger' | 'warning' | 'info' | 'neutral') => {
     if (t === 'danger') return { border: 'border-danger/50', iconBg: 'bg-danger/20', iconText: 'text-danger' };
@@ -38,10 +119,15 @@ const Notifications: React.FC = () => {
         >
           <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-surface-light"></div>
           <header className="flex items-center justify-between p-6">
-            <h1 className="text-2xl font-bold text-text-primary">Central de Notificações</h1>
-            <button onClick={() => navigate(-1)} className="text-text-secondary hover:text-primary">
-              <span className="material-symbols-outlined !text-3xl">close</span>
-            </button>
+            <h1 className="text-2xl font-bold text-text-primary">Notificações</h1>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setItems([])} className="text-text-secondary hover:text-danger">
+                <span className="material-symbols-outlined !text-3xl">delete_sweep</span>
+              </button>
+              <button onClick={() => navigate(-1)} className="text-text-secondary hover:text-primary">
+                <span className="material-symbols-outlined !text-3xl">close</span>
+              </button>
+            </div>
           </header>
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <div className="flex flex-col gap-4">

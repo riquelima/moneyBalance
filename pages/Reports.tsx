@@ -339,7 +339,14 @@ const Reports: React.FC = () => {
             const limit = Number(budgets[c.name] || 0);
             const spent = Number(c.amount || 0);
             const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
-            const bar = pct >= 90 ? 'bg-warning' : 'bg-primary-green';
+            const bar = (() => {
+              if (limit > 0) {
+                if (spent < limit) return 'bg-warning';
+                if (spent === limit) return 'bg-primary-green';
+                return 'bg-danger';
+              }
+              return 'bg-warning';
+            })();
             const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / Definir`;
             return (
               <button

@@ -385,13 +385,13 @@ const Dashboard: React.FC = () => {
                 const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
                 const showLabel = rawVal > 0 && (period === 'month' || h >= 12);
                 return (
-                  <div key={i} className="relative flex flex-col justify-end items-center">
+                  <div key={i} className="relative flex flex-col justify-end items-center h-full">
                     <motion.div
                       initial={{ height: 0 }}
                       animate={{ height: `${h}%` }}
                       transition={{ duration: 1, delay: i * 0.05 }}
                       className={`${chartType === 'expense' ? 'bg-danger' : 'bg-primary-green'} rounded-t-sm relative flex items-center justify-center ${period === 'month' ? 'w-[14px] sm:w-[16px]' : 'w-full'}`}
-                      style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: 1, minHeight: period === 'month' ? `${minPx}px` : undefined }}
+                      style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: 1, minHeight: showLabel ? `${minPx}px` : undefined }}
                     >
                       {showLabel && (
                         <span className={`rotate-90 text-[10px] font-bold ${chartType === 'income' ? 'text-black' : 'text-white'} whitespace-nowrap leading-none pointer-events-none`}>
