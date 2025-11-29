@@ -268,10 +268,10 @@ const Reports: React.FC = () => {
             <div className="min-w-full snap-center">
               <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
                 <div className="flex flex-col gap-2 items-center">
-                  <p className="text-text-secondary text-base font-medium text-center">Receitas por Categoria</p>
+                  <p className="text-text-secondary text-base font-medium text-center">Estatísticas de Entradas</p>
                   <p className="text-white text-3xl font-bold text-center">{fmtBRL(incomeTotal)}</p>
                   <div className="flex gap-1 justify-center">
-                    <p className="text-text-secondary text-base">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
+                    <p className="text-primary-green text-base font-medium">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
                     <p className={`${incomeChangePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${incomeChangePct >= 0 ? '+' : ''}${incomeChangePct.toFixed(1)}%`}</p>
                   </div>
                   <div className="pt-4">
@@ -299,10 +299,10 @@ const Reports: React.FC = () => {
             <div className="min-w-full snap-center">
               <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
                 <div className="flex flex-col gap-2 items-center">
-                  <p className="text-text-secondary text-base font-medium text-center">Despesas por Categoria</p>
+                  <p className="text-text-secondary text-base font-medium text-center">Estatísticas de Saídas</p>
                   <p className="text-white text-3xl font-bold text-center">{fmtBRL(monthTotal)}</p>
                   <div className="flex gap-1 justify-center">
-                    <p className="text-text-secondary text-base">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
+                    <p className="text-danger text-base font-medium">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
                     <p className={`${changePct >= 0 ? 'text-primary-green' : 'text-danger'} text-base font-medium`}>{`${changePct >= 0 ? '+' : ''}${changePct.toFixed(1)}%`}</p>
                   </div>
                   <div className="pt-4">
