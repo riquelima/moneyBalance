@@ -322,7 +322,7 @@ const Dashboard: React.FC = () => {
         className="rounded-2xl bg-surface-dark/40 p-6 border border-surface-light"
       >
         <p className="text-sm font-medium text-text-secondary mb-1 text-center">Total de Saldo</p>
-        <h2 className="text-4xl font-extrabold tracking-tight text-text-primary text-center">{formatBRL(summary.balance)}</h2>
+        <h2 className="text-4xl font-extrabold tracking-tight text-primary-green text-center">{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
@@ -345,7 +345,11 @@ const Dashboard: React.FC = () => {
               className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
           >
               <div className={`flex items-center gap-2 ${item.color} mb-2`}>
-                  <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  {item.label === 'Já pagos' ? (
+                    <img src="https://cdn-icons-png.flaticon.com/512/5709/5709755.png" alt="Feito" className="h-5 w-5" />
+                  ) : (
+                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  )}
                   <p className="text-sm font-semibold text-text-secondary">{item.label}</p>
               </div>
               <p className="text-lg font-bold text-text-primary">{item.value}</p>
