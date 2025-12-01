@@ -303,7 +303,13 @@ const Reports: React.FC = () => {
         <div className="w-full">
         <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4">
           <div className="min-w-full snap-center">
-            <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
+            <motion.div
+              className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5"
+              initial={{ x: 0 }}
+              animate={{ x: [0, -18, 0, 18, 0] }}
+              transition={{ duration: 1.4, ease: 'easeInOut' }}
+              style={{ willChange: 'transform' }}
+            >
               <div className="flex flex-col gap-2 items-center">
                   <p className="text-text-secondary text-base font-medium text-center">Estatísticas de Saídas</p>
                   <p className="text-white text-3xl font-bold text-center">{fmtBRL(monthTotal)}</p>
@@ -333,7 +339,7 @@ const Reports: React.FC = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
             <div className="min-w-full snap-center">
               <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
