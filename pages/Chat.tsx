@@ -14,6 +14,9 @@ const Chat: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const speechBufferRef = useRef<string>('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -145,15 +148,15 @@ const Chat: React.FC = () => {
       .insert({ user_id: user.id, role, message: text });
   };
 
-  const handleSend = async () => {
-    if (!inputValue.trim()) return;
-    const newMsg = { id: Date.now(), sender: 'user', text: inputValue };
+  const sendText = async (text: string) => {
+    const question = String(text || '').trim();
+    if (!question) return;
+    const newMsg = { id: Date.now(), sender: 'user', text: question };
     setMessages(prev => [...prev, newMsg]);
-    setInputValue('');
     setIsTyping(true);
     try {
-      await persistMessage('user', newMsg.text);
-      const answer = await askGemini(newMsg.text);
+      await persistMessage('user', question);
+      const answer = await askGemini(question);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: answer }]);
       await persistMessage('ai', answer);
     } catch (e: any) {
@@ -163,6 +166,65 @@ const Chat: React.FC = () => {
       await persistMessage('ai', msg);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleSend = async () => {
+    const txt = inputValue.trim();
+    if (!txt) return;
+    setInputValue('');
+    await sendText(txt);
+  };
+
+  const startRecording = () => {
+    try {
+      setError(null);
+      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SR) {
+        setError('Seu navegador não suporta reconhecimento de voz.');
+        return;
+      }
+      const rec = new SR();
+      recognitionRef.current = rec;
+      speechBufferRef.current = '';
+      rec.lang = 'pt-BR';
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (event: any) => {
+        let full = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          full += res[0].transcript || '';
+        }
+        speechBufferRef.current = full;
+      };
+      rec.onerror = (e: any) => {
+        setError('Erro na captura de voz.');
+      };
+      rec.onend = () => {
+        setIsRecording(false);
+      };
+      rec.start();
+      setIsRecording(true);
+    } catch {
+      setError('Não foi possível iniciar a gravação.');
+    }
+  };
+
+  const stopRecordingAndSend = async () => {
+    try {
+      const rec = recognitionRef.current;
+      if (rec) {
+        try { rec.stop(); } catch {}
+      }
+      const transcript = String(speechBufferRef.current || '').trim();
+      speechBufferRef.current = '';
+      setIsRecording(false);
+      if (transcript) {
+        await sendText(transcript);
+      }
+    } catch {
+      // silently ignore
     }
   };
 
@@ -271,6 +333,17 @@ const Chat: React.FC = () => {
               className="h-12 w-12 rounded-full bg-primary-blue flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined">send</span>
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onPointerDown={startRecording}
+              onPointerUp={stopRecordingAndSend}
+              onPointerLeave={stopRecordingAndSend}
+              disabled={isTyping}
+              className={`h-12 w-12 rounded-full flex items-center justify-center text-white border border-surface-light ${isRecording ? 'bg-primary-teal animate-pulse' : 'bg-surface-light hover:bg-surface-light/80'} disabled:opacity-50 disabled:cursor-not-allowed`}
+              aria-label="Segure para falar"
+            >
+              <span className="material-symbols-outlined">mic</span>
             </motion.button>
         </div>
         {error && (
