@@ -310,7 +310,8 @@ const Chat: React.FC = () => {
               <div key={chip} className="shrink-0 snap-start">
                 <button 
                   onClick={() => setInputValue(chip)}
-                  className="whitespace-nowrap px-4 py-2 rounded-full bg-surface-light hover:bg-surface-light/80 text-xs font-medium border border-surface-light"
+                  onContextMenu={(e) => e.preventDefault()}
+                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-full bg-surface-light hover:bg-surface-light/80 text-xs font-medium border border-surface-light"
                 >
                   {chip}
                 </button>
@@ -330,7 +331,8 @@ const Chat: React.FC = () => {
               whileTap={{ scale: 0.9 }}
               onClick={handleSend}
               disabled={!inputValue}
-              className="h-12 w-12 rounded-full bg-primary-blue flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              onContextMenu={(e) => e.preventDefault()}
+              className="no-callout select-none h-12 w-12 rounded-full bg-primary-blue flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined">send</span>
             </motion.button>
@@ -340,7 +342,8 @@ const Chat: React.FC = () => {
               onPointerUp={stopRecordingAndSend}
               onPointerLeave={stopRecordingAndSend}
               disabled={isTyping}
-              className={`h-12 w-12 rounded-full flex items-center justify-center text-white border border-surface-light ${isRecording ? 'bg-primary-teal animate-pulse' : 'bg-surface-light hover:bg-surface-light/80'} disabled:opacity-50 disabled:cursor-not-allowed`}
+              onContextMenu={(e) => e.preventDefault()}
+              className={`no-callout select-none h-12 w-12 rounded-full flex items-center justify-center text-white border border-surface-light ${isRecording ? 'bg-primary-teal animate-pulse' : 'bg-surface-light hover:bg-surface-light/80'} disabled:opacity-50 disabled:cursor-not-allowed`}
               aria-label="Segure para falar"
             >
               <span className="material-symbols-outlined">mic</span>

@@ -40,6 +40,15 @@
           -ms-overflow-style: none;  /* IE and Edge */
           scrollbar-width: none;  /* Firefox */
       }
+      .no-callout {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .no-callout * {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+      }
     </style>
     <script>
       tailwind.config = {
