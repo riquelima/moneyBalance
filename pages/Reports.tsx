@@ -179,12 +179,22 @@ const Reports: React.FC = () => {
     }).join(' ');
   };
   const linePath = makeLinePath(projection.values);
-  const makeColors = (n: number) => Array.from({ length: n }, (_, i) => {
-    const hue = Math.round((i * 137.508) % 360);
-    return `hsl(${hue}, 75%, 55%)`;
-  });
-  const incomeColors = useMemo(() => makeColors(incomeCategories.length), [incomeCategories.length]);
-  const expenseColors = useMemo(() => makeColors(categories.length), [categories.length]);
+  const colorTone = (p: number, hue: number) => {
+    const pct = Math.max(0, Math.min(1, p));
+    const s = 60 + Math.round(40 * pct);
+    const l = 70 - Math.round(30 * pct);
+    return `hsl(${hue}, ${s}%, ${l}%)`;
+  };
+  const makeIncomeColors = (data: Array<{ name: string; amount: number }>) => {
+    const total = data.reduce((a, d) => a + Number(d.amount || 0), 0);
+    return data.map(d => colorTone(total ? Number(d.amount || 0) / total : 0, 138));
+  };
+  const makeExpenseColors = (data: Array<{ name: string; amount: number }>, denom: number) => {
+    const total = denom > 0 ? denom : data.reduce((a, d) => a + Number(d.amount || 0), 0);
+    return data.map(d => colorTone(total ? Number(d.amount || 0) / total : 0, 0));
+  };
+  const incomeColors = useMemo(() => makeIncomeColors(incomeCategories), [incomeCategories]);
+  const expenseColors = useMemo(() => makeExpenseColors(categories, monthTotal), [categories, monthTotal]);
   const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number; denominator?: number }> = ({ data, colors, size = 200, thickness = 30, denominator }) => {
     const totalData = data.reduce((a, d) => a + Number(d.amount || 0), 0);
     const denom = typeof denominator === 'number' && denominator > 0 ? denominator : totalData;
