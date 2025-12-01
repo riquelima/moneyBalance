@@ -231,15 +231,19 @@ const Chat: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-background-dark relative">
       <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(1200px 400px at 20% 0%, rgba(19,236,91,0.12), transparent 60%), radial-gradient(800px 600px at 80% 100%, rgba(19,236,91,0.08), transparent 50%)' }} />
-      <header className="flex items-center justify-between p-4 bg-background-dark/80 backdrop-blur border-b border-surface-light z-10">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light">
-          <span className="material-symbols-outlined">arrow_back_ios_new</span>
+      <motion.header
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative flex items-center justify-between p-4 bg-background-dark/70 backdrop-blur rounded-b-2xl border border-primary-green shadow-glow-green z-10"
+      >
+        <button onClick={() => navigate(-1)} className="p-2 rounded-full border border-primary-green/30 hover:bg-background-dark/60">
+          <span className="material-symbols-outlined text-primary-green">arrow_back_ios_new</span>
         </button>
-        <h1 className="font-bold text-lg">Chat com IA</h1>
-        <button className="p-2 rounded-full hover:bg-surface-light">
-          <span className="material-symbols-outlined">more_vert</span>
+        <h1 className="font-bold text-lg text-primary-green tracking-wide">Chat com IA</h1>
+        <button className="p-2 rounded-full border border-primary-green/30 hover:bg-background-dark/60">
+          <span className="material-symbols-outlined text-primary-green">more_vert</span>
         </button>
-      </header>
+      </motion.header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.map((msg) => (
@@ -268,10 +272,10 @@ const Chat: React.FC = () => {
                   </motion.div>
                 ) : (
                   <motion.div
-                    initial={{ boxShadow: '0 0 0 rgba(19,236,91,0)' }}
-                    animate={{ boxShadow: '0 0 16px rgba(19,236,91,0.15)' }}
+                    initial={{ boxShadow: '0 0 0 rgba(19,91,236,0)' }}
+                    animate={{ boxShadow: '0 0 22px rgba(19,91,236,0.25)' }}
                     transition={{ duration: 0.6 }}
-                    className="px-4 py-3 rounded-2xl rounded-br-none text-sm leading-relaxed bg-primary-blue text-white"
+                    className="px-4 py-4 rounded-2xl rounded-br-none text-sm leading-relaxed font-zain font-light bg-background-dark border border-primary-blue text-text-primary"
                   >
                     {msg.text}
                   </motion.div>
