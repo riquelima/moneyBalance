@@ -301,7 +301,7 @@ const Reports: React.FC = () => {
                     <p className="text-danger text-base font-medium">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Mês Atual' : `${monthNames[selectedMonth]} ${selectedYear}`}</p>
                   </div>
                   <div className="pt-4">
-                    <Pie data={categories} colors={expenseColors} denominator={incomeTotal} />
+                    <Pie data={categories} colors={expenseColors} denominator={monthTotal} />
                   </div>
                   <div className="mt-4 w-full h-28 overflow-y-auto overscroll-contain pr-1">
                     {categories.length === 0 ? (
@@ -312,7 +312,7 @@ const Reports: React.FC = () => {
                       <div className="grid grid-cols-2 gap-3">
                         {categories.map((d, i) => (
                           <div key={`${d.name}-${i}`} className="flex items-start gap-2">
-                            <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></span>
+                            <span className="h-3 w-3 rounded mt-0.5 border border-surface-light shrink-0" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></span>
                             <div className="flex-1">
                               <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
                               <p className="text-danger text-[13px] font-bold">- {fmtBRL(d.amount)}</p>
@@ -345,7 +345,7 @@ const Reports: React.FC = () => {
                       <div className="grid grid-cols-2 gap-3">
                         {incomeCategories.map((d, i) => (
                           <div key={`${d.name}-${i}`} className="flex items-start gap-2">
-                            <span className="h-2 w-2 rounded-sm mt-1" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></span>
+                            <span className="h-3 w-3 rounded mt-0.5 border border-surface-light shrink-0" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></span>
                             <div className="flex-1">
                               <p className="text-[13px] text-text-secondary font-bold tracking-[0.015em] truncate">{d.name}</p>
                               <p className="text-success text-[13px] font-bold">+ {fmtBRL(d.amount)}</p>
