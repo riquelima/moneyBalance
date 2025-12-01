@@ -229,8 +229,9 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background-dark">
-      <header className="flex items-center justify-between p-4 border-b border-surface-light bg-background-dark z-10">
+    <div className="flex flex-col h-screen bg-background-dark relative">
+      <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(1200px 400px at 20% 0%, rgba(19,236,91,0.12), transparent 60%), radial-gradient(800px 600px at 80% 100%, rgba(19,236,91,0.08), transparent 50%)' }} />
+      <header className="flex items-center justify-between p-4 bg-background-dark/80 backdrop-blur border-b border-surface-light z-10">
         <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
@@ -256,17 +257,25 @@ const Chat: React.FC = () => {
             
             <div className={`flex flex-col gap-1 max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                 <span className="text-xs text-text-secondary ml-1">{msg.sender === 'ai' ? 'Good Money - Assitente IA' : 'Você'}</span>
-                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed font-zain font-light ${
-                    msg.sender === 'user' 
-                        ? 'bg-primary-blue text-white rounded-br-none' 
-                        : 'bg-surface-light text-text-primary rounded-bl-none'
-                }`}>
-                    {msg.sender === 'ai' ? (
-                      <ReactMarkdown>{msg.text}</ReactMarkdown>
-                    ) : (
-                      msg.text
-                    )}
-                </div>
+                {msg.sender === 'ai' ? (
+                  <motion.div
+                    initial={{ boxShadow: '0 0 0 rgba(19,236,91,0)' }}
+                    animate={{ boxShadow: '0 0 22px rgba(19,236,91,0.25)' }}
+                    transition={{ duration: 0.6 }}
+                    className="px-4 py-4 rounded-2xl rounded-bl-none text-sm leading-relaxed font-zain font-light bg-background-dark border border-primary-green text-text-primary"
+                  >
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ boxShadow: '0 0 0 rgba(19,236,91,0)' }}
+                    animate={{ boxShadow: '0 0 16px rgba(19,236,91,0.15)' }}
+                    transition={{ duration: 0.6 }}
+                    className="px-4 py-3 rounded-2xl rounded-br-none text-sm leading-relaxed bg-primary-blue text-white"
+                  >
+                    {msg.text}
+                  </motion.div>
+                )}
             </div>
 
             {msg.sender === 'user' && (
@@ -296,7 +305,7 @@ const Chat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-background-dark border-t border-surface-light">
+        <div className="p-4 bg-background-dark/80 backdrop-blur border-t border-surface-light">
         <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
             {[
               'Maior gasto mês atual',
@@ -311,7 +320,7 @@ const Chat: React.FC = () => {
                 <button 
                   onClick={() => setInputValue(chip)}
                   onContextMenu={(e) => e.preventDefault()}
-                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-full bg-surface-light hover:bg-surface-light/80 text-xs font-medium border border-surface-light"
+                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-full bg-background-dark text-primary-green border border-primary-green shadow-glow-green hover:bg-background-dark/80 text-xs font-bold"
                 >
                   {chip}
                 </button>
@@ -325,14 +334,14 @@ const Chat: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Pergunte algo..."
-              className="flex-1 bg-surface-light rounded-full px-6 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue/50"
+              className="flex-1 bg-background-dark rounded-full px-6 py-3 text-sm border border-primary-green text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-green/40 shadow-glow-green"
             />
             <motion.button 
               whileTap={{ scale: 0.9 }}
               onClick={handleSend}
               disabled={!inputValue}
               onContextMenu={(e) => e.preventDefault()}
-              className="no-callout select-none h-12 w-12 rounded-full bg-primary-blue flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="no-callout select-none h-12 w-12 rounded-full bg-primary-green flex items-center justify-center text-background-dark shadow-glow-green disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined">send</span>
             </motion.button>
@@ -343,7 +352,7 @@ const Chat: React.FC = () => {
               onPointerLeave={stopRecordingAndSend}
               disabled={isTyping}
               onContextMenu={(e) => e.preventDefault()}
-              className={`no-callout select-none h-12 w-12 rounded-full flex items-center justify-center text-white border border-surface-light ${isRecording ? 'bg-primary-teal animate-pulse' : 'bg-surface-light hover:bg-surface-light/80'} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`no-callout select-none h-12 w-12 rounded-full flex items-center justify-center text-background-dark border border-primary-green ${isRecording ? 'bg-primary-teal animate-pulse' : 'bg-primary-green'} shadow-glow-green disabled:opacity-50 disabled:cursor-not-allowed`}
               aria-label="Segure para falar"
             >
               <span className="material-symbols-outlined">mic</span>
