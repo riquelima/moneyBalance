@@ -446,9 +446,9 @@ const Dashboard: React.FC = () => {
               <div key={it.id} className="flex items-center justify-between py-2">
                 <div className="flex flex-col">
                   <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
-                  <span className="text-sm font-medium text-text-primary">{it.description || 'Sem descrição'}</span>
+                  <span className={`text-sm font-medium text-text-primary ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                 </div>
-                <span className="text-sm font-bold text-success">{formatBRL(Number(it.amount || 0))}</span>
+                <span className={`text-sm font-bold text-success ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
               </div>
             ))}
           </div>
