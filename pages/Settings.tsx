@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '../supabaseClient';
+import { supabase, supabaseUrl, supabaseAnon } from '../supabaseClient';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ name: string; lastName: string; email: string; avatarUrl: string } | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [supabaseUrl, setSupabaseUrl] = useState<string>('');
+  const [supabaseAnon, setSupabaseAnon] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +33,10 @@ const Settings: React.FC = () => {
       setProfile({ name: name || email.split('@')[0], lastName: lastName || '', email, avatarUrl: (prof as any)?.avatar_url || 'https://picsum.photos/100/100' });
     };
     load();
+    const u = window.localStorage.getItem('SUPABASE_URL') || '';
+    const k = window.localStorage.getItem('SUPABASE_ANON_KEY') || '';
+    setSupabaseUrl(u || supabaseUrl);
+    setSupabaseAnon(k || supabaseAnon);
   }, []);
 
   const SectionHeader = ({ title }: { title: string }) => (
@@ -138,15 +144,65 @@ const Settings: React.FC = () => {
             <SettingItem icon="paid" label="Moeda" trailing={<span className="text-sm text-text-secondary">BRL</span>} />
         </div>
 
-        <div className="mt-8 px-4">
-            <button 
-                onClick={() => navigate('/login')}
-                className="w-full py-3 rounded-xl bg-surface-light text-danger font-semibold hover:bg-surface-light/80 transition-colors"
+        <SectionHeader title="Conexão Supabase" />
+        <div className="flex flex-col gap-3 rounded-xl border border-surface-light bg-surface-dark p-4 mx-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-text-secondary ml-1">URL do Projeto</p>
+            <input
+              type="text"
+              placeholder="https://xxxx.supabase.co"
+              value={supabaseUrl}
+              onChange={(e) => setSupabaseUrl(e.target.value)}
+              className="w-full rounded-xl bg-surface-dark border border-surface-light p-3 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-text-secondary ml-1">Anon Key (API)</p>
+            <input
+              type="password"
+              placeholder="supabase anon key"
+              value={supabaseAnon}
+              onChange={(e) => setSupabaseAnon(e.target.value)}
+              className="w-full rounded-xl bg-surface-dark border border-surface-light p-3 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                window.localStorage.setItem('SUPABASE_URL', supabaseUrl);
+                window.localStorage.setItem('SUPABASE_ANON_KEY', supabaseAnon);
+                (globalThis as any).__SUPABASE_URL = supabaseUrl;
+                (globalThis as any).__SUPABASE_ANON_KEY = supabaseAnon;
+                window.location.reload();
+              }}
+              className="flex-1 rounded-xl bg-primary-teal py-3 text-sm font-bold text-background-dark"
             >
-                Sair
+              Salvar e Reiniciar
             </button>
-            <p className="text-center text-xs text-text-secondary mt-4">Versão 1.0.0</p>
+            <button
+              onClick={() => {
+                window.localStorage.removeItem('SUPABASE_URL');
+                window.localStorage.removeItem('SUPABASE_ANON_KEY');
+                setSupabaseUrl('');
+                setSupabaseAnon('');
+              }}
+              className="flex-1 rounded-xl bg-surface-light py-3 text-sm font-bold text-text-secondary"
+            >
+              Limpar
+            </button>
+          </div>
+          <p className="text-xs text-text-secondary">As credenciais ficam salvas apenas neste dispositivo.</p>
         </div>
+
+      <div className="mt-8 px-4">
+          <button 
+              onClick={() => navigate('/login')}
+              className="w-full py-3 rounded-xl bg-surface-light text-danger font-semibold hover:bg-surface-light/80 transition-colors"
+          >
+              Sair
+          </button>
+          <p className="text-center text-xs text-text-secondary mt-4">Versão 1.0.0</p>
+      </div>
       </div>
     </motion.div>
   );

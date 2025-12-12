@@ -278,7 +278,7 @@ const Transactions: React.FC = () => {
                     <span className={`material-symbols-outlined ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
                   </div>
                     <div className="flex flex-1 flex-col">
-                      <p className="font-medium text-text-primary line-clamp-1">{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
+                      <p className={`font-medium text-text-primary line-clamp-1 ${t.type === 'expense' && t.is_paid ? 'line-through opacity-60' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
                       {(() => {
                         const cat = t.category_id ? catMap[t.category_id as string] : null;
                         const name = cat?.name || 'Sem Categoria';
@@ -289,7 +289,7 @@ const Transactions: React.FC = () => {
                       })()}
                       <p className="mt-1 text-xs text-text-secondary">Prazo: {new Date(t.date).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <p className={`font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'} self-center`}>
+                    <p className={`font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'} self-center ${t.type === 'expense' && t.is_paid ? 'line-through opacity-60' : ''}`}>
                       {formatBRL(Number(t.amount))}
                     </p>
                   </motion.div>
