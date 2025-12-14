@@ -473,7 +473,15 @@ const Reports: React.FC = () => {
       </motion.button>
 
       <section>
-        <h2 className="text-2xl font-bold mb-4 text-center">Projeções Futuras</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold mb-4 text-center flex-1">Projeções Futuras</h2>
+          <button 
+            onClick={() => navigate('/projecao-futura')}
+            className="rounded-full p-2 hover:bg-surface-light transition-colors"
+          >
+            <span className="material-symbols-outlined">arrow_forward_ios</span>
+          </button>
+        </div>
         <div className="bg-surface-dark rounded-2xl p-6 border border-surface-light shadow-lg shadow-primary-green/5">
           <div className="flex min-w-72 flex-1 flex-col gap-2">
             <p className="text-text-secondary text-base font-medium">Projeção de Saldo</p>
