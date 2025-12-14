@@ -15,14 +15,49 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const emailTrim = String(email).trim();
+    const passTrim = String(password).trim();
+    const { data, error } = await supabase.auth.signInWithPassword({ email: emailTrim, password: passTrim });
     if (error) {
-      setError(error.message);
-      return;
+      const msg = String(error.message || '').toLowerCase();
+      if (msg.includes('invalid login') || msg.includes('invalid_grant')) {
+        const { data: created, error: signErr } = await supabase.auth.signUp({
+          email: emailTrim,
+          password: passTrim,
+          options: { data: {} }
+        });
+        if (signErr) {
+          setError(signErr.message);
+          return;
+        }
+        if (created?.user) {
+          const { data: after, error: afterErr } = await supabase.auth.signInWithPassword({ email: emailTrim, password: passTrim });
+          if (afterErr) {
+            setError(afterErr.message);
+            return;
+          }
+          if (after?.user) {
+            navigate('/');
+            return;
+          }
+        }
+      } else {
+        setError(error.message);
+        return;
+      }
     }
     if (data?.user) {
       navigate('/');
     }
+  };
+
+  const handleReset = async () => {
+    setError(null);
+    const emailTrim = String(email).trim();
+    if (!emailTrim) { setError('Informe seu e-mail para recuperar a senha.'); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(emailTrim, { redirectTo: window.location.origin });
+    if (error) { setError(error.message); return; }
+    setError('Enviamos um link de recuperação para seu e-mail.');
   };
 
   return (
@@ -87,7 +122,7 @@ const Login: React.FC = () => {
           </div>
 
           <div className="flex justify-end">
-            <button type="button" className="text-sm font-medium text-primary hover:text-primary/80 hover:underline">
+            <button type="button" onClick={handleReset} className="text-sm font-medium text-primary hover:text-primary/80 hover:underline">
               Esqueci minha senha
             </button>
           </div>
@@ -101,7 +136,12 @@ const Login: React.FC = () => {
             Acessar Conta
           </motion.button>
           {error && (
-            <p className="mt-2 text-danger text-sm">{error}</p>
+            <div className="mt-2 space-y-2">
+              <p className="text-danger text-sm">{error}</p>
+              <button onClick={() => navigate('/settings')} className="text-xs font-medium text-primary hover:underline">
+                Configurar conexão Supabase
+              </button>
+            </div>
           )}
         </form>
 
