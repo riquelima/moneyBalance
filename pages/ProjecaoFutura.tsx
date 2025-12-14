@@ -1,60 +1,151 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { categories } from '../categories';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 
 const ProjecaoFutura: React.FC = () => {
   const navigate = useNavigate();
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [projectionCategories, setProjectionCategories] = useState([
-    {
-      id: 'moradia',
-      name: 'Moradia',
-      amount: 3000,
-      description: 'Aluguel + condomínio',
-      frequency: 'monthly',
-      trend: 'stable',
-      color: 'purple',
-      icon: 'home'
-    },
-    {
-      id: 'alimentacao',
-      name: 'Alimentação',
-      amount: 1500,
-      description: 'Supermercado + delivery',
-      frequency: 'monthly',
-      trend: 'up',
-      color: 'orange',
-      icon: 'restaurant'
-    },
-    {
-      id: 'transporte',
-      name: 'Transporte',
-      amount: 800,
-      description: 'Combustível + estacionamento',
-      frequency: 'monthly',
-      trend: 'warning',
-      color: 'blue',
-      icon: 'directions_car'
-    },
-    {
-      id: 'lazer',
-      name: 'Lazer & Viagens',
-      amount: 1000,
-      description: 'Hotéis + restaurantes',
-      frequency: 'monthly',
-      trend: 'down',
-      color: 'green',
-      icon: 'flight'
-    }
-  ]);
+  const [projectionCategories, setProjectionCategories] = useState<Array<{
+    id: string;
+    name: string;
+    amount: number;
+    description: string;
+    frequency: string;
+    trend: string;
+    color: string;
+    icon: string;
+    dbId?: string; // Add database ID
+  }>>([]);
   const [flippedCardId, setFlippedCardId] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState({
     description: '',
     amount: ''
   });
   const [selectedTimeframe, setSelectedTimeframe] = useState<'6meses' | '1ano' | '5anos'>('1ano');
+  const [loading, setLoading] = useState(true);
+
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
+  const [customCategoryName, setCustomCategoryName] = useState('');
+
+  const [showAddCardForm, setShowAddCardForm] = useState(false);
+  const [newCardName, setNewCardName] = useState('');
+
+  // Load projections from Supabase
+  useEffect(() => {
+    loadProjections();
+  }, []);
+
+  const loadProjections = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error('No authenticated user');
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('user_projections')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading projections:', error);
+        return;
+      }
+
+      // Transform data to match component state structure
+      const transformedData = data.map(item => ({
+        id: item.category_id,
+        name: item.category_name,
+        amount: item.amount,
+        description: item.description || '',
+        frequency: item.frequency,
+        trend: item.trend,
+        color: item.color,
+        icon: item.icon,
+        dbId: item.id
+      }));
+
+      setProjectionCategories(transformedData);
+    } catch (error) {
+      console.error('Error in loadProjections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveProjectionToDB = async (projection: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error('No authenticated user');
+        return null;
+      }
+
+      const projectionData = {
+        user_id: user.id,
+        category_id: projection.id,
+        category_name: projection.name,
+        amount: projection.amount,
+        description: projection.description,
+        frequency: projection.frequency,
+        trend: projection.trend,
+        color: projection.color,
+        icon: projection.icon
+      };
+
+      let result;
+      if (projection.dbId) {
+        // Update existing projection
+        result = await supabase
+          .from('user_projections')
+          .update(projectionData)
+          .eq('id', projection.dbId);
+      } else {
+        // Insert new projection
+        result = await supabase
+          .from('user_projections')
+          .insert(projectionData);
+      }
+
+      if (result.error) {
+        console.error('Error saving projection:', result.error);
+        return null;
+      }
+
+      return result.data ? result.data[0] : null;
+    } catch (error) {
+      console.error('Error in saveProjectionToDB:', error);
+      return null;
+    }
+  };
+
+  const deleteProjectionFromDB = async (dbId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_projections')
+        .delete()
+        .eq('id', dbId);
+
+      if (error) {
+        console.error('Error deleting projection:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in deleteProjectionFromDB:', error);
+      return false;
+    }
+  };
 
   const getCategoryColor = (color: string) => {
     switch (color) {
@@ -138,7 +229,7 @@ const ProjecaoFutura: React.FC = () => {
     }
   };
 
-  const handleCategorySelect = (categoryName: string) => {
+  const handleCategorySelect = async (categoryName: string) => {
     // Check if category already exists
     if (projectionCategories.some(cat => cat.name === categoryName)) {
       setShowCategoryPicker(false);
@@ -157,8 +248,25 @@ const ProjecaoFutura: React.FC = () => {
       icon: 'payments' // Default icon
     };
 
-    setProjectionCategories([...projectionCategories, newCategory]);
+    // Save to database
+    const savedData = await saveProjectionToDB(newCategory);
+    
+    if (savedData) {
+      // Add database ID to the category
+      const categoryWithDbId = {
+        ...newCategory,
+        dbId: savedData.id
+      };
+      
+      setProjectionCategories([...projectionCategories, categoryWithDbId]);
+    } else {
+      // Fallback to local state if DB save fails
+      setProjectionCategories([...projectionCategories, newCategory]);
+    }
+    
     setShowCategoryPicker(false);
+    setShowCustomCategoryInput(false);
+    setCustomCategoryName('');
   };
 
   const handleCardClick = (categoryId: string) => {
@@ -172,23 +280,78 @@ const ProjecaoFutura: React.FC = () => {
     }
   };
 
-  const handleSaveEdit = (categoryId: string) => {
-    setProjectionCategories(prev => 
-      prev.map(cat => 
-        cat.id === categoryId 
-          ? { 
-              ...cat, 
-              description: editingValues.description,
-              amount: parseFloat(editingValues.amount) || cat.amount
-            } 
-          : cat
-      )
-    );
+  const handleSaveEdit = async (categoryId: string) => {
+    const updatedCategories = projectionCategories.map(cat => {
+      if (cat.id === categoryId) {
+        const updatedCat = {
+          ...cat,
+          description: editingValues.description,
+          amount: parseFloat(editingValues.amount) || cat.amount
+        };
+        
+        // Save to database
+        saveProjectionToDB(updatedCat);
+        
+        return updatedCat;
+      }
+      return cat;
+    });
+    
+    setProjectionCategories(updatedCategories);
+    setFlippedCardId(null);
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    const categoryToDelete = projectionCategories.find(cat => cat.id === categoryId);
+    
+    if (categoryToDelete && categoryToDelete.dbId) {
+      // Delete from database
+      await deleteProjectionFromDB(categoryToDelete.dbId);
+    }
+    
+    // Remove from local state
+    setProjectionCategories(prev => prev.filter(cat => cat.id !== categoryId));
     setFlippedCardId(null);
   };
 
   const handleCancelEdit = () => {
     setFlippedCardId(null);
+  };
+
+  const handleAddNewCard = async () => {
+    if (!newCardName.trim()) return;
+    
+    // Add new category with default values
+    const newCategory = {
+      id: newCardName.toLowerCase().replace(/\s+/g, '-'),
+      name: newCardName.trim(),
+      amount: 1000, // Default amount
+      description: '', // Default description
+      frequency: 'monthly', // Default frequency
+      trend: 'stable', // Default trend
+      color: 'green', // Default color
+      icon: 'payments' // Default icon
+    };
+
+    // Save to database
+    const savedData = await saveProjectionToDB(newCategory);
+    
+    if (savedData) {
+      // Add database ID to the category
+      const categoryWithDbId = {
+        ...newCategory,
+        dbId: savedData.id
+      };
+      
+      setProjectionCategories([...projectionCategories, categoryWithDbId]);
+    } else {
+      // Fallback to local state if DB save fails
+      setProjectionCategories([...projectionCategories, newCategory]);
+    }
+    
+    // Reset form and hide it
+    setNewCardName('');
+    setShowAddCardForm(false);
   };
 
   const getTimeframeMultiplier = () => {
@@ -199,6 +362,16 @@ const ProjecaoFutura: React.FC = () => {
       default: return 12;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background-dark text-text-primary">
+        <div className="flex items-center justify-center h-full">
+          <p className="text-white">Carregando projeções...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background-dark text-text-primary">
@@ -284,6 +457,43 @@ const ProjecaoFutura: React.FC = () => {
               )}
             </span>
           </div>
+          
+          {/* Add Card Form */}
+          {showAddCardForm && (
+            <div className="rounded-xl border border-white/10 bg-card-dark/50 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  type="text"
+                  value={newCardName}
+                  onChange={(e) => setNewCardName(e.target.value)}
+                  placeholder="Nome da nova categoria"
+                  className="flex-1 rounded-lg bg-surface-dark border border-surface-light px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  autoFocus
+                />
+                <button
+                  onClick={handleAddNewCard}
+                  disabled={!newCardName.trim()}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium ${
+                    newCardName.trim() 
+                      ? 'bg-primary text-background-dark' 
+                      : 'bg-surface-light text-text-secondary cursor-not-allowed'
+                  }`}
+                >
+                  Adicionar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddCardForm(false);
+                    setNewCardName('');
+                  }}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-text-secondary hover:text-white"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="flex flex-col gap-4">
             {projectionCategories.map((category) => {
               const colorInfo = getCategoryColor(category.color);
@@ -399,6 +609,12 @@ const ProjecaoFutura: React.FC = () => {
                           Cancelar
                         </button>
                         <button
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="rounded-lg py-2 px-4 text-sm font-medium bg-danger text-white hover:bg-danger/90 transition-colors"
+                        >
+                          Excluir
+                        </button>
+                        <button
                           onClick={() => handleSaveEdit(category.id)}
                           className="flex-1 rounded-lg py-2 text-sm font-medium bg-primary text-background-dark hover:bg-primary/90 transition-colors"
                         >
@@ -413,13 +629,15 @@ const ProjecaoFutura: React.FC = () => {
             
             {/* Add Category Button */}
             <div className="flex justify-center pb-8 pt-4">
-              <button 
-                onClick={() => setShowCategoryPicker(true)}
-                className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
-                Adicionar Categoria de Projeção
-              </button>
+              {!showAddCardForm ? (
+                <button 
+                  onClick={() => setShowAddCardForm(true)}
+                  className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
+                  Adicionar Categoria de Projeção
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
@@ -433,7 +651,11 @@ const ProjecaoFutura: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-30 flex items-end justify-center bg-black/60"
-            onClick={() => setShowCategoryPicker(false)}
+            onClick={() => {
+              setShowCategoryPicker(false);
+              setShowCustomCategoryInput(false);
+              setCustomCategoryName('');
+            }}
           >
             <motion.div 
               initial={{ y: '100%' }}
@@ -446,7 +668,11 @@ const ProjecaoFutura: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold">Adicionar Categoria</h3>
                 <button 
-                  onClick={() => setShowCategoryPicker(false)}
+                  onClick={() => {
+                    setShowCategoryPicker(false);
+                    setShowCustomCategoryInput(false);
+                    setCustomCategoryName('');
+                  }}
                   className="text-text-secondary"
                 >
                   <span className="material-symbols-outlined">close</span>
@@ -455,34 +681,91 @@ const ProjecaoFutura: React.FC = () => {
               
               <p className="text-sm text-text-secondary mb-4">Selecione uma categoria para adicionar às projeções</p>
               
-              <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                {categories.map((category) => {
-                  const isSelected = projectionCategories.some(cat => cat.name === category);
-                  return (
+              {!showCustomCategoryInput ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                    {categories.map((category) => {
+                      const isSelected = projectionCategories.some(cat => cat.name === category);
+                      return (
+                        <button
+                          key={category}
+                          onClick={() => handleCategorySelect(category)}
+                          disabled={isSelected}
+                          className={`p-3 rounded-xl text-sm border text-left truncate ${
+                            isSelected 
+                              ? 'bg-primary/10 border-primary text-primary cursor-not-allowed' 
+                              : 'border-surface-light text-text-secondary hover:text-white hover:border-white/30'
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      );
+                    })}
+                    {/* Custom Category Button */}
                     <button
-                      key={category}
-                      onClick={() => handleCategorySelect(category)}
-                      disabled={isSelected}
-                      className={`p-3 rounded-xl text-sm border text-left truncate ${
-                        isSelected 
-                          ? 'bg-primary/10 border-primary text-primary cursor-not-allowed' 
-                          : 'border-surface-light text-text-secondary hover:text-white hover:border-white/30'
+                      onClick={() => setShowCustomCategoryInput(true)}
+                      className="p-3 rounded-xl text-sm border border-dashed border-surface-light text-text-secondary hover:text-white hover:border-white/30 flex flex-col items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined">add</span>
+                      <span>Nova Categoria</span>
+                    </button>
+                  </div>
+                  
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowCategoryPicker(false);
+                        setShowCustomCategoryInput(false);
+                        setCustomCategoryName('');
+                      }}
+                      className="flex-1 rounded-xl bg-surface-light py-3 font-bold"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-4">
+                  <div className="mb-4">
+                    <label className="block text-sm text-text-secondary mb-2">Nome da Nova Categoria</label>
+                    <input
+                      type="text"
+                      value={customCategoryName}
+                      onChange={(e) => setCustomCategoryName(e.target.value)}
+                      className="w-full rounded-lg bg-surface-dark border border-surface-light px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                      placeholder="Digite o nome da categoria"
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowCustomCategoryInput(false);
+                        setCustomCategoryName('');
+                      }}
+                      className="flex-1 rounded-xl bg-surface-light py-3 font-bold"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (customCategoryName.trim()) {
+                          handleCategorySelect(customCategoryName.trim());
+                        }
+                      }}
+                      disabled={!customCategoryName.trim()}
+                      className={`flex-1 rounded-xl py-3 font-bold ${
+                        customCategoryName.trim() 
+                          ? 'bg-primary text-background-dark' 
+                          : 'bg-surface-light text-text-secondary cursor-not-allowed'
                       }`}
                     >
-                      {category}
+                      Adicionar
                     </button>
-                  );
-                })}
-              </div>
-              
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => setShowCategoryPicker(false)}
-                  className="flex-1 rounded-xl bg-surface-light py-3 font-bold"
-                >
-                  Cancelar
-                </button>
-              </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
