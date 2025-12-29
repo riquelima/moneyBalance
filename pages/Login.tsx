@@ -67,52 +67,52 @@ const Login: React.FC = () => {
       exit={{ opacity: 0, x: 20 }}
       className="flex min-h-screen w-full flex-col items-center justify-center bg-background-dark p-4 font-display"
     >
-      <div className="flex w-full max-w-sm flex-col items-center rounded-2xl bg-surface-dark/30 p-8 shadow-2xl border border-surface-light">
+      <div className="flex w-full max-w-sm flex-col items-center rounded-sm bg-white p-8 shadow-neo border-3 border-dark">
         <motion.div 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-background-dark shadow-metallic border border-surface-light"
+          className="mb-8 flex h-20 w-20 items-center justify-center rounded-sm bg-white shadow-neo border-2 border-dark"
         >
           <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-16 w-16 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }} />
         </motion.div>
         
         <h1 
-          className="text-text-primary mb-8 text-center text-3xl leading-tight tracking-wide"
+          className="text-dark mb-8 text-center text-4xl leading-tight tracking-wide font-black uppercase"
           style={{ fontFamily: '"Poetsen One", cursive' }}
         >
           Money Balance
         </h1>
-        <p className="-mt-6 mb-8 text-center text-text-secondary text-sm font-medium">
+        <p className="-mt-6 mb-8 text-center text-dark text-sm font-bold uppercase tracking-wider bg-accent px-2 border-2 border-dark shadow-neo-sm">
           Gestão Financeira Inteligente
         </p>
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
           <div className="space-y-2">
-            <label className="text-text-secondary text-sm font-medium ml-1">E-mail</label>
+            <label className="text-dark text-sm font-black uppercase ml-1">E-mail</label>
             <input 
               type="email" 
-              placeholder="Seu e-mail seguro"
+              placeholder="SEU E-MAIL SEGURO"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-inner"
+              className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-text-secondary text-sm font-medium ml-1">Senha</label>
+            <label className="text-dark text-sm font-black uppercase ml-1">Senha</label>
             <div className="relative">
               <input 
                 type={showPassword ? "text" : "password"} 
-                placeholder="Sua senha secreta"
+                placeholder="SUA SENHA SECRETA"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 pr-12 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-inner"
+                className="w-full rounded-none bg-white border-2 border-dark p-4 pr-12 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-dark hover:text-primary transition-colors"
               >
                 <span className="material-symbols-outlined text-xl">
                   {showPassword ? 'visibility' : 'visibility_off'}
@@ -122,7 +122,7 @@ const Login: React.FC = () => {
           </div>
 
           <div className="flex justify-end">
-            <button type="button" onClick={handleReset} className="text-sm font-medium text-primary hover:text-primary/80 hover:underline">
+            <button type="button" onClick={handleReset} className="text-xs font-black text-dark hover:bg-accent px-1 border-2 border-transparent hover:border-dark hover:shadow-neo-sm transition-all uppercase">
               Esqueci minha senha
             </button>
           </div>
@@ -131,14 +131,14 @@ const Login: React.FC = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            className="w-full rounded-xl bg-primary py-4 text-lg font-bold text-background-dark shadow-metallic hover:bg-primary/90 transition-colors"
+            className="w-full rounded-sm bg-primary border-2 border-dark py-4 text-lg font-black text-white shadow-neo hover:bg-primary/90 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
           >
             Acessar Conta
           </motion.button>
           {error && (
             <div className="mt-2 space-y-2">
-              <p className="text-danger text-sm">{error}</p>
-              <button onClick={() => navigate('/settings')} className="text-xs font-medium text-primary hover:underline">
+              <p className="text-danger font-bold text-sm bg-danger/10 p-2 border-2 border-danger">{error}</p>
+              <button onClick={() => navigate('/settings')} className="text-xs font-bold text-dark hover:underline uppercase">
                 Configurar conexão Supabase
               </button>
             </div>
@@ -146,10 +146,10 @@ const Login: React.FC = () => {
         </form>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-text-secondary">
-            Ainda não tem uma conta?{' '}
-            <button onClick={() => navigate('/signup')} className="font-bold text-primary hover:underline">
-              Criar nova conta
+          <p className="text-sm text-dark font-bold">
+            AINDA NÃO TEM UMA CONTA?{' '}
+            <button onClick={() => navigate('/signup')} className="font-black text-primary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all uppercase">
+              CRIAR NOVA CONTA
             </button>
           </p>
         </div>

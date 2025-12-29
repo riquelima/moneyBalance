@@ -321,18 +321,18 @@ const Dashboard: React.FC = () => {
 
       <motion.section 
         variants={itemVariants}
-        className="rounded-2xl bg-surface-dark/40 p-6 border border-surface-light"
+        className="rounded-lg bg-white p-6 border-3 border-dark shadow-neo"
       >
-        <p className="text-sm font-medium text-text-secondary mb-1 text-center">Total de Saldo</p>
-        <h2 className="text-4xl font-extrabold tracking-tight text-primary-green text-center">{formatBRL(summary.balance)}</h2>
+        <p className="text-sm font-bold text-dark mb-1 text-center uppercase tracking-widest">Total de Saldo</p>
+        <h2 className="text-4xl font-black tracking-tight text-dark text-center">{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-success' },
-          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger' },
-          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-warning' },
-          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'account_balance_wallet', color: 'text-primary' },
+          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-dark' },
+          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-dark' },
+          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-dark' },
+          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'account_balance_wallet', color: 'text-dark' },
         ].map((item, idx) => (
           <motion.div 
               key={idx}
@@ -345,49 +345,49 @@ const Dashboard: React.FC = () => {
                 else if (item.label === 'Já pagos') navigate(`/transactions?status=paid&type=expense&month=${selectedMonth}`);
                 else navigate('/reports');
               }}
-              className="rounded-xl bg-surface-dark/50 p-4 border border-surface-light hover:border-text-secondary/30 transition-colors cursor-pointer"
+              className="rounded-lg bg-white p-4 border-2 border-dark shadow-neo hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer"
           >
               <div className={`flex items-center gap-2 ${item.color} mb-2`}>
                   {item.label === 'Já pagos' ? (
-                    <img src="https://cdn-icons-png.flaticon.com/512/5709/5709755.png" alt="Feito" className="h-5 w-5" />
+                    <span className="material-symbols-outlined text-xl">check_circle</span>
                   ) : item.label === 'Não Pagos' ? (
-                    <img src="https://cdn-icons-png.flaticon.com/512/9247/9247838.png" alt="Pendente" className="h-5 w-5" />
+                    <span className="material-symbols-outlined text-xl">pending</span>
                   ) : (
                     <span className="material-symbols-outlined text-xl">{item.icon}</span>
                   )}
-                  <p className="text-sm font-semibold text-text-secondary">{item.label}</p>
+                  <p className="text-xs font-black uppercase tracking-wider text-dark">{item.label}</p>
               </div>
-              <p className="text-lg font-bold text-text-primary">{item.value}</p>
+              <p className="text-lg font-black text-dark">{item.value}</p>
           </motion.div>
         ))}
       </motion.section>
 
       <motion.section variants={itemVariants}>
         <div className="mb-4 px-4">
-            <h3 className="text-lg font-bold text-text-primary">Gráficos</h3>
+            <h3 className="text-lg font-black uppercase text-dark">Gráficos</h3>
             <div className="mt-2 flex items-center gap-2 w-full justify-between">
-              <div className="flex items-center gap-1 rounded-lg bg-surface-dark p-1 border border-surface-light">
+              <div className="flex items-center gap-1 rounded-lg bg-white p-1 border-2 border-dark shadow-neo-sm">
                 <button
                   onClick={() => setPeriod('day')}
-                  className={period === 'day' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
-                >Dia</button>
+                  className={period === 'day' ? 'rounded-sm border-2 border-dark px-3 py-1 text-xs font-bold text-white bg-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark hover:bg-surface-light'}
+                >DIA</button>
                 <button
                   onClick={() => setPeriod('week')}
-                  className={period === 'week' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
-                >Semana</button>
+                  className={period === 'week' ? 'rounded-sm border-2 border-dark px-3 py-1 text-xs font-bold text-white bg-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark hover:bg-surface-light'}
+                >SEM</button>
                 <button
                   onClick={() => setPeriod('month')}
-                  className={period === 'month' ? 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-primary shadow-sm' : 'rounded px-3 py-1 text-xs font-medium text-text-secondary hover:text-text-primary'}
-                >Mês</button>
+                  className={period === 'month' ? 'rounded-sm border-2 border-dark px-3 py-1 text-xs font-bold text-white bg-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark hover:bg-surface-light'}
+                >MÊS</button>
               </div>
               <button
                 onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
-                className={chartType === 'expense' ? 'rounded px-3 py-1 text-xs font-bold text-white bg-danger shadow-sm' : 'rounded px-3 py-1 text-xs font-bold text-background-dark bg-success shadow-sm'}
-              >{chartType === 'expense' ? 'Saídas' : 'Entradas'}</button>
+                className={chartType === 'expense' ? 'rounded-sm border-2 border-dark px-3 py-1 text-xs font-bold text-white bg-primary shadow-neo-sm active:shadow-none active:translate-y-[2px] transition-all' : 'rounded-sm border-2 border-dark px-3 py-1 text-xs font-bold text-white bg-secondary shadow-neo-sm active:shadow-none active:translate-y-[2px] transition-all'}
+              >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</button>
             </div>
         </div>
         
-        <div className="flex h-56 w-full flex-col justify-end rounded-xl bg-surface-dark/30 p-4 border border-surface-light relative overflow-visible">
+        <div className="flex h-56 w-full flex-col justify-end rounded-lg bg-white p-4 border-2 border-dark shadow-neo relative overflow-visible">
             <div className="grid h-full w-full items-end gap-1" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
               {current.values.map((h, i) => {
                 const rawVal = (chart.raw || current.raw || [])[i] || 0;
@@ -401,11 +401,11 @@ const Dashboard: React.FC = () => {
                       initial={{ height: 0 }}
                       animate={{ height: `${h}%` }}
                       transition={{ duration: 1, delay: i * 0.05 }}
-                      className={`${chartType === 'expense' ? 'bg-danger' : 'bg-primary-green'} rounded-t-sm relative flex items-center justify-center ${period === 'month' ? 'w-[14px] sm:w-[16px]' : 'w-full'}`}
-                      style={{ backgroundColor: chartType === 'expense' ? '#EF4444' : '#13ec5b', opacity: 1, minHeight: showLabel ? `${minPx}px` : undefined }}
+                      className={`${chartType === 'expense' ? 'bg-primary' : 'bg-secondary'} border-2 border-dark relative flex items-center justify-center ${period === 'month' ? 'w-[14px] sm:w-[16px]' : 'w-full'}`}
+                      style={{ backgroundColor: chartType === 'expense' ? '#8854D0' : '#20BF55', opacity: 1, minHeight: showLabel ? `${minPx}px` : undefined }}
                     >
                       {showLabel && (
-                        <span className={`rotate-90 text-[10px] font-bold ${chartType === 'income' ? 'text-black' : 'text-white'} whitespace-nowrap leading-none pointer-events-none`}>
+                        <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
                           {labelText}
                         </span>
                       )}
@@ -414,7 +414,7 @@ const Dashboard: React.FC = () => {
                 );
               })}
             </div>
-            <div className="mt-3 grid w-full border-t border-surface-light pt-2 text-xs text-white font-medium" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+            <div className="mt-3 grid w-full border-t-2 border-dark pt-2 text-xs text-dark font-bold uppercase" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
                 {current.labels.map((l, idx) => (
                   <span key={idx} className="text-center">{l}</span>
                 ))}
@@ -422,66 +422,66 @@ const Dashboard: React.FC = () => {
         </div>
       </motion.section>
 
-      <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={entriesRef}>
+      <motion.section variants={itemVariants} className="rounded-lg bg-white p-4 border-2 border-dark shadow-neo" ref={entriesRef}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-success">
-            <span className="material-symbols-outlined text-xl">arrow_downward</span>
-            <p className="text-lg font-bold text-text-primary cursor-pointer" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
+          <div className="flex items-center gap-2 text-dark">
+            <span className="material-symbols-outlined text-xl border-2 border-dark rounded-full p-1 bg-secondary text-white">arrow_downward</span>
+            <p className="text-lg font-black text-dark cursor-pointer uppercase" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+            <span className="text-xs font-bold text-dark bg-accent px-2 py-1 border-2 border-dark shadow-neo-sm">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
             {entriesCollapsed && (
-              <button onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-full hover:bg-surface-light">
+              <button onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark hover:bg-surface-light">
                 <span className="material-symbols-outlined text-sm">expand_more</span>
               </button>
             )}
           </div>
         </div>
         {!entriesCollapsed && (
-          <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
+          <div className="divide-y-2 divide-dark max-h-64 overflow-y-auto overscroll-contain pr-1">
             {incomeItems.length === 0 && (
-              <p className="text-sm text-text-secondary">Nenhuma entrada neste mês</p>
+              <p className="text-sm text-dark font-bold py-4 text-center">NENHUMA ENTRADA</p>
             )}
             {incomeItems.map((it) => (
-              <div key={it.id} className="flex items-center justify-between py-2">
+              <div key={it.id} className="flex items-center justify-between py-3">
                 <div className="flex flex-col">
-                  <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
-                  <span className={`text-sm font-medium text-text-primary ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
+                  <span className="text-[10px] font-bold text-dark bg-surface-light px-1 border border-dark w-fit mb-1">{labelForDate(it.date)}</span>
+                  <span className={`text-sm font-bold text-dark uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
                 </div>
-                <span className={`text-sm font-bold text-success ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                <span className={`text-sm font-black text-dark bg-secondary/20 px-2 py-1 border border-dark shadow-neo-sm ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
               </div>
             ))}
           </div>
         )}
       </motion.section>
 
-      <motion.section variants={itemVariants} className="rounded-2xl bg-surface-dark/40 p-4 border border-surface-light" ref={expensesRef}>
+      <motion.section variants={itemVariants} className="rounded-lg bg-white p-4 border-2 border-dark shadow-neo" ref={expensesRef}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-danger">
-            <span className="material-symbols-outlined text-xl">arrow_upward</span>
-            <p className="text-lg font-bold text-text-primary cursor-pointer" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
+          <div className="flex items-center gap-2 text-dark">
+            <span className="material-symbols-outlined text-xl border-2 border-dark rounded-full p-1 bg-primary text-white">arrow_upward</span>
+            <p className="text-lg font-black text-dark cursor-pointer uppercase" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-xs font-medium text-text-secondary">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+            <span className="text-xs font-bold text-dark bg-accent px-2 py-1 border-2 border-dark shadow-neo-sm">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
             {expensesCollapsed && (
-              <button onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-full hover:bg-surface-light">
+              <button onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark hover:bg-surface-light">
                 <span className="material-symbols-outlined text-sm">expand_more</span>
               </button>
             )}
           </div>
         </div>
         {!expensesCollapsed && (
-          <div className="divide-y divide-surface-light/60 max-h-64 overflow-y-auto overscroll-contain pr-1">
+          <div className="divide-y-2 divide-dark max-h-64 overflow-y-auto overscroll-contain pr-1">
             {expenseItems.length === 0 && (
-              <p className="text-sm text-text-secondary">Nenhuma saída neste mês</p>
+              <p className="text-sm text-dark font-bold py-4 text-center">NENHUMA SAÍDA</p>
             )}
             {expenseItems.map((it) => (
-              <div key={it.id} className="flex items-center justify-between py-2">
+              <div key={it.id} className="flex items-center justify-between py-3">
                 <div className="flex flex-col">
-                  <span className="text-xs text-text-secondary">{labelForDate(it.date)}</span>
-                  <span className={`text-sm font-medium text-text-primary ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
+                  <span className="text-[10px] font-bold text-dark bg-surface-light px-1 border border-dark w-fit mb-1">{labelForDate(it.date)}</span>
+                  <span className={`text-sm font-bold text-dark uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
                 </div>
-                <span className={`text-sm font-bold text-danger ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                <span className={`text-sm font-black text-dark bg-primary/20 px-2 py-1 border border-dark shadow-neo-sm ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
               </div>
             ))}
           </div>

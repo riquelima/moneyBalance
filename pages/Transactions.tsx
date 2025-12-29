@@ -165,83 +165,84 @@ const Transactions: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="flex flex-col min-h-screen pb-24"
+      className="flex flex-col min-h-screen pb-24 bg-background-dark"
     >
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-background-dark/80 backdrop-blur-md p-4 border-b border-surface-light">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-white p-4 border-b-3 border-dark shadow-sm">
         <button
           type="button"
           onClick={() => setShowFilter(true)}
-          className="flex w-10 items-center justify-center text-text-primary"
+          className="flex w-10 items-center justify-center text-dark border-2 border-dark bg-white shadow-neo-sm active:shadow-none active:translate-y-[2px] transition-all p-1"
         >
           <span className="material-symbols-outlined text-2xl">filter_alt</span>
         </button>
-        <h1 className="text-lg font-bold">Transações</h1>
+        <h1 className="text-xl font-black uppercase tracking-widest text-dark">Transações</h1>
         <button
           type="button"
           onClick={() => navigate('/add-transaction')}
-          className="flex w-10 items-center justify-center text-primary"
+          className="flex w-10 items-center justify-center text-white bg-primary border-2 border-dark shadow-neo-sm active:shadow-none active:translate-y-[2px] transition-all p-1"
         >
           <span className="material-symbols-outlined text-3xl">add_circle</span>
         </button>
       </header>
 
       <div className="p-4">
-        <div className="flex items-center rounded-xl bg-surface-dark border border-surface-light px-4 py-3">
-          <span className="material-symbols-outlined text-text-secondary mr-2">search</span>
+        <div className="flex items-center rounded-none bg-white border-2 border-dark shadow-neo-sm px-4 py-3">
+          <span className="material-symbols-outlined text-dark mr-2">search</span>
           <input 
             type="text" 
-            placeholder="Buscar transações"
+            placeholder="BUSCAR TRANSAÇÕES"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-text-primary placeholder:text-text-secondary outline-none border-none focus:ring-0 p-0"
+            className="w-full bg-transparent text-dark placeholder:text-text-secondary outline-none border-none focus:ring-0 p-0 font-bold uppercase"
           />
         </div>
         {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (categoryFilter !== 'all')) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {statusFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
+              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white border-2 border-dark shadow-neo-sm text-dark">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
             )}
             {typeFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
+              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white border-2 border-dark shadow-neo-sm text-dark">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
             )}
             {monthFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{monthNames[monthFilter as number]}</span>
+              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white border-2 border-dark shadow-neo-sm text-dark">{monthNames[monthFilter as number]}</span>
             )}
             {categoryFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-light border border-surface-light text-text-secondary">{categoryFilter}</span>
+              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white border-2 border-dark shadow-neo-sm text-dark">{categoryFilter}</span>
             )}
-            <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/10 text-danger border border-danger/30">Limpar</button>
+            <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-danger text-white border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all">Limpar</button>
           </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-4">
         {loading ? (
-          <p className="px-6 py-4 text-text-secondary">Carregando...</p>
+          <p className="px-6 py-4 text-dark font-bold">CARREGANDO...</p>
         ) : filteredItems.length === 0 ? (
-          <div className="px-6 py-12 text-center text-text-secondary">
-            <p>Nenhuma transação cadastrada.</p>
+          <div className="px-6 py-12 text-center text-dark">
+            <p className="font-bold">NENHUMA TRANSAÇÃO CADASTRADA.</p>
             <button
               type="button"
               onClick={() => navigate('/add-transaction')}
-              className="mt-2 text-primary hover:underline"
+              className="mt-2 text-primary font-black hover:underline uppercase"
             >
               Adicionar transação
             </button>
           </div>
         ) : (
           Object.entries(grouped).map(([date, groupItems], groupIndex) => (
-            <div key={date}>
-              <h2 className="px-6 py-2 text-xs font-bold uppercase tracking-wider text-text-secondary">{date}</h2>
+            <div key={date} className="mb-4">
+              <h2 className="py-2 text-sm font-black uppercase tracking-widest text-dark border-b-2 border-dark mb-2">{date}</h2>
               {(groupItems as any[]).map((t: any, i: number) => (
-                <div key={t.id} className="relative overflow-hidden">
-                  <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-4 z-0">
+                <div key={t.id} className="relative mb-3">
+                  <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-0 z-0 h-full">
                     <button
                       type="button"
                       onClick={() => navigate(`/add-transaction?edit=${t.id}`)}
-                      className="px-2 py-1 rounded-lg bg-primary text-background-dark text-xs font-bold flex items-center"
+                      className="h-full w-12 rounded-r-sm bg-primary border-y-2 border-r-2 border-dark text-white flex items-center justify-center shadow-neo"
+                      style={{ marginLeft: 'auto' }}
                     >
-                      <img src="https://cdn-icons-png.flaticon.com/512/860/860814.png" alt="Editar" className="h-4 w-4" />
+                      <img src="https://cdn-icons-png.flaticon.com/512/860/860814.png" alt="Editar" className="h-5 w-5 invert" />
                     </button>
                     <button
                       type="button"
@@ -255,41 +256,40 @@ const Transactions: React.FC = () => {
                           setOpenId(null);
                         }
                       }}
-                      className="px-2 py-1 rounded-lg bg-danger text-white text-xs font-bold flex items-center"
+                      className="h-full w-12 bg-danger border-y-2 border-r-2 border-dark text-white flex items-center justify-center shadow-neo ml-2"
                     >
-                      <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" alt="Excluir" className="h-4 w-4" />
+                      <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" alt="Excluir" className="h-5 w-5 invert" />
                     </button>
                   </div>
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: openId === t.id ? -120 : 0 }}
+                    animate={{ opacity: 1, x: openId === t.id ? -100 : 0 }}
                     transition={{ delay: i * 0.05 + groupIndex * 0.1 }}
                     drag="x"
-                    dragConstraints={{ left: -120, right: 0 }}
+                    dragConstraints={{ left: -100, right: 0 }}
                     dragElastic={0.05}
                     dragMomentum={false}
                     onDragStart={() => setOpenId(null)}
                     onDragEnd={(e, info) => {
-                      setOpenId(info.offset.x < -60 ? t.id : null);
+                      setOpenId(info.offset.x < -50 ? t.id : null);
                     }}
-                    className="relative z-10 flex items-center gap-4 px-6 py-4 bg-background-dark hover:bg-surface-dark/80 active:bg-surface-dark/80 transition-colors border-b border-surface-light/30 last:border-0"
+                    className="relative z-10 flex items-center gap-4 px-4 py-4 bg-white border-2 border-dark shadow-neo active:translate-y-[1px] active:shadow-none transition-all"
                   >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-light text-text-primary self-center">
-                    <span className={`material-symbols-outlined ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border-2 border-dark ${t.type === 'income' ? 'bg-secondary text-white' : 'bg-primary text-white'} self-center`}>
+                    <span className="material-symbols-outlined font-bold">{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
                   </div>
                     <div className="flex flex-1 flex-col">
-                      <p className={`font-medium text-text-primary line-clamp-1 ${t.is_paid ? 'line-through opacity-60' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
+                      <p className={`font-black text-dark uppercase line-clamp-1 ${t.is_paid ? 'line-through opacity-60' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
                       {(() => {
                         const cat = t.category_id ? catMap[t.category_id as string] : null;
                         const name = cat?.name || 'Sem Categoria';
-                        const style = styleForBadge(name);
                         return (
-                          <span className={`mt-0 inline-flex w-fit self-start items-center px-1 py-0 rounded-full text-[10px] leading-none font-semibold border`} style={style}>{name}</span>
+                          <span className="mt-1 inline-flex w-fit self-start items-center px-1 border-2 border-dark text-[10px] font-bold uppercase bg-accent text-dark shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">{name}</span>
                         );
                       })()}
-                      <p className="mt-1 text-xs text-text-secondary">Prazo: {new Date(t.date).toLocaleDateString('pt-BR')}</p>
+                      <p className="mt-1 text-[10px] font-bold text-text-secondary uppercase">Prazo: {new Date(t.date).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <p className={`font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'} self-center ${t.is_paid ? 'line-through opacity-60' : ''}`}>
+                    <p className={`font-black text-lg ${t.type === 'income' ? 'text-secondary' : 'text-primary'} self-center ${t.is_paid ? 'line-through opacity-60' : ''}`}>
                       {formatBRL(Number(t.amount))}
                     </p>
                   </motion.div>
@@ -301,22 +301,22 @@ const Transactions: React.FC = () => {
       </div>
 
       {showFilter && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
-          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md rounded-2xl bg-background-dark p-6 border border-surface-light">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Filtrar transações</h3>
-              <button onClick={() => setShowFilter(false)} className="text-text-secondary">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
+          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white p-6 border-t-4 border-x-4 border-dark shadow-[0_-4px_0px_0px_#000000]">
+            <div className="flex items-center justify-between mb-6 border-b-2 border-dark pb-2">
+              <h3 className="text-xl font-black uppercase">Filtrar transações</h3>
+              <button onClick={() => setShowFilter(false)} className="text-dark hover:bg-surface-light p-1 border-2 border-transparent hover:border-dark transition-all">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
             <div className="mb-4">
-              <p className="text-sm font-bold mb-2">Status</p>
+              <p className="text-sm font-black uppercase mb-2">Status</p>
               <div className="grid grid-cols-3 gap-2">
                 {['all','paid','pending'].map((s) => (
                   <button
                     key={s}
                     onClick={() => setStatusFilter(s as any)}
-                    className={`px-3 py-2 rounded-lg text-sm border ${statusFilter === s ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all ${statusFilter === s ? 'bg-primary text-white' : 'bg-white text-dark hover:bg-surface-light'}`}
                   >
                     {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
                   </button>
@@ -324,13 +324,13 @@ const Transactions: React.FC = () => {
               </div>
             </div>
             <div className="mb-4">
-              <p className="text-sm font-bold mb-2">Tipo</p>
+              <p className="text-sm font-black uppercase mb-2">Tipo</p>
               <div className="grid grid-cols-3 gap-2">
                 {['all','income','expense'].map((t) => (
                   <button
                     key={t}
                     onClick={() => setTypeFilter(t as any)}
-                    className={`px-3 py-2 rounded-lg text-sm border ${typeFilter === t ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all ${typeFilter === t ? 'bg-primary text-white' : 'bg-white text-dark hover:bg-surface-light'}`}
                   >
                     {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
                   </button>
@@ -338,11 +338,11 @@ const Transactions: React.FC = () => {
               </div>
             </div>
             <div className="mb-4">
-              <p className="text-sm font-bold mb-2">Mês</p>
+              <p className="text-sm font-black uppercase mb-2">Mês</p>
               <div className="grid grid-cols-4 gap-2">
                 <button
                   onClick={() => setMonthFilter('all')}
-                  className={`px-3 py-2 rounded-lg text-sm border ${monthFilter === 'all' ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                  className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === 'all' ? 'bg-primary text-white' : 'bg-white text-dark hover:bg-surface-light'}`}
                 >
                   Todos
                 </button>
@@ -350,7 +350,7 @@ const Transactions: React.FC = () => {
                   <button
                     key={m}
                     onClick={() => setMonthFilter(idx)}
-                    className={`px-3 py-2 rounded-lg text-sm border ${monthFilter === idx ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === idx ? 'bg-primary text-white' : 'bg-white text-dark hover:bg-surface-light'}`}
                   >
                     {m}
                   </button>
@@ -358,11 +358,11 @@ const Transactions: React.FC = () => {
               </div>
             </div>
             <div className="mb-4">
-              <p className="text-sm font-bold mb-2">Categoria</p>
+              <p className="text-sm font-black uppercase mb-2">Categoria</p>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => setCategoryFilter('all')}
-                  className={`px-3 py-2 rounded-lg text-sm border ${categoryFilter === 'all' ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                  className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === 'all' ? 'bg-primary text-white' : 'bg-white text-dark hover:bg-surface-light'}`}
                 >
                   Todas
                 </button>
@@ -370,16 +370,16 @@ const Transactions: React.FC = () => {
                   <button
                     key={name}
                     onClick={() => setCategoryFilter(name)}
-                    className={`px-3 py-2 rounded-lg text-sm border ${categoryFilter === name ? 'bg-primary-green text-background-dark border-primary-green' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark shadow-neo-sm active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === name ? 'bg-primary text-white' : 'bg-white text-dark hover:bg-surface-light'}`}
                   >
                     {name}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="mt-6 flex gap-3">
-              <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-xl bg-surface-light py-3 font-bold">Limpar</button>
-              <button onClick={() => setShowFilter(false)} className="flex-1 rounded-xl bg-primary-green py-3 font-bold text-background-dark">Aplicar</button>
+            <div className="mt-8 flex gap-3">
+              <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark bg-white shadow-neo py-3 font-black uppercase hover:bg-surface-light active:translate-y-[2px] active:shadow-none transition-all">Limpar</button>
+              <button onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark bg-secondary shadow-neo py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</button>
             </div>
           </motion.div>
         </motion.div>

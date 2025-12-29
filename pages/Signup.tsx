@@ -38,89 +38,89 @@ const Signup: React.FC = () => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="flex min-h-screen w-full flex-col bg-background-dark text-text-primary p-4"
+      className="flex min-h-screen w-full flex-col bg-white text-dark p-4"
     >
       <header className="flex items-center mb-6">
-        <button onClick={() => navigate('/login')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-light transition-colors">
+        <button onClick={() => navigate('/login')} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark hover:bg-surface-light transition-all active:translate-y-[2px] shadow-neo-sm active:shadow-none">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h1 className="flex-1 text-center text-xl font-bold pr-10">Criar Conta</h1>
+        <h1 className="flex-1 text-center text-2xl font-black uppercase pr-10">Criar Conta</h1>
       </header>
 
       <form onSubmit={handleSignup} className="flex flex-1 flex-col gap-5">
         <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary ml-1">Nome</label>
+              <label className="text-sm font-black uppercase text-dark ml-1">Nome</label>
               <input 
                 type="text" 
-                placeholder="Insira seu nome"
+                placeholder="INSIRA SEU NOME"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary ml-1">Sobrenome</label>
+              <label className="text-sm font-black uppercase text-dark ml-1">Sobrenome</label>
               <input 
                 type="text" 
-                placeholder="Insira seu sobrenome"
+                placeholder="INSIRA SEU SOBRENOME"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary ml-1">Nome de Usuário</label>
+              <label className="text-sm font-black uppercase text-dark ml-1">Nome de Usuário</label>
               <input 
                 type="text" 
-                placeholder="Escolha um nome de usuário"
+                placeholder="ESCOLHA UM NOME DE USUÁRIO"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary ml-1">Telefone</label>
+              <label className="text-sm font-black uppercase text-dark ml-1">Telefone</label>
               <input 
                 type="tel" 
                 placeholder="(00) 00000-0000"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary ml-1">E-mail</label>
+              <label className="text-sm font-black uppercase text-dark ml-1">E-mail</label>
               <input 
                 type="email" 
-                placeholder="Seu e-mail"
+                placeholder="SEU E-MAIL"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary ml-1">Senha</label>
+                <label className="text-sm font-black uppercase text-dark ml-1">Senha</label>
                 <div className="relative">
                     <input 
                         type={showPassword ? "text" : "password"} 
-                        placeholder="Crie uma senha"
+                        placeholder="CRIE UMA SENHA"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full rounded-xl bg-surface-dark border border-surface-light p-4 pr-12 text-text-primary placeholder:text-text-secondary/50 focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal"
+                        className="w-full rounded-none bg-white border-2 border-dark p-4 pr-12 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary-teal transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-dark hover:text-primary transition-colors"
                     >
                         <span className="material-symbols-outlined text-xl">
                         {showPassword ? 'visibility' : 'visibility_off'}
                         </span>
                     </button>
                 </div>
-                <p className="text-xs text-text-secondary ml-1">Mínimo 8 caracteres, 1 letra maiúscula, 1 número.</p>
+                <p className="text-xs font-bold text-text-secondary ml-1 uppercase">Mínimo 8 caracteres, 1 letra maiúscula, 1 número.</p>
             </div>
         </div>
 
@@ -131,17 +131,17 @@ const Signup: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="w-full rounded-full bg-primary-teal py-4 text-lg font-bold text-background-dark shadow-lg shadow-primary-teal/20"
+                className="w-full rounded-sm bg-secondary border-2 border-dark py-4 text-lg font-black text-white shadow-neo hover:bg-secondary/90 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
             >
                 Cadastrar
             </motion.button>
             {error && (
-              <p className="text-danger text-sm">{error}</p>
+              <p className="text-danger font-bold text-sm bg-danger/10 p-2 border-2 border-danger w-full text-center">{error}</p>
             )}
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-dark font-bold uppercase">
                 Já tem uma conta?{' '}
-                <button onClick={() => navigate('/login')} className="font-bold text-primary-teal hover:underline">
-                    Entrar
+                <button onClick={() => navigate('/login')} className="font-black text-secondary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all">
+                    ENTRAR
                 </button>
             </p>
         </div>

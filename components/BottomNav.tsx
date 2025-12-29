@@ -15,7 +15,7 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-surface-light bg-background-dark/95 backdrop-blur-md">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t-3 border-dark bg-light">
       <div className="mx-auto grid w-full grid-cols-5 items-end justify-items-center px-4 py-2 pb-4 h-20">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -24,9 +24,9 @@ const BottomNav: React.FC = () => {
              return (
                 <motion.button
                   key={item.path + 'fab'}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.95, y: 0 }}
                   onClick={() => navigate(item.path)}
-                  className="flex h-14 w-14 -translate-y-4 transform items-center justify-center rounded-full border-4 border-background-dark bg-primary text-background-dark shadow-metallic"
+                  className="flex h-14 w-14 -translate-y-4 transform items-center justify-center rounded-full border-3 border-dark bg-primary text-white shadow-neo"
                 >
                   <span className="material-symbols-outlined !text-3xl">add</span>
                 </motion.button>
@@ -37,12 +37,12 @@ const BottomNav: React.FC = () => {
             <button
               key={item.label}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 transition-colors ${isActive ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+              className={`flex flex-col items-center gap-1 transition-colors ${isActive ? 'text-primary font-bold' : 'text-dark hover:text-primary'}`}
             >
-              <span className={`material-symbols-outlined ${isActive ? '!fill-1' : ''}`}>
+              <span className={`material-symbols-outlined ${isActive ? '!fill-1' : ''} border-2 border-transparent`}>
                 {item.icon}
               </span>
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider">{item.label}</span>
             </button>
           );
         })}

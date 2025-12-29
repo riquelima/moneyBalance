@@ -24,12 +24,12 @@
     <style>
       body {
         font-family: 'Manrope', sans-serif;
-        background-color: #0A0A0A;
-        color: #E0E0E0;
+        background-color: #F7F7F7;
+        color: #000000;
         -webkit-tap-highlight-color: transparent;
       }
       .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24;
       }
       /* Hide scrollbar for Chrome, Safari and Opera */
       .no-scrollbar::-webkit-scrollbar {
@@ -56,35 +56,53 @@
         theme: {
           extend: {
             colors: {
-              primary: "#D4AF37",
-              "primary-green": "#13ec5b",
-              "primary-blue": "#135bec",
-              "primary-teal": "#00D18B",
-              "background-dark": "#0A0A0A",
-              "surface-dark": "#1A1A1A",
-              "surface-light": "#2A2A2A",
-              "text-primary": "#E0E0E0",
-              "text-secondary": "#B0B0B0",
-              "danger": "#EF4444",
-              "success": "#22C55E",
-              "warning": "#FACC15",
+              primary: "#8854D0", /* Purple */
+              secondary: "#20BF55", /* Green */
+              accent: "#FFE66D", /* Yellow */
+              danger: "#FF6B6B", /* Red */
+              dark: "#000000",
+              light: "#FFFFFF",
+              
+              /* Remap existing to Neo-Brutalist */
+              "background-dark": "#F7F7F7",
+              "surface-dark": "#FFFFFF",
+              "surface-light": "#E0E0E0",
+              "text-primary": "#000000",
+              "text-secondary": "#4A4A4A",
+              
+              "primary-green": "#20BF55",
+              "primary-blue": "#3867D6",
+              "primary-teal": "#4ECDC4",
+              "warning": "#FD9644",
+              "success": "#20BF55",
             },
             fontFamily: {
               display: ["Manrope", "sans-serif"],
               zain: ["Zain", "sans-serif"],
             },
             boxShadow: {
-              'metallic': '0 0 15px rgba(212, 175, 55, 0.2)',
-              'glow-green': '0 0 15px rgba(19, 236, 91, 0.2)',
+              'neo': '4px 4px 0px 0px #000000',
+              'neo-sm': '2px 2px 0px 0px #000000',
+              'neo-lg': '6px 6px 0px 0px #000000',
+              'metallic': 'none', /* Disable old shadows */
+              'glow-green': 'none',
+            },
+            borderWidth: {
+              '3': '3px',
+            },
+            borderRadius: {
+              'none': '0',
+              'sm': '2px',
+              'DEFAULT': '4px',
+              'md': '6px',
+              'lg': '8px',
+              'xl': '10px', 
+              /* Override large radius to be sharper */
+              '2xl': '8px',
+              '3xl': '12px',
             }
           }
-        },
-        safelist: [
-          'bg-danger',
-          'bg-danger/30',
-          'bg-primary-green',
-          'bg-primary-green/30'
-        ]
+        }
       }
     </script>
   

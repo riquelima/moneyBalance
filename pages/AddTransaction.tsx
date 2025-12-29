@@ -83,44 +83,44 @@ const AddTransaction: React.FC = () => {
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed inset-0 z-50 flex flex-col bg-black/80 font-display"
+      className="fixed inset-0 z-50 flex flex-col bg-black/60 backdrop-blur-sm font-display"
     >
       {/* Click outside to close simulation */}
       <div className="h-10 w-full" onClick={() => navigate(-1)}></div>
 
-      <div className="flex-1 flex flex-col bg-surface-dark rounded-t-3xl overflow-hidden shadow-2xl">
+      <div className="flex-1 flex flex-col bg-white rounded-t-lg overflow-hidden shadow-neo border-t-4 border-x-4 border-dark">
         {/* Drag Handle */}
         <div className="flex w-full justify-center pt-3 pb-1" onClick={() => navigate(-1)}>
-          <div className="h-1.5 w-12 rounded-full bg-surface-light opacity-50"></div>
+          <div className="h-1.5 w-12 rounded-full bg-dark opacity-20"></div>
         </div>
 
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-2 relative">
+        <header className="flex items-center justify-between px-4 py-2 relative border-b-2 border-dark pb-4">
             <div className="w-10"></div> {/* Spacer */}
-            <h1 className="text-lg font-bold text-white">Adicionar Transação</h1>
+            <h1 className="text-xl font-black text-dark uppercase">Adicionar Transação</h1>
             <button 
                 onClick={() => navigate(-1)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-text-secondary hover:bg-surface-light hover:text-white transition-colors"
+                className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-transparent hover:border-dark text-dark transition-all"
             >
                 <span className="material-symbols-outlined">close</span>
             </button>
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
           <div className="max-w-md mx-auto">
             
             {/* Type Segmented Control */}
-            <div className="flex bg-[#2C2C2E] rounded-xl p-1 mb-8">
+            <div className="flex bg-white border-2 border-dark rounded-sm p-1 mb-8 shadow-neo-sm">
                 <button 
                     onClick={() => setType('income')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${type === 'income' ? 'bg-[#00D68F] text-black shadow-md' : 'text-text-secondary hover:text-white'}`}
+                    className={`flex-1 py-2 rounded-sm text-sm font-black uppercase transition-all border-2 ${type === 'income' ? 'bg-secondary text-white border-dark shadow-neo-sm -translate-y-1' : 'bg-transparent text-dark border-transparent hover:bg-surface-light'}`}
                 >
                     Receita
                 </button>
                 <button 
                     onClick={() => setType('expense')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${type === 'expense' ? 'bg-[#FF455F] text-white shadow-md' : 'text-text-secondary hover:text-white'}`}
+                    className={`flex-1 py-2 rounded-sm text-sm font-black uppercase transition-all border-2 ${type === 'expense' ? 'bg-primary text-white border-dark shadow-neo-sm -translate-y-1' : 'bg-transparent text-dark border-transparent hover:bg-surface-light'}`}
                 >
                     Despesa
                 </button>
@@ -129,7 +129,7 @@ const AddTransaction: React.FC = () => {
             {/* Amount Input */}
             <div className="flex flex-col items-center justify-center mb-8">
                 <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-medium text-text-secondary">R$</span>
+                    <span className="text-3xl font-black text-dark">R$</span>
                     <input 
                         type="text" 
                         inputMode="decimal"
@@ -137,40 +137,40 @@ const AddTransaction: React.FC = () => {
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0,00"
                         autoFocus
-                        className="bg-transparent border-none p-0 text-6xl font-bold text-white placeholder-text-secondary/30 focus:ring-0 w-48 text-center"
+                        className={`bg-transparent border-none p-0 text-6xl font-black placeholder-text-secondary/30 focus:ring-0 w-48 text-center ${type === 'expense' ? 'text-primary' : 'text-secondary'}`}
                     />
                 </div>
                 {showDatePicker && (
-                  <div className="mt-3 w-full max-w-full rounded-2xl bg-[#2C2C2E] border border-surface-light p-3 sm:p-4 select-none">
+                  <div className="mt-3 w-full max-w-full rounded-sm bg-white border-2 border-dark p-3 sm:p-4 select-none shadow-neo">
                     <div className="flex items-center justify-between mb-3">
                       <button
                         onClick={() => {
                           const m = pickerMonth - 1; const y = pickerYear + (m < 0 ? -1 : 0);
                           setPickerYear(y); setPickerMonth((m + 12) % 12);
                         }}
-                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-surface-dark border border-surface-light text-text-secondary flex items-center justify-center"
+                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-sm bg-white border-2 border-dark text-dark flex items-center justify-center hover:bg-surface-light shadow-neo-sm active:shadow-none active:translate-y-[1px]"
                       >
                         <span className="material-symbols-outlined">chevron_left</span>
                       </button>
-                      <span className="text-white font-semibold text-sm sm:text-base">{monthNames[pickerMonth]} {pickerYear}</span>
+                      <span className="text-dark font-black text-sm sm:text-base uppercase">{monthNames[pickerMonth]} {pickerYear}</span>
                       <button
                         onClick={() => {
                           const m = pickerMonth + 1; const y = pickerYear + (m > 11 ? 1 : 0);
                           setPickerYear(y); setPickerMonth(m % 12);
                         }}
-                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-surface-dark border border-surface-light text-text-secondary flex items-center justify-center"
+                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-sm bg-white border-2 border-dark text-dark flex items-center justify-center hover:bg-surface-light shadow-neo-sm active:shadow-none active:translate-y-[1px]"
                       >
                         <span className="material-symbols-outlined">chevron_right</span>
                       </button>
                     </div>
-                    <div className="grid grid-cols-7 gap-[2px] sm:gap-1 text-[11px] sm:text-xs text-text-secondary mb-2">
+                    <div className="grid grid-cols-7 gap-[2px] sm:gap-1 text-[11px] sm:text-xs text-dark font-bold mb-2 uppercase">
                       {['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d => (
                         <div key={d} className="text-center">{d}</div>
                       ))}
                     </div>
                     <div className="grid grid-cols-7 gap-[2px] sm:gap-1">
                       {monthGrid.map((d, i) => {
-                        if (!d) return <div key={i} className="h-9 sm:h-10 rounded-lg bg-surface-dark/40" />;
+                        if (!d) return <div key={i} className="h-9 sm:h-10 rounded-sm bg-surface-light/40" />;
                         const curr = new Date(pickerYear, pickerMonth, d);
                         const isSel = isSameDay(curr, selectedDate);
                         const isToday = isSameDay(curr, new Date());
@@ -178,7 +178,7 @@ const AddTransaction: React.FC = () => {
                           <button
                             key={i}
                             onClick={() => { setSelectedDate(curr); setShowDatePicker(false); }}
-                            className={`h-9 sm:h-10 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center border ${isSel ? 'bg-primary text-background-dark border-primary' : 'bg-surface-dark text-white border-surface-light'} ${isToday && !isSel ? 'ring-1 ring-primary' : ''}`}
+                            className={`h-9 sm:h-10 rounded-sm text-xs sm:text-sm font-bold flex items-center justify-center border-2 ${isSel ? 'bg-primary text-white border-dark shadow-neo-sm' : 'bg-white text-dark border-transparent hover:border-dark'} ${isToday && !isSel ? 'border-primary text-primary' : ''}`}
                           >
                             {String(d)}
                           </button>
@@ -195,29 +195,28 @@ const AddTransaction: React.FC = () => {
                 <div className="space-y-2">
                     <input 
                         type="text"
-                        placeholder="Descrição"
+                        placeholder="DESCRIÇÃO"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full h-14 rounded-xl bg-[#2C2C2E] border-none px-4 text-white placeholder:text-text-secondary/70 focus:ring-2 focus:ring-opacity-50 transition-all"
-                        style={{ '--tw-ring-color': activeColor } as React.CSSProperties}
+                        className="w-full h-14 rounded-none bg-white border-2 border-dark px-4 text-dark font-bold uppercase placeholder:text-text-secondary/70 focus:shadow-neo-sm focus:outline-none transition-all"
                     />
                 </div>
 
                 {/* Category */}
-                <button onClick={() => setShowCategoryPicker(v => !v)} className="w-full h-14 rounded-xl bg-[#2C2C2E] px-4 flex items-center justify-between group active:scale-[0.99] transition-transform">
-                    <span className="text-text-secondary group-hover:text-white transition-colors">Categoria</span>
+                <button onClick={() => setShowCategoryPicker(v => !v)} className="w-full h-14 rounded-none bg-white border-2 border-dark px-4 flex items-center justify-between group active:translate-y-[2px] shadow-neo-sm active:shadow-none transition-all">
+                    <span className="text-dark font-bold uppercase group-hover:text-primary transition-colors">Categoria</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">{categoryName || 'Selecione'}</span>
-                        <span className="material-symbols-outlined text-text-secondary">chevron_right</span>
+                        <span className="text-dark font-black uppercase">{categoryName || 'SELECIONE'}</span>
+                        <span className="material-symbols-outlined text-dark">chevron_right</span>
                     </div>
                 </button>
                 {showCategoryPicker && (
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="grid grid-cols-2 gap-2 mt-2 p-2 border-2 border-dark bg-surface-light shadow-neo-sm">
                     {categories.map((c) => (
                       <button
                         key={c}
                         onClick={() => { setCategoryName(c); setShowCategoryPicker(false); }}
-                        className={`px-3 py-2 rounded-lg text-sm border ${categoryName === c ? 'border-primary text-white' : 'border-surface-light text-text-secondary hover:text-white'}`}
+                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 ${categoryName === c ? 'border-dark bg-primary text-white shadow-neo-sm' : 'border-dark bg-white text-dark hover:bg-surface-light'}`}
                       >
                         {c}
                       </button>
@@ -227,30 +226,30 @@ const AddTransaction: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3 items-center">
                     {/* Date */}
-                    <button onClick={() => setShowDatePicker(v => !v)} className="col-span-2 h-12 w-full rounded-xl bg-[#2C2C2E] px-4 flex flex-col justify-center items-start group active:scale-[0.99] transition-transform">
-                        <span className="text-xs text-text-secondary">Data</span>
-                        <span className="text-white font-medium truncate w-full">{displayDateLabel}</span>
+                    <button onClick={() => setShowDatePicker(v => !v)} className="col-span-2 h-12 w-full rounded-none bg-white border-2 border-dark px-4 flex flex-col justify-center items-start group active:translate-y-[2px] shadow-neo-sm active:shadow-none transition-all">
+                        <span className="text-[10px] font-bold text-text-secondary uppercase">Data</span>
+                        <span className="text-dark font-black truncate w-full uppercase">{displayDateLabel}</span>
                     </button>
 
                     {/* Paid Toggle */}
-                    <div className="h-12 w-full rounded-xl bg-[#2C2C2E] px-3 flex items-center justify-between">
-                        <span className="text-white text-sm font-medium">{type === 'income' ? 'Recebido' : 'Pago'}</span>
+                    <div className="h-12 w-full rounded-none bg-white border-2 border-dark px-3 flex items-center justify-between shadow-neo-sm">
+                        <span className="text-dark text-sm font-bold uppercase">{type === 'income' ? 'Recebido' : 'Pago'}</span>
                         <button 
                             onClick={() => setIsPaid(!isPaid)}
-                            className={`w-10 h-6 rounded-full relative overflow-hidden transition-colors ${isPaid ? activeClass : 'bg-gray-600'}`}
+                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark ${isPaid ? (type === 'expense' ? 'bg-primary' : 'bg-secondary') : 'bg-surface-light'}`}
                         >
-                            <div className={`absolute top-1 left-1 bg-white h-4 w-4 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-4' : 'translate-x-0'}`} />
+                            <div className={`absolute -top-1 -left-1 bg-white h-4 w-4 rounded-sm border-2 border-dark shadow-sm transition-transform ${isPaid ? 'translate-x-4' : 'translate-x-0'}`} />
                         </button>
                     </div>
 
                     {/* Recurring Toggle */}
-                    <div className="h-12 w-full rounded-xl bg-[#2C2C2E] px-3 flex items-center justify-between">
-                        <span className="text-white text-sm font-medium">Recorrente</span>
+                    <div className="h-12 w-full rounded-none bg-white border-2 border-dark px-3 flex items-center justify-between shadow-neo-sm">
+                        <span className="text-dark text-sm font-bold uppercase">Recorrente</span>
                         <button 
                             onClick={() => setIsRecurring(!isRecurring)}
-                            className={`w-10 h-6 rounded-full relative overflow-hidden transition-colors ${isRecurring ? activeClass : 'bg-gray-600'}`}
+                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark ${isRecurring ? (type === 'expense' ? 'bg-primary' : 'bg-secondary') : 'bg-surface-light'}`}
                         >
-                            <div className={`absolute top-1 left-1 bg-white h-4 w-4 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-4' : 'translate-x-0'}`} />
+                            <div className={`absolute -top-1 -left-1 bg-white h-4 w-4 rounded-sm border-2 border-dark shadow-sm transition-transform ${isRecurring ? 'translate-x-4' : 'translate-x-0'}`} />
                         </button>
                     </div>
                 </div>
@@ -260,7 +259,7 @@ const AddTransaction: React.FC = () => {
         </div>
 
         {/* Footer Button */}
-        <div className="p-6 pt-2 bg-surface-dark pb-8">
+        <div className="p-6 pt-2 bg-white border-t-2 border-dark pb-8">
             <motion.button 
                 whileTap={{ scale: 0.98 }}
                 onClick={async () => {
