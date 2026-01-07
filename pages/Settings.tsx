@@ -16,7 +16,8 @@ const Settings: React.FC = () => {
     const load = async () => {
       // Load Theme
       const savedTheme = localStorage.getItem('theme');
-      const isDarkTheme = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // Default is light unless explicitly set to 'dark'
+      const isDarkTheme = savedTheme === 'dark';
       setIsDark(isDarkTheme);
       if (isDarkTheme) document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
