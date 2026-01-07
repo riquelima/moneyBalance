@@ -229,18 +229,18 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background-dark relative">
+    <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark relative">
       <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(1200px 400px at 20% 0%, rgba(19,236,91,0.12), transparent 60%), radial-gradient(800px 600px at 80% 100%, rgba(19,236,91,0.08), transparent 50%)' }} />
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative flex items-center justify-between p-4 bg-background-dark/70 backdrop-blur rounded-b-2xl border border-primary-green shadow-glow-green z-10"
+        className="relative flex items-center justify-between p-4 bg-white/70 dark:bg-background-dark/70 backdrop-blur rounded-b-2xl border border-primary-green shadow-glow-green z-10"
       >
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full border border-primary-green/30 hover:bg-background-dark/60">
+        <button onClick={() => navigate(-1)} className="p-2 rounded-full border border-primary-green/30 hover:bg-surface-light dark:hover:bg-background-dark/60">
           <span className="material-symbols-outlined text-primary-green">arrow_back_ios_new</span>
         </button>
         <h1 className="font-bold text-lg text-primary-green tracking-wide">Chat com IA</h1>
-        <button className="p-2 rounded-full border border-primary-green/30 hover:bg-background-dark/60">
+        <button className="p-2 rounded-full border border-primary-green/30 hover:bg-surface-light dark:hover:bg-background-dark/60">
           <span className="material-symbols-outlined text-primary-green">more_vert</span>
         </button>
       </motion.header>
@@ -266,7 +266,7 @@ const Chat: React.FC = () => {
                     initial={{ boxShadow: '0 0 0 rgba(19,236,91,0)' }}
                     animate={{ boxShadow: '0 0 22px rgba(19,236,91,0.25)' }}
                     transition={{ duration: 0.6 }}
-                    className="px-4 py-4 rounded-2xl rounded-bl-none text-sm leading-relaxed font-zain font-light bg-background-dark border border-primary-green text-text-primary"
+                    className="px-4 py-4 rounded-2xl rounded-bl-none text-sm leading-relaxed font-zain font-light bg-white dark:bg-background-dark border border-primary-green text-dark dark:text-text-primary"
                   >
                     <ReactMarkdown>{msg.text}</ReactMarkdown>
                   </motion.div>
@@ -275,7 +275,7 @@ const Chat: React.FC = () => {
                     initial={{ boxShadow: '0 0 0 rgba(19,91,236,0)' }}
                     animate={{ boxShadow: '0 0 22px rgba(19,91,236,0.25)' }}
                     transition={{ duration: 0.6 }}
-                    className="px-4 py-4 rounded-2xl rounded-br-none text-sm leading-relaxed font-zain font-light bg-background-dark border border-primary-blue text-text-primary"
+                    className="px-4 py-4 rounded-2xl rounded-br-none text-sm leading-relaxed font-zain font-light bg-white dark:bg-background-dark border border-primary-blue text-dark dark:text-text-primary"
                   >
                     {msg.text}
                   </motion.div>
@@ -309,7 +309,7 @@ const Chat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-        <div className="p-4 bg-background-dark/80 backdrop-blur border-t border-surface-light">
+        <div className="p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur border-t border-surface-light dark:border-surface-light">
         <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
             {[
               'Maior gasto mês atual',
@@ -324,7 +324,7 @@ const Chat: React.FC = () => {
                 <button 
                   onClick={() => setInputValue(chip)}
                   onContextMenu={(e) => e.preventDefault()}
-                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-full bg-background-dark text-primary-green border border-primary-green shadow-glow-green hover:bg-background-dark/80 text-xs font-bold"
+                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-background-dark text-primary-green border border-primary-green shadow-glow-green hover:bg-surface-light dark:hover:bg-background-dark/80 text-xs font-bold"
                 >
                   {chip}
                 </button>
@@ -338,7 +338,7 @@ const Chat: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Pergunte algo..."
-              className="flex-1 bg-background-dark rounded-full px-6 py-3 text-sm border border-primary-green text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-green/40 shadow-glow-green"
+              className="flex-1 bg-white dark:bg-background-dark rounded-full px-6 py-3 text-sm border border-primary-green text-dark dark:text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-green/40 shadow-glow-green"
             />
             <motion.button 
               whileTap={{ scale: 0.9 }}

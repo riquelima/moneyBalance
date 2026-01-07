@@ -41,16 +41,16 @@ const CategoryExpenses: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background-dark p-4 gap-4">
-      <header className="flex items-center gap-4 py-2">
-        <button onClick={() => navigate(-1)} className="rounded-full p-2 hover:bg-surface-light">
-             <span className="material-symbols-outlined">arrow_back_ios_new</span>
+    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark p-4 gap-4 font-display">
+      <header className="flex items-center gap-4 py-2 border-b-3 border-dark dark:border-white pb-4 bg-white dark:bg-surface-dark -mx-4 px-4 sticky top-0 z-10 shadow-sm">
+        <button onClick={() => navigate(-1)} className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
+             <span className="material-symbols-outlined text-dark dark:text-white">arrow_back_ios_new</span>
         </button>
-        <h1 className="text-lg font-bold flex-1 text-center pr-10">Gastos por Categoria</h1>
+        <h1 className="text-xl font-black flex-1 text-center pr-10 uppercase text-dark dark:text-white">Gastos por Categoria</h1>
       </header>
       
       <div className="flex justify-end mb-2">
-         <select className="bg-surface-dark border border-surface-light rounded-lg px-3 py-1 text-sm outline-none focus:border-primary-green">
+         <select className="bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm px-3 py-2 text-sm font-bold uppercase outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] text-dark dark:text-white transition-all">
             <option>Este Mês</option>
             <option>Mês Passado</option>
          </select>
@@ -61,7 +61,7 @@ const CategoryExpenses: React.FC = () => {
             <motion.div 
                 key={cat.id}
                 initial={false}
-                className="bg-surface-dark rounded-2xl border border-surface-light overflow-hidden"
+                className="bg-white dark:bg-surface-dark rounded-lg border-3 border-dark dark:border-white overflow-hidden shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]"
             >
                 <button 
                     onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
@@ -69,26 +69,26 @@ const CategoryExpenses: React.FC = () => {
                 >
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-full bg-surface-light flex items-center justify-center">
+                            <div className="h-12 w-12 rounded-sm bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white flex items-center justify-center shadow-neo-sm dark:shadow-none">
                                 <span className={`material-symbols-outlined ${cat.color}`}>{cat.icon}</span>
                             </div>
                             <div className="text-left">
-                                <p className="font-semibold">{cat.id}</p>
-                                <p className="text-xs text-text-secondary">{cat.percent} do total</p>
+                                <p className="font-black uppercase text-dark dark:text-white">{cat.id}</p>
+                                <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">{cat.percent} do total</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold">{cat.amount}</span>
+                            <span className="font-black text-dark dark:text-white">{cat.amount}</span>
                             <motion.span 
                                 animate={{ rotate: expanded === cat.id ? 180 : 0 }}
-                                className="material-symbols-outlined text-text-secondary"
+                                className="material-symbols-outlined text-dark dark:text-white"
                             >
                                 expand_more
                             </motion.span>
                         </div>
                     </div>
-                    <div className="w-full bg-surface-light h-1.5 rounded-full overflow-hidden">
-                        <div className={`h-full ${cat.barColor}`} style={{ width: cat.percent }}></div>
+                    <div className="w-full bg-surface-light dark:bg-background-dark h-3 rounded-none border-2 border-dark dark:border-white overflow-hidden">
+                        <div className={`h-full ${cat.barColor} border-r-2 border-dark dark:border-white`} style={{ width: cat.percent }}></div>
                     </div>
                 </button>
 
@@ -98,49 +98,48 @@ const CategoryExpenses: React.FC = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="border-t border-surface-light"
+                            className="border-t-3 border-dark dark:border-white"
                         >
-                            <div className="p-4 flex flex-col gap-4">
+                            <div className="p-4 flex flex-col gap-4 bg-surface-light/30 dark:bg-background-dark/30">
                                 {cat.details.length > 0 ? (
                                     <>
-                                        {/* Chart Placeholder */}
+                                        {/* Chart Placeholder - Neo Brutalist Style */}
                                         <div className="flex items-center justify-center py-4 relative">
-                                            <div className="h-40 w-40 rounded-full border-[12px] border-surface-light border-t-primary-green flex items-center justify-center relative">
-                                                <div className="absolute inset-0 rounded-full border-[12px] border-transparent border-r-primary-green rotate-45"></div>
-                                                <div className="text-center">
-                                                    <span className="text-2xl font-bold">80%</span>
-                                                    <p className="text-xs text-text-secondary">Delivery</p>
+                                            <div className="h-40 w-40 rounded-full border-[4px] border-dark dark:border-white flex items-center justify-center relative bg-white dark:bg-surface-dark shadow-neo dark:shadow-none">
+                                                <div className="text-center z-10">
+                                                    <span className="text-2xl font-black text-dark dark:text-white">80%</span>
+                                                    <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">Delivery</p>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <div className="grid grid-cols-3 gap-2 text-center text-xs">
                                             {cat.details.map((d, i) => (
-                                                <div key={i} className="bg-surface-light/30 rounded-lg p-2">
-                                                    <p className="text-text-secondary">{d.label}</p>
-                                                    <p className="font-bold mt-1">{d.val}</p>
+                                                <div key={i} className="bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm p-2 shadow-sm">
+                                                    <p className="font-bold text-text-secondary dark:text-gray-400 uppercase">{d.label}</p>
+                                                    <p className="font-black mt-1 text-dark dark:text-white">{d.val}</p>
                                                 </div>
                                             ))}
                                         </div>
 
-                                        <h3 className="font-bold mt-2">Transações Recentes</h3>
+                                        <h3 className="font-black uppercase text-dark dark:text-white mt-2 border-b-2 border-dark dark:border-white pb-1 inline-block w-full">Transações Recentes</h3>
                                         <div className="space-y-2">
-                                            <div className="flex items-center justify-between p-2 hover:bg-surface-light rounded-lg transition-colors">
+                                            <div className="flex items-center justify-between p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm shadow-sm hover:translate-x-1 transition-transform">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded bg-surface-light flex items-center justify-center">
-                                                        <span className="material-symbols-outlined text-sm">receipt</span>
+                                                    <div className="h-8 w-8 rounded-sm bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-sm text-dark dark:text-white">receipt</span>
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium">iFood</p>
-                                                        <p className="text-xs text-text-secondary">Ontem</p>
+                                                        <p className="text-sm font-bold uppercase text-dark dark:text-white">iFood</p>
+                                                        <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">Ontem</p>
                                                     </div>
                                                 </div>
-                                                <span className="text-danger text-sm font-medium">- R$ 45,90</span>
+                                                <span className="text-danger text-sm font-black">- R$ 45,90</span>
                                             </div>
                                         </div>
                                     </>
                                 ) : (
-                                    <p className="text-center text-text-secondary text-sm py-4">Sem detalhes adicionais.</p>
+                                    <p className="text-center text-text-secondary dark:text-gray-400 text-sm font-bold uppercase py-4">Sem detalhes adicionais.</p>
                                 )}
                             </div>
                         </motion.div>

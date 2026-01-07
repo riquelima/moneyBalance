@@ -22,7 +22,7 @@ import BottomNav from './components/BottomNav';
 // Layout for authenticated pages
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-background-dark text-text-primary pb-20">
+    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-dark dark:text-white pb-20 transition-colors duration-300">
       {children}
       <BottomNav />
     </div>

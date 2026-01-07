@@ -9,9 +9,18 @@ const Settings: React.FC = () => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [supabaseUrl, setSupabaseUrl] = useState<string>('');
   const [supabaseAnon, setSupabaseAnon] = useState<string>('');
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     const load = async () => {
+      // Load Theme
+      const savedTheme = localStorage.getItem('theme');
+      const isDarkTheme = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      setIsDark(isDarkTheme);
+      if (isDarkTheme) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
       if (!user) return;
@@ -30,36 +39,56 @@ const Settings: React.FC = () => {
         name = parts[0] || '';
         lastName = parts.slice(1).join(' ');
       }
-      setProfile({ name: name || email.split('@')[0], lastName: lastName || '', email, avatarUrl: (prof as any)?.avatar_url || 'https://picsum.photos/100/100' });
+      if (mounted) {
+        setProfile({ name: name || email.split('@')[0], lastName: lastName || '', email, avatarUrl: (prof as any)?.avatar_url || 'https://picsum.photos/100/100' });
+      }
     };
     load();
     const u = window.localStorage.getItem('SUPABASE_URL') || '';
     const k = window.localStorage.getItem('SUPABASE_ANON_KEY') || '';
     setSupabaseUrl(u || supabaseUrl);
     setSupabaseAnon(k || supabaseAnon);
+    
+    return () => { mounted = false; };
   }, []);
 
+  const toggleTheme = () => {
+    const newVal = !isDark;
+    setIsDark(newVal);
+    if (newVal) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   const SectionHeader = ({ title }: { title: string }) => (
-    <h2 className="px-4 pt-6 pb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">{title}</h2>
+    <h2 className="px-1 pt-6 pb-2 text-base font-black text-dark dark:text-white uppercase tracking-wider transform -rotate-1 w-fit bg-white dark:bg-dark border-2 border-dark dark:border-white px-3 py-1 shadow-neo-sm dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mb-3">{title}</h2>
   );
 
-  const SettingItem = ({ icon, label, sub, trailing, color = 'text-primary-teal' }: any) => (
+  const SettingItem = ({ icon, label, sub, trailing, color = 'bg-primary text-white', onClick }: any) => (
     <motion.button 
-        whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-between px-4 py-4 bg-surface-dark border-b border-surface-light last:border-0 first:rounded-t-xl last:rounded-b-xl hover:bg-surface-light/10 transition-colors"
+        whileHover={{ translate: "2px 2px", boxShadow: "0px 0px 0px 0px #000" }}
+        whileTap={{ scale: 0.98, translate: "4px 4px", boxShadow: "0px 0px 0px 0px #000" }}
+        onClick={onClick}
+        className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group"
     >
         <div className="flex items-center gap-4">
-            <div className={`h-10 w-10 rounded-lg bg-surface-light flex items-center justify-center ${color}`}>
-                <span className="material-symbols-outlined">{icon}</span>
+            <div className={`h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center ${color} shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all`}>
+                <span className="material-symbols-outlined font-black">{icon}</span>
             </div>
             <div className="text-left">
-                <p className="font-medium text-text-primary">{label}</p>
-                {sub && <p className="text-xs text-text-secondary">{sub}</p>}
+                <p className="font-black text-dark dark:text-white uppercase text-sm">{label}</p>
+                {sub && <p className="text-xs font-bold text-text-secondary uppercase">{sub}</p>}
             </div>
         </div>
         <div className="flex items-center gap-2">
             {trailing}
-            <span className="material-symbols-outlined text-text-secondary">chevron_right</span>
+            <div className="bg-dark dark:bg-white text-white dark:text-dark p-1 border-2 border-dark dark:border-white group-hover:bg-white dark:group-hover:bg-dark group-hover:text-dark dark:group-hover:text-white transition-colors">
+              <span className="material-symbols-outlined text-lg">arrow_forward</span>
+            </div>
         </div>
     </motion.button>
   );
@@ -68,25 +97,28 @@ const Settings: React.FC = () => {
     <motion.div 
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="flex flex-col min-h-screen pb-24"
+        className="flex flex-col min-h-screen pb-24 bg-background-light dark:bg-background-dark text-dark dark:text-white font-display transition-colors duration-300"
     >
-      <header className="flex items-center gap-4 p-4 sticky top-0 bg-background-dark z-10 border-b border-surface-light">
-         <button onClick={() => navigate(-1)} className="rounded-full p-2 hover:bg-surface-light">
-             <span className="material-symbols-outlined">arrow_back_ios_new</span>
+      <header className="flex items-center gap-4 p-4 sticky top-0 bg-white dark:bg-dark z-10 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
+         <button onClick={() => navigate(-1)} className="p-2 border-2 border-dark dark:border-white bg-white dark:bg-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all active:bg-surface-light dark:active:bg-white/10">
+             <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
         </button>
-        <h1 className="text-lg font-bold">Configurações</h1>
+        <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">Configurações</h1>
       </header>
 
-      <div className="px-4">
+      <div className="px-4 pt-4">
         <SectionHeader title="Conta" />
-        <div className="flex flex-col rounded-xl overflow-hidden border border-surface-light">
-             <div className="flex items-center gap-4 p-4 bg-surface-dark">
+        <div className="flex flex-col gap-3">
+             <div className="flex items-center gap-4 p-4 bg-white dark:bg-dark border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mb-2 transition-colors duration-300">
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="rounded-full overflow-hidden h-14 w-14 border border-surface-light"
+                  className="h-16 w-16 border-3 border-dark dark:border-white bg-surface-light dark:bg-white/10 overflow-hidden shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all relative group"
                   title="Alterar foto"
                 >
-                  <img src={profile?.avatarUrl || 'https://picsum.photos/100/100'} alt="Avatar" className="h-14 w-14 object-cover" />
+                  <img src={profile?.avatarUrl || 'https://picsum.photos/100/100'} alt="Avatar" className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="material-symbols-outlined text-white">edit</span>
+                  </div>
                 </button>
                 <input 
                   ref={fileRef}
@@ -112,96 +144,63 @@ const Settings: React.FC = () => {
                     setProfile((p) => p ? { ...p, avatarUrl: url } : p);
                   }}
                 />
-                <div>
-                    <p className="font-bold">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'Usuário'}</p>
-                    <p className="text-sm text-text-secondary">{profile?.email || ''}</p>
+                <div className="flex-1">
+                  <p className="font-black text-lg text-dark dark:text-white uppercase">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'USUÁRIO'}</p>
+                  <p className="text-xs font-bold text-text-secondary bg-surface-light dark:bg-white/10 px-2 py-1 border border-dark dark:border-white w-fit mt-1">{profile?.email || ''}</p>
                 </div>
              </div>
+             <SettingItem icon="person" label="Dados Pessoais" color="bg-secondary text-white" />
         </div>
 
         <SectionHeader title="Segurança" />
-        <div className="flex flex-col rounded-xl overflow-hidden border border-surface-light">
-            <SettingItem icon="lock_reset" label="Alterar Senha" />
-            <div className="w-full flex items-center justify-between px-4 py-4 bg-surface-dark border-b border-surface-light hover:bg-surface-light/10 transition-colors">
+        <div className="flex flex-col">
+            <SettingItem icon="lock_reset" label="Alterar Senha" color="bg-accent text-dark" />
+            <div className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group">
                 <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-surface-light flex items-center justify-center text-primary-teal">
-                        <span className="material-symbols-outlined">fingerprint</span>
+                    <div className="h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center bg-primary text-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
+                        <span className="material-symbols-outlined font-black">fingerprint</span>
                     </div>
-                    <p className="font-medium text-text-primary">Biometria</p>
+                    <p className="font-black text-dark dark:text-white uppercase text-sm">Biometria</p>
                 </div>
-                <div className="relative inline-flex items-center cursor-pointer">
+                <div className="relative inline-flex items-center cursor-pointer p-1">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-surface-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-teal"></div>
+                    <div className="w-12 h-7 bg-surface-light dark:bg-white/10 peer-focus:outline-none border-2 border-dark dark:border-white peer peer-checked:after:translate-x-full peer-checked:after:border-dark dark:peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-dark dark:after:bg-white after:border-dark dark:after:border-white after:border-2 after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
                 </div>
             </div>
-            <SettingItem icon="shield_lock" label="Privacidade" />
+            <SettingItem icon="shield_lock" label="Privacidade" color="bg-dark text-white dark:bg-white dark:text-dark" />
         </div>
 
         <SectionHeader title="Geral" />
-        <div className="flex flex-col rounded-xl overflow-hidden border border-surface-light">
-            <SettingItem icon="notifications" label="Notificações" />
-            <SettingItem icon="dark_mode" label="Aparência" trailing={<span className="text-sm text-text-secondary">Escuro</span>} />
-            <SettingItem icon="paid" label="Moeda" trailing={<span className="text-sm text-text-secondary">BRL</span>} />
-        </div>
-
-        <SectionHeader title="Conexão Supabase" />
-        <div className="flex flex-col gap-3 rounded-xl border border-surface-light bg-surface-dark p-4 mx-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-text-secondary ml-1">URL do Projeto</p>
-            <input
-              type="text"
-              placeholder="https://xxxx.supabase.co"
-              value={supabaseUrl}
-              onChange={(e) => setSupabaseUrl(e.target.value)}
-              className="w-full rounded-xl bg-surface-dark border border-surface-light p-3 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-text-secondary ml-1">Anon Key (API)</p>
-            <input
-              type="password"
-              placeholder="supabase anon key"
-              value={supabaseAnon}
-              onChange={(e) => setSupabaseAnon(e.target.value)}
-              className="w-full rounded-xl bg-surface-dark border border-surface-light p-3 text-text-primary placeholder:text-text-secondary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                window.localStorage.setItem('SUPABASE_URL', supabaseUrl);
-                window.localStorage.setItem('SUPABASE_ANON_KEY', supabaseAnon);
-                (globalThis as any).__SUPABASE_URL = supabaseUrl;
-                (globalThis as any).__SUPABASE_ANON_KEY = supabaseAnon;
-                window.location.reload();
-              }}
-              className="flex-1 rounded-xl bg-primary-teal py-3 text-sm font-bold text-background-dark"
-            >
-              Salvar e Reiniciar
-            </button>
-            <button
-              onClick={() => {
-                window.localStorage.removeItem('SUPABASE_URL');
-                window.localStorage.removeItem('SUPABASE_ANON_KEY');
-                setSupabaseUrl('');
-                setSupabaseAnon('');
-              }}
-              className="flex-1 rounded-xl bg-surface-light py-3 text-sm font-bold text-text-secondary"
-            >
-              Limpar
-            </button>
-          </div>
-          <p className="text-xs text-text-secondary">As credenciais ficam salvas apenas neste dispositivo.</p>
+        <div className="flex flex-col">
+            <SettingItem icon="notifications" label="Notificações" color="bg-secondary text-white" />
+            <div className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group cursor-pointer" onClick={toggleTheme}>
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center bg-accent text-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
+                        <span className="material-symbols-outlined font-black">{isDark ? 'dark_mode' : 'light_mode'}</span>
+                    </div>
+                    <div className="text-left">
+                        <p className="font-black text-dark dark:text-white uppercase text-sm">Aparência</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 border-2 border-dark dark:border-white px-2 py-1 uppercase">{isDark ? 'Escuro' : 'Claro'}</span>
+                    <div className={`relative inline-flex items-center h-7 w-12 transition-colors duration-200 focus:outline-none border-2 border-dark dark:border-white ${isDark ? 'bg-primary' : 'bg-surface-light dark:bg-white/10'}`}>
+                        <span className={`inline-block w-4 h-4 transform bg-dark dark:bg-white border-2 border-transparent transition duration-200 ease-in-out ${isDark ? 'translate-x-[22px] bg-white dark:bg-dark' : 'translate-x-[2px]'}`} />
+                    </div>
+                </div>
+            </div>
+            <SettingItem icon="paid" label="Moeda" trailing={<span className="text-xs font-bold text-dark dark:text-white bg-accent border-2 border-dark dark:border-white px-2 py-1 uppercase">BRL</span>} color="bg-primary text-white" />
         </div>
 
       <div className="mt-8 px-4">
           <button 
               onClick={() => navigate('/login')}
-              className="w-full py-3 rounded-xl bg-surface-light text-danger font-semibold hover:bg-surface-light/80 transition-colors"
+              className="w-full py-4 bg-danger text-white font-black uppercase border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-y-[4px] transition-all flex items-center justify-center gap-2"
           >
+              <span className="material-symbols-outlined">logout</span>
               Sair
           </button>
-          <p className="text-center text-xs text-text-secondary mt-4">Versão 1.0.0</p>
+          <p className="text-center text-xs font-bold text-dark dark:text-white uppercase mt-4 bg-white dark:bg-dark border-2 border-dark dark:border-white w-fit mx-auto px-2 py-1 shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] transform rotate-2">Versão 1.0.0</p>
       </div>
       </div>
     </motion.div>

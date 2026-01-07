@@ -35,51 +35,60 @@ const ProjecaoFutura: React.FC = () => {
 
   // Load projections from Supabase
   useEffect(() => {
+    let mounted = true;
+    
+    const loadProjections = async () => {
+      try {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.error('No authenticated user');
+          if (mounted) setLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('user_projections')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('Error loading projections:', error);
+          if (mounted) setLoading(false);
+          return;
+        }
+
+        if (mounted && data) {
+          // Transform data to match component state structure
+          const transformedData = data.map(item => ({
+            id: item.category_id,
+            name: item.category_name,
+            amount: item.amount,
+            description: item.description || '',
+            frequency: item.frequency,
+            trend: item.trend,
+            color: item.color,
+            icon: item.icon,
+            dbId: item.id
+          }));
+
+          setProjectionCategories(transformedData);
+        }
+      } catch (error) {
+        console.error('Error in loadProjections:', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
     loadProjections();
-  }, []);
 
-  const loadProjections = async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.error('No authenticated user');
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('user_projections')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error('Error loading projections:', error);
-        return;
-      }
-
-      // Transform data to match component state structure
-      const transformedData = data.map(item => ({
-        id: item.category_id,
-        name: item.category_name,
-        amount: item.amount,
-        description: item.description || '',
-        frequency: item.frequency,
-        trend: item.trend,
-        color: item.color,
-        icon: item.icon,
-        dbId: item.id
-      }));
-
-      setProjectionCategories(transformedData);
-    } catch (error) {
-      console.error('Error in loadProjections:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      mounted = false;
+    };
+  }, []); // Empty dependency array to run only once
 
   const saveProjectionToDB = async (projection: any) => {
     try {
@@ -149,20 +158,20 @@ const ProjecaoFutura: React.FC = () => {
 
   const getCategoryColor = (color: string) => {
     switch (color) {
-      case 'purple': return { bg: 'bg-purple-500/20', text: 'text-purple-400', gradient: 'gradPurple', stop1: '#a855f7', stop2: '#a855f7' };
-      case 'orange': return { bg: 'bg-orange-500/20', text: 'text-orange-400', gradient: 'gradOrange', stop1: '#fb923c', stop2: '#fb923c' };
-      case 'blue': return { bg: 'bg-blue-500/20', text: 'text-blue-400', gradient: 'gradBlue', stop1: '#3b82f6', stop2: '#3b82f6' };
-      case 'green': return { bg: 'bg-primary/20', text: 'text-primary', gradient: 'gradGreen', stop1: '#13ec5b', stop2: '#13ec5b' };
-      default: return { bg: 'bg-gray-500/20', text: 'text-gray-400', gradient: 'gradGray', stop1: '#9ca3af', stop2: '#9ca3af' };
+      case 'purple': return { bg: 'bg-primary', text: 'text-white', gradient: 'gradPurple', stop1: '#8854D0', stop2: '#8854D0' };
+      case 'orange': return { bg: 'bg-accent', text: 'text-dark', gradient: 'gradOrange', stop1: '#FFE66D', stop2: '#FFE66D' };
+      case 'blue': return { bg: 'bg-blue-600', text: 'text-white', gradient: 'gradBlue', stop1: '#2563EB', stop2: '#2563EB' };
+      case 'green': return { bg: 'bg-secondary', text: 'text-white', gradient: 'gradGreen', stop1: '#20BF55', stop2: '#20BF55' };
+      default: return { bg: 'bg-surface-light', text: 'text-dark', gradient: 'gradGray', stop1: '#E5E7EB', stop2: '#E5E7EB' };
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return { icon: 'trending_up', text: '+12% vs ano passado', className: 'text-red-400' };
-      case 'down': return { icon: 'trending_down', text: '-5% Economia', className: 'text-primary' };
-      case 'warning': return { icon: 'warning', text: 'Atenção', className: 'text-yellow-400' };
-      default: return { icon: 'trending_flat', text: 'Estável', className: 'text-primary' };
+      case 'up': return { icon: 'trending_up', text: '+12% vs ano passado', className: 'text-danger bg-danger/10 px-2 py-1 rounded-sm border-2 border-danger' };
+      case 'down': return { icon: 'trending_down', text: '-5% Economia', className: 'text-secondary bg-secondary/10 px-2 py-1 rounded-sm border-2 border-secondary' };
+      case 'warning': return { icon: 'warning', text: 'Atenção', className: 'text-dark dark:text-black bg-accent px-2 py-1 rounded-sm border-2 border-dark dark:border-white' };
+      default: return { icon: 'trending_flat', text: 'Estável', className: 'text-dark dark:text-white bg-surface-light dark:bg-surface-dark px-2 py-1 rounded-sm border-2 border-dark dark:border-white' };
     }
   };
 
@@ -367,90 +376,92 @@ const ProjecaoFutura: React.FC = () => {
     return (
       <div className="flex flex-col min-h-screen bg-background-dark text-text-primary">
         <div className="flex items-center justify-center h-full">
-          <p className="text-white">Carregando projeções...</p>
+          <p className="text-dark font-black uppercase">Carregando projeções...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background-dark text-text-primary">
+    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-primary dark:text-white font-display pb-28">
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-background-dark backdrop-blur-md bg-opacity-90 border-b border-surface-light">
-        <div className="flex items-center p-4 pb-2 justify-between">
-          <div className="flex size-12 shrink-0 items-center justify-start">
+      <div className="sticky top-0 z-10 bg-white dark:bg-surface-dark border-b-3 border-dark dark:border-white shadow-sm">
+        <div className="flex items-center p-4 pb-3 justify-between">
+          <div className="flex size-10 shrink-0 items-center justify-start">
             <button 
               onClick={() => navigate(-1)}
-              className="rounded-full p-2 hover:bg-white/10 transition-colors"
+              className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
             >
-              <span className="material-symbols-outlined text-white/90">arrow_back_ios_new</span>
+              <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
             </button>
           </div>
-          <h1 className="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Projeções Futuras</h1>
-          <div className="flex size-12 shrink-0 items-center justify-end">
-            <button className="rounded-full p-2 hover:bg-white/10 transition-colors">
-              <span className="material-symbols-outlined text-white/90">tune</span>
+          <h1 className="text-dark dark:text-white text-xl font-black uppercase leading-tight tracking-wide flex-1 text-center">Projeções</h1>
+          <div className="flex size-10 shrink-0 items-center justify-end">
+            <button className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
+              <span className="material-symbols-outlined text-dark dark:text-white">tune</span>
             </button>
           </div>
         </div>
       </div>
       
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="flex flex-col gap-6 px-4 pt-2">
-          <div className="flex p-1 bg-white/5 rounded-xl border border-white/5">
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-6 px-4 pt-4">
+          <div className="flex p-1 bg-white dark:bg-surface-dark rounded-sm border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none">
             <button 
               onClick={() => setSelectedTimeframe('6meses')}
-              className={`flex-1 py-2 text-sm font-medium transition-colors rounded-lg ${
+              className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
                 selectedTimeframe === '6meses' 
-                  ? 'text-background-dark bg-primary shadow-sm shadow-primary/20 font-bold' 
-                  : 'text-white/50 hover:text-white'
+                  ? 'text-white bg-primary border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-[1px]' 
+                  : 'text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'
               }`}
             >
               6 Meses
             </button>
             <button 
               onClick={() => setSelectedTimeframe('1ano')}
-              className={`flex-1 py-2 text-sm font-medium transition-colors rounded-lg ${
+              className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
                 selectedTimeframe === '1ano' 
-                  ? 'text-background-dark bg-primary shadow-sm shadow-primary/20 font-bold' 
-                  : 'text-white/50 hover:text-white'
+                  ? 'text-white bg-primary border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-[1px]' 
+                  : 'text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'
               }`}
             >
               1 Ano
             </button>
             <button 
               onClick={() => setSelectedTimeframe('5anos')}
-              className={`flex-1 py-2 text-sm font-medium transition-colors rounded-lg ${
+              className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
                 selectedTimeframe === '5anos' 
-                  ? 'text-background-dark bg-primary shadow-sm shadow-primary/20 font-bold' 
-                  : 'text-white/50 hover:text-white'
+                  ? 'text-white bg-primary border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-[1px]' 
+                  : 'text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'
               }`}
             >
               5 Anos
             </button>
           </div>
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-transparent p-5 border border-white/10 shadow-lg">
+          
+          <div className="relative overflow-hidden rounded-lg bg-white dark:bg-surface-dark p-5 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
             <div className="absolute -right-4 -top-4 opacity-10">
-              <span className="material-symbols-outlined" style={{ fontSize: '120px' }}>psychology</span>
+              <span className="material-symbols-outlined text-dark dark:text-white" style={{ fontSize: '120px' }}>psychology</span>
             </div>
             <div className="relative z-10 flex flex-col gap-3">
               <div className="flex items-center gap-2 text-primary mb-1">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                <span className="text-xs font-bold uppercase tracking-wider">Insights Inteligentes</span>
+                <span className="text-xs font-black uppercase tracking-wider bg-accent text-dark dark:text-black px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none">Insights</span>
               </div>
-              <p className="text-lg font-medium leading-relaxed text-white">
-                Seus gastos com <span className="text-orange-400 font-bold">Transporte</span> estão 15% acima da média projetada.
+              <p className="text-lg font-black leading-tight text-dark dark:text-white uppercase">
+                Seus gastos com <span className="text-primary bg-primary/10 px-1">Transporte</span> estão 15% acima da média.
               </p>
-              <p className="text-sm text-white/60 leading-relaxed">
-                Considerando a tendência atual, você pode economizar R$ 2.400 este ano optando por rotas alternativas ou transporte público 2x na semana.
+              <p className="text-xs font-bold text-text-secondary dark:text-gray-400 leading-relaxed uppercase border-t-2 border-dark dark:border-white pt-2 mt-1">
+                Economia potencial de <span className="text-secondary">R$ 2.400</span> optando por rotas alternativas.
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-between mt-2">
-            <h2 className="text-xl font-bold text-white tracking-tight">Categorias</h2>
-            <span className="text-xs font-medium text-white/50">
-              Total Projetado: {formatCurrency(
+
+          <div className="flex items-center justify-between mt-2 px-1">
+            <h2 className="text-xl font-black text-dark dark:text-white uppercase tracking-tight bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-2 py-1 shadow-neo-sm dark:shadow-none transform -rotate-1">Categorias</h2>
+            <span className="text-xs font-bold text-dark dark:text-white bg-secondary/20 border-2 border-dark dark:border-white px-2 py-1 rounded-sm">
+              Total: {formatCurrency(
                 projectionCategories.reduce((sum, cat) => 
                   sum + calculateProjectedAmount(cat.amount, cat.frequency), 0
                 )
@@ -460,23 +471,23 @@ const ProjecaoFutura: React.FC = () => {
           
           {/* Add Card Form */}
           {showAddCardForm && (
-            <div className="rounded-xl border border-white/10 bg-card-dark/50 backdrop-blur-sm p-4">
+            <div className="rounded-lg border-3 border-dark dark:border-white bg-white dark:bg-surface-dark p-4 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
               <div className="flex items-center gap-2 mb-3">
                 <input
                   type="text"
                   value={newCardName}
                   onChange={(e) => setNewCardName(e.target.value)}
-                  placeholder="Nome da nova categoria"
-                  className="flex-1 rounded-lg bg-surface-dark border border-surface-light px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="NOME DA CATEGORIA"
+                  className="flex-1 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all placeholder:text-text-secondary/50 dark:placeholder:text-gray-500"
                   autoFocus
                 />
                 <button
                   onClick={handleAddNewCard}
                   disabled={!newCardName.trim()}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium ${
+                  className={`rounded-sm px-4 py-2 text-xs font-black uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
                     newCardName.trim() 
-                      ? 'bg-primary text-background-dark' 
-                      : 'bg-surface-light text-text-secondary cursor-not-allowed'
+                      ? 'bg-secondary text-white' 
+                      : 'bg-surface-light dark:bg-gray-800 text-text-secondary dark:text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   Adicionar
@@ -486,9 +497,9 @@ const ProjecaoFutura: React.FC = () => {
                     setShowAddCardForm(false);
                     setNewCardName('');
                   }}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-text-secondary hover:text-white"
+                  className="rounded-sm px-3 py-2 text-dark dark:text-white border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                 >
-                  <span className="material-symbols-outlined">close</span>
+                  <span className="material-symbols-outlined text-sm">close</span>
                 </button>
               </div>
             </div>
@@ -505,12 +516,12 @@ const ProjecaoFutura: React.FC = () => {
               return (
                 <div 
                   key={category.id} 
-                  className="group rounded-xl border border-white/10 hover:border-white/30 transition-all bg-card-dark/50 backdrop-blur-sm overflow-hidden"
+                  className="group rounded-lg border-3 border-dark dark:border-white hover:translate-y-[-2px] hover:shadow-neo dark:hover:shadow-[4px_4px_0px_0px_#ffffff] transition-all bg-white dark:bg-surface-dark overflow-visible relative"
                 >
-                  <div className="relative h-60">
+                  <div className="relative h-64">
                     {/* Front of Card */}
                     <motion.div
-                      className="absolute inset-0 p-5 flex flex-col justify-between cursor-pointer rounded-xl"
+                      className="absolute inset-0 p-5 flex flex-col justify-between cursor-pointer bg-white dark:bg-surface-dark rounded-lg z-10"
                       initial={false}
                       animate={{ 
                         rotateY: isFlipped ? 180 : 0,
@@ -520,45 +531,47 @@ const ProjecaoFutura: React.FC = () => {
                       style={{ backfaceVisibility: 'hidden' }}
                       onClick={() => handleCardClick(category.id)}
                     >
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start border-b-2 border-dark dark:border-white pb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`size-10 rounded-full ${colorInfo.bg} flex items-center justify-center ${colorInfo.text}`}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{category.icon}</span>
+                          <div className={`size-12 rounded-sm ${colorInfo.bg} border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none flex items-center justify-center ${colorInfo.text}`}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>{category.icon}</span>
                           </div>
                           <div>
-                            <h3 className="text-base font-semibold text-white">{category.name}</h3>
-                            <p className="text-xs text-white/50">{category.description || 'Sem descrição'}</p>
+                            <h3 className="text-lg font-black text-dark dark:text-white uppercase">{category.name}</h3>
+                            <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">{category.description || 'SEM DESCRIÇÃO'}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-white">{formatCurrency(projectedAmount)}</p>
-                          <p className={`text-xs font-medium flex items-center justify-end gap-1 ${trendInfo.className}`}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{trendInfo.icon}</span>
+                          <p className="text-xl font-black text-dark dark:text-white">{formatCurrency(projectedAmount)}</p>
+                          <p className={`text-[10px] font-black uppercase flex items-center justify-end gap-1 mt-1 ${trendInfo.className}`}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{trendInfo.icon}</span>
                             {trendInfo.text}
                           </p>
                         </div>
                       </div>
                       
-                      <div className="h-16 w-full relative">
+                      <div className="h-24 w-full relative mt-2 bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white p-2">
                         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 40">
                           <defs>
-                            <linearGradient id={colorInfo.gradient} x1="0%" x2="0%" y1="0%" y2="100%">
-                              <stop offset="0%" style={{ stopColor: colorInfo.stop1, stopOpacity: '0.2' }}></stop>
-                              <stop offset="100%" style={{ stopColor: colorInfo.stop2, stopOpacity: '0' }}></stop>
-                            </linearGradient>
+                            <pattern id={`hatch-${category.id}`} width="4" height="4" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                              <line x1="0" y1="0" x2="0" y2="4" style={{stroke: colorInfo.stop1, strokeWidth: 1}} />
+                            </pattern>
                           </defs>
                           {category.trend === 'stable' && (
                             <path d="M0,20 Q25,20 50,20 T100,20" fill="none" opacity="0.5" stroke={colorInfo.stop1} strokeDasharray="4 2" strokeWidth="2"></path>
                           )}
-                          <path d={chartData.fillPath} fill={`url(#${colorInfo.gradient})`}></path>
-                          <path d={chartData.path} fill="none" stroke={colorInfo.stop1} strokeLinecap="round" strokeWidth="2"></path>
+                          <path d={chartData.fillPath} fill={`url(#hatch-${category.id})`} opacity="0.3"></path>
+                          <path d={chartData.path} fill="none" stroke={colorInfo.stop1} strokeLinecap="round" strokeWidth="3"></path>
+                          {/* Points */}
+                          <rect x="0" y={chartData.path.match(/M0,(\d+)/)?.[1] || 20} width="2" height="2" className="fill-white dark:fill-surface-dark stroke-dark dark:stroke-white" strokeWidth="1" />
+                          <rect x="100" y={chartData.path.match(/.*?(\d+)$/)?.[1] || 20} width="2" height="2" className="fill-white dark:fill-surface-dark stroke-dark dark:stroke-white" strokeWidth="1" />
                         </svg>
                       </div>
                     </motion.div>
                     
                     {/* Back of Card (Edit Form) */}
                     <motion.div
-                      className="absolute inset-0 p-5 flex flex-col bg-card-dark rounded-xl"
+                      className="absolute inset-0 p-5 flex flex-col bg-white dark:bg-surface-dark rounded-lg border-3 border-dark dark:border-white"
                       initial={false}
                       animate={{ 
                         rotateY: isFlipped ? 0 : -180,
@@ -567,56 +580,50 @@ const ProjecaoFutura: React.FC = () => {
                       transition={{ duration: 0.3 }}
                       style={{ backfaceVisibility: 'hidden' }}
                     >
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-base font-semibold text-white">Editar {category.name}</h3>
+                      <div className="flex justify-between items-center mb-4 border-b-2 border-dark dark:border-white pb-2">
+                        <h3 className="text-base font-black text-dark dark:text-white uppercase">Editar {category.name}</h3>
                         <button 
                           onClick={handleCancelEdit}
-                          className="text-text-secondary hover:text-white"
+                          className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 border-2 border-transparent hover:border-dark dark:hover:border-white p-1 transition-all"
                         >
                           <span className="material-symbols-outlined">close</span>
                         </button>
                       </div>
                       
-                      <div className="flex flex-col gap-2 flex-grow">
+                      <div className="flex flex-col gap-3 flex-grow">
                         <div>
-                          <label className="block text-xs text-text-secondary mb-1">Descrição</label>
+                          <label className="block text-xs font-bold text-dark dark:text-white uppercase mb-1">Descrição</label>
                           <input
                             type="text"
                             value={editingValues.description}
                             onChange={(e) => setEditingValues({...editingValues, description: e.target.value})}
-                            className="w-full rounded-lg bg-surface-dark border border-surface-light px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                            placeholder="Descrição da categoria"
+                            className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all"
+                            placeholder="DESCRIÇÃO"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-xs text-text-secondary mb-1">Valor Mensal</label>
+                          <label className="block text-xs font-bold text-dark dark:text-white uppercase mb-1">Valor Mensal</label>
                           <input
                             type="number"
                             value={editingValues.amount}
                             onChange={(e) => setEditingValues({...editingValues, amount: e.target.value})}
-                            className="w-full rounded-lg bg-surface-dark border border-surface-light px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                            placeholder="Valor mensal"
+                            className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all"
+                            placeholder="VALOR"
                           />
                         </div>
                       </div>
                       
                       <div className="flex gap-2 mt-3">
                         <button
-                          onClick={handleCancelEdit}
-                          className="flex-1 rounded-lg py-2 text-sm font-medium border border-surface-light text-text-secondary hover:text-white transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                        <button
                           onClick={() => handleDeleteCategory(category.id)}
-                          className="rounded-lg py-2 px-4 text-sm font-medium bg-danger text-white hover:bg-danger/90 transition-colors"
+                          className="rounded-sm py-2 px-3 text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                         >
                           Excluir
                         </button>
                         <button
                           onClick={() => handleSaveEdit(category.id)}
-                          className="flex-1 rounded-lg py-2 text-sm font-medium bg-primary text-background-dark hover:bg-primary/90 transition-colors"
+                          className="flex-1 rounded-sm py-2 text-xs font-black uppercase bg-primary text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                         >
                           Salvar
                         </button>
@@ -632,10 +639,10 @@ const ProjecaoFutura: React.FC = () => {
               {!showAddCardForm ? (
                 <button 
                   onClick={() => setShowAddCardForm(true)}
-                  className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors"
+                  className="flex items-center gap-2 text-sm font-black uppercase text-dark bg-white border-2 border-dark px-4 py-3 rounded-sm shadow-neo hover:shadow-neo-lg active:shadow-none active:translate-y-[2px] transition-all"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
-                  Adicionar Categoria de Projeção
+                  Nova Projeção
                 </button>
               ) : null}
             </div>
@@ -650,7 +657,7 @@ const ProjecaoFutura: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 flex items-end justify-center bg-black/60"
+            className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 backdrop-blur-sm"
             onClick={() => {
               setShowCategoryPicker(false);
               setShowCustomCategoryInput(false);
@@ -662,28 +669,28 @@ const ProjecaoFutura: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-md rounded-t-2xl bg-background-dark p-6 border border-surface-light"
+              className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">Adicionar Categoria</h3>
+              <div className="flex items-center justify-between mb-4 border-b-2 border-dark dark:border-white pb-2">
+                <h3 className="text-lg font-black uppercase text-dark dark:text-white">Adicionar Categoria</h3>
                 <button 
                   onClick={() => {
                     setShowCategoryPicker(false);
                     setShowCustomCategoryInput(false);
                     setCustomCategoryName('');
                   }}
-                  className="text-text-secondary"
+                  className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 border-2 border-transparent hover:border-dark dark:hover:border-white p-1 transition-all"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
               
-              <p className="text-sm text-text-secondary mb-4">Selecione uma categoria para adicionar às projeções</p>
+              <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase mb-4 bg-surface-light dark:bg-gray-800 p-2 border-2 border-dark dark:border-white inline-block">Selecione uma categoria</p>
               
               {!showCustomCategoryInput ? (
                 <>
-                  <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
                     {categories.map((category) => {
                       const isSelected = projectionCategories.some(cat => cat.name === category);
                       return (
@@ -691,10 +698,10 @@ const ProjecaoFutura: React.FC = () => {
                           key={category}
                           onClick={() => handleCategorySelect(category)}
                           disabled={isSelected}
-                          className={`p-3 rounded-xl text-sm border text-left truncate ${
+                          className={`p-3 rounded-sm text-xs font-black uppercase border-2 text-left truncate shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
                             isSelected 
-                              ? 'bg-primary/10 border-primary text-primary cursor-not-allowed' 
-                              : 'border-surface-light text-text-secondary hover:text-white hover:border-white/30'
+                              ? 'bg-surface-light dark:bg-gray-800 border-dark dark:border-white text-text-secondary dark:text-gray-500 cursor-not-allowed shadow-none translate-y-[2px]' 
+                              : 'bg-white dark:bg-surface-dark border-dark dark:border-white text-dark dark:text-white hover:bg-primary/10 dark:hover:bg-primary/20'
                           }`}
                         >
                           {category}
@@ -704,10 +711,10 @@ const ProjecaoFutura: React.FC = () => {
                     {/* Custom Category Button */}
                     <button
                       onClick={() => setShowCustomCategoryInput(true)}
-                      className="p-3 rounded-xl text-sm border border-dashed border-surface-light text-text-secondary hover:text-white hover:border-white/30 flex flex-col items-center justify-center"
+                      className="p-3 rounded-sm text-xs font-black uppercase border-2 border-dashed border-dark dark:border-white text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 flex flex-col items-center justify-center gap-1"
                     >
                       <span className="material-symbols-outlined">add</span>
-                      <span>Nova Categoria</span>
+                      <span>Personalizada</span>
                     </button>
                   </div>
                   
@@ -718,7 +725,7 @@ const ProjecaoFutura: React.FC = () => {
                         setShowCustomCategoryInput(false);
                         setCustomCategoryName('');
                       }}
-                      className="flex-1 rounded-xl bg-surface-light py-3 font-bold"
+                      className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all dark:text-white"
                     >
                       Cancelar
                     </button>
@@ -727,13 +734,13 @@ const ProjecaoFutura: React.FC = () => {
               ) : (
                 <div className="mt-4">
                   <div className="mb-4">
-                    <label className="block text-sm text-text-secondary mb-2">Nome da Nova Categoria</label>
+                    <label className="block text-xs font-bold text-dark dark:text-white uppercase mb-2">Nome da Categoria</label>
                     <input
                       type="text"
                       value={customCategoryName}
                       onChange={(e) => setCustomCategoryName(e.target.value)}
-                      className="w-full rounded-lg bg-surface-dark border border-surface-light px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                      placeholder="Digite o nome da categoria"
+                      className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all"
+                      placeholder="DIGITE O NOME"
                       autoFocus
                     />
                   </div>
@@ -744,7 +751,7 @@ const ProjecaoFutura: React.FC = () => {
                         setShowCustomCategoryInput(false);
                         setCustomCategoryName('');
                       }}
-                      className="flex-1 rounded-xl bg-surface-light py-3 font-bold"
+                      className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all dark:text-white"
                     >
                       Voltar
                     </button>
@@ -755,10 +762,10 @@ const ProjecaoFutura: React.FC = () => {
                         }
                       }}
                       disabled={!customCategoryName.trim()}
-                      className={`flex-1 rounded-xl py-3 font-bold ${
+                      className={`flex-1 rounded-sm py-3 font-black uppercase border-2 border-dark dark:border-white shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
                         customCategoryName.trim() 
-                          ? 'bg-primary text-background-dark' 
-                          : 'bg-surface-light text-text-secondary cursor-not-allowed'
+                          ? 'bg-secondary text-white' 
+                          : 'bg-surface-light dark:bg-gray-800 text-text-secondary dark:text-gray-400 cursor-not-allowed'
                       }`}
                     >
                       Adicionar
