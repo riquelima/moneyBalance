@@ -22,7 +22,7 @@ const Dashboard: React.FC = () => {
   const [entriesCollapsed, setEntriesCollapsed] = useState<boolean>(false);
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
   const labelForDate = (iso: string) => {
-    const d = new Date(iso);
+    const d = new Date(`${iso}T00:00:00`);
     const today = new Date();
     const ytd = new Date(); ytd.setDate(today.getDate() - 1);
     const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();

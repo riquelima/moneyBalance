@@ -112,10 +112,7 @@ const Reports: React.FC = () => {
       const monthlyDataExists = Array(12).fill(false);
       
       (yearTx || []).forEach((t: any) => {
-        const d = new Date(t.date);
-        // Ajuste para fuso horário local se necessário, mas assumindo UTC/ISO da base
-        // Para simplificar, usamos getMonth() UTC se a string for ISO completa, ou split se for YYYY-MM-DD
-        const parts = t.date.split('-');
+        const parts = String(t.date || '').split('-');
         const m = parseInt(parts[1], 10) - 1; // 0-11
         if (m >= 0 && m <= 11) {
             const val = Number(t.amount);

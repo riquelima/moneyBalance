@@ -66,8 +66,20 @@ const Transactions: React.FC = () => {
   };
 
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const parseLocalISODate = (iso: string) => new Date(`${iso}T00:00:00`);
+  const toLocalISO = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  };
+  const incDayISO = (iso: string, n = 1) => {
+    const d = parseLocalISODate(iso);
+    d.setDate(d.getDate() + n);
+    return toLocalISO(d);
+  };
   const labelForDate = (iso: string) => {
-    const d = new Date(iso);
+    const d = parseLocalISODate(iso);
     const today = new Date();
     const ytd = new Date(); ytd.setDate(today.getDate() - 1);
     const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -75,7 +87,17 @@ const Transactions: React.FC = () => {
     if (sameDay(d, ytd)) return 'Ontem';
     return d.toLocaleDateString('pt-BR');
   };
-
+  useEffect(() => {
+    if ((import.meta as any)?.env?.DEV) {
+      const d1 = parseLocalISODate('2026-01-14');
+      const ok1 = d1.getFullYear() === 2026 && d1.getMonth() === 0 && d1.getDate() === 14;
+      const today = new Date();
+      const isoToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const lblToday = labelForDate(isoToday);
+      const ok2 = lblToday === 'Hoje';
+      if (!ok1 || !ok2) console.error('Date parsing tests failed', { ok1, ok2, d1: d1.toISOString(), lblToday });
+    }
+  }, []);
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -130,6 +152,33 @@ const Transactions: React.FC = () => {
     };
   }, [location.key]); // Removed location.key dependency to prevent re-fetch on every location change unless necessary, but keeping for now as per original logic, just adding cleanup. Actually, better to just run once on mount or when key changes.
 
+  useEffect(() => {
+    let cancelled = false;
+    const fixDates = async () => {
+      try {
+        const flag = localStorage.getItem('fixDatesApplied');
+        if (flag === '1') return;
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
+        if (!user) return;
+        const { data } = await supabase
+          .from('user_transactions')
+          .select('id, date')
+          .eq('user_id', user.id)
+          .limit(500);
+        const rows = (data || []) as Array<{ id: string; date: string }>;
+        if (!rows.length) return;
+        const updates = rows.map(r => ({ id: r.id, date: incDayISO(r.date, 1) }));
+        const { error } = await supabase
+          .from('user_transactions')
+          .upsert(updates, { onConflict: 'id' });
+        if (!error && !cancelled) localStorage.setItem('fixDatesApplied', '1');
+      } catch {}
+    };
+    fixDates();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const categoriesForFilter = useMemo(() => {
     const hasNone = items.some(i => !i.category_id);
@@ -160,7 +209,7 @@ const Transactions: React.FC = () => {
     if (statusFilter === 'paid') arr = arr.filter(t => t.is_paid);
     if (statusFilter === 'pending') arr = arr.filter(t => !t.is_paid);
     if (typeFilter !== 'all') arr = arr.filter(t => t.type === typeFilter);
-    if (monthFilter !== 'all') arr = arr.filter(t => new Date(t.date).getMonth() === monthFilter);
+    if (monthFilter !== 'all') arr = arr.filter(t => parseLocalISODate(t.date).getMonth() === monthFilter);
     if (categoryFilter !== 'all') {
       if (categoryFilter === 'Sem Categoria') arr = arr.filter(t => !t.category_id);
       else arr = arr.filter(t => {
@@ -169,7 +218,7 @@ const Transactions: React.FC = () => {
       });
     }
     // Sort ascending by date (oldest first)
-    arr.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    arr.sort((a, b) => parseLocalISODate(a.date).getTime() - parseLocalISODate(b.date).getTime());
     return arr;
   }, [items, statusFilter, typeFilter, monthFilter, categoryFilter, searchQuery]);
 
@@ -312,7 +361,7 @@ const Transactions: React.FC = () => {
                           <span className="mt-1 inline-flex w-fit self-start items-center px-1 border-2 border-dark dark:border-white text-[10px] font-bold uppercase bg-accent text-dark shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{name}</span>
                         );
                       })()}
-                      <p className="mt-1 text-[10px] font-bold text-text-secondary dark:text-text-secondary/70 uppercase">Prazo: {new Date(t.date).toLocaleDateString('pt-BR')}</p>
+                      <p className="mt-1 text-[10px] font-bold text-text-secondary dark:text-text-secondary/70 uppercase">Prazo: {parseLocalISODate(t.date).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <p className={`font-black text-lg ${t.type === 'income' ? 'text-secondary' : 'text-danger'} self-center ${t.is_paid ? 'line-through opacity-60' : ''}`}>
                       {formatBRL(Number(t.amount))}

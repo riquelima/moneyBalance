@@ -87,7 +87,7 @@ const Chat: React.FC = () => {
     const month = now.getMonth();
     const year = now.getFullYear();
     const withinMonths = (d: string, n: number) => {
-      const dt = new Date(d);
+      const dt = new Date(`${d}T00:00:00`);
       const past = new Date(); past.setMonth(past.getMonth() - n);
       return dt >= past;
     };
@@ -96,8 +96,14 @@ const Chat: React.FC = () => {
     const expense = recent.filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const paid = recent.filter((t: any) => t.type === 'expense' && t.is_paid).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const pending = recent.filter((t: any) => t.type === 'expense' && !t.is_paid).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
-    const monthIncome = recent.filter((t: any) => t.type === 'income' && new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
-    const monthExpense = recent.filter((t: any) => t.type === 'expense' && new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
+    const monthIncome = recent.filter((t: any) => {
+      const dt = new Date(`${t.date}T00:00:00`);
+      return t.type === 'income' && dt.getMonth() === month && dt.getFullYear() === year;
+    }).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
+    const monthExpense = recent.filter((t: any) => {
+      const dt = new Date(`${t.date}T00:00:00`);
+      return t.type === 'expense' && dt.getMonth() === month && dt.getFullYear() === year;
+    }).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const catMap: Record<string, string> = {};
     (categories || []).forEach((c: any) => { if (c?.id) catMap[String(c.id)] = String(c.name || 'Categoria'); });
     const topCats: Record<string, number> = {};

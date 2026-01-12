@@ -32,6 +32,7 @@ const AddTransaction: React.FC = () => {
     const today = new Date();
     return isSameDay(selectedDate, today) ? 'Hoje' : selectedDate.toLocaleDateString('pt-BR');
   }, [selectedDate]);
+  const parseLocalISODate = (iso: string) => new Date(`${iso}T00:00:00`);
   const toLocalISO = (d: Date) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -64,6 +65,11 @@ const AddTransaction: React.FC = () => {
           setDescription(data.description || '');
           setIsPaid(!!data.is_paid);
           setAmount(String(Number(data.amount)).replace('.', ','));
+          if (typeof data.date === 'string' && data.date) {
+            setSelectedDate(parseLocalISODate(data.date));
+            setPickerYear(parseLocalISODate(data.date).getFullYear());
+            setPickerMonth(parseLocalISODate(data.date).getMonth());
+          }
           if (data.category_id) {
             const { data: cat } = await supabase
               .from('user_categories')
