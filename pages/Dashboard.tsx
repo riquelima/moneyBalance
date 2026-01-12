@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { parseLocalISODate, labelForDate } from '../utils/date';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -21,15 +22,7 @@ const Dashboard: React.FC = () => {
   const [expenseItems, setExpenseItems] = useState<any[]>([]);
   const [entriesCollapsed, setEntriesCollapsed] = useState<boolean>(false);
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
-  const labelForDate = (iso: string) => {
-    const d = new Date(`${iso}T00:00:00`);
-    const today = new Date();
-    const ytd = new Date(); ytd.setDate(today.getDate() - 1);
-    const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-    if (sameDay(d, today)) return 'Hoje';
-    if (sameDay(d, ytd)) return 'Ontem';
-    return d.toLocaleDateString('pt-BR');
-  };
+  
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[]; raw?: number[] }> = {
     day: {
@@ -134,10 +127,6 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     const fmt = (d: Date) => d.toISOString().slice(0, 10);
-    const parseLocal = (s: string) => {
-      const [y, m, dd] = String(s).split('-').map(Number);
-      return new Date(y, m - 1, dd);
-    };
     const normalize = (vals: number[]) => {
       const max = Math.max(0, ...vals);
       if (max === 0) return vals.map(() => 0);
@@ -174,7 +163,7 @@ const Dashboard: React.FC = () => {
         if (!error && data) {
             const vals = Array(7).fill(0);
             (data || []).forEach((t: any) => {
-              const d = parseLocal(t.date);
+              const d = parseLocalISODate(t.date);
               const idx = (d.getDay() + 6) % 7; // Mon=0
               vals[idx] += Number(t.amount || 0);
             });
@@ -199,7 +188,7 @@ const Dashboard: React.FC = () => {
         if (!error && data) {
             const vals = Array(weeks).fill(0);
             (data || []).forEach((t: any) => {
-              const d = parseLocal(t.date);
+              const d = parseLocalISODate(t.date);
               // week index within month
               const dayIndex = d.getDate();
               const totalOffset = startDowMonday + dayIndex - 1;
@@ -224,7 +213,7 @@ const Dashboard: React.FC = () => {
             const labels = last12MonthsLabels();
             const vals = Array(12).fill(0);
             (data || []).forEach((t: any) => {
-              const d = parseLocal(t.date);
+              const d = parseLocalISODate(t.date);
               const idx = d.getMonth();
               vals[idx] += Number(t.amount || 0);
             });

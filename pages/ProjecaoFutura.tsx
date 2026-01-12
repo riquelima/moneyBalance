@@ -4,6 +4,7 @@ import BottomNav from '../components/BottomNav';
 import { categories } from '../categories';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { computeDailyRecommended, selectSingleCardIndex } from '../utils/date';
 
 const ProjecaoFutura: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const ProjecaoFutura: React.FC = () => {
   });
   const [selectedTimeframe, setSelectedTimeframe] = useState<'6meses' | '1ano' | '5anos'>('1ano');
   const [loading, setLoading] = useState(true);
+  const [monthBalance, setMonthBalance] = useState(0);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
 
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
   const [customCategoryName, setCustomCategoryName] = useState('');
@@ -213,6 +216,43 @@ const ProjecaoFutura: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadMonthBalance = async () => {
+      try {
+        setBalanceError(null);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const now = new Date();
+        const fmt = (d: Date) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${dd}`;
+        };
+        const startCur = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endCur = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const { data, error } = await supabase
+          .from('user_transactions')
+          .select('amount, type, date')
+          .eq('user_id', user.id)
+          .gte('date', fmt(startCur))
+          .lte('date', fmt(endCur));
+        if (error) {
+          setBalanceError('Falha ao carregar saldo do mês.');
+          return;
+        }
+        const income = (data || []).filter((t: any) => t.type === 'income').reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
+        const expense = (data || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
+        const balance = income - expense;
+        if (!cancelled) setMonthBalance(balance);
+      } catch {
+        setBalanceError('Erro inesperado ao calcular saldo do mês.');
+      }
+    };
+    loadMonthBalance();
+    return () => { cancelled = true; };
+  }, []);
   const generateChartData = (trend: string) => {
     switch (trend) {
       case 'up':
@@ -441,32 +481,31 @@ const ProjecaoFutura: React.FC = () => {
           </div>
           
           <div className="relative overflow-hidden rounded-lg bg-white dark:bg-surface-dark p-5 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
-            <div className="absolute -right-4 -top-4 opacity-10">
-              <span className="material-symbols-outlined text-dark dark:text-white" style={{ fontSize: '120px' }}>psychology</span>
-            </div>
             <div className="relative z-10 flex flex-col gap-3">
               <div className="flex items-center gap-2 text-primary mb-1">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
                 <span className="text-xs font-black uppercase tracking-wider bg-accent text-dark dark:text-black px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none">Insights</span>
               </div>
-              <p className="text-lg font-black leading-tight text-dark dark:text-white uppercase">
-                Seus gastos com <span className="text-primary bg-primary/10 px-1">Transporte</span> estão 15% acima da média.
-              </p>
-              <p className="text-xs font-bold text-text-secondary dark:text-gray-400 leading-relaxed uppercase border-t-2 border-dark dark:border-white pt-2 mt-1">
-                Economia potencial de <span className="text-secondary">R$ 2.400</span> optando por rotas alternativas.
-              </p>
+              {(() => {
+                const now = new Date();
+                const res = computeDailyRecommended(monthBalance, now.getFullYear(), now.getMonth());
+                const valueStr = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(res.value || 0);
+                const toneClass = (balanceError || res.error) ? 'text-danger' : 'text-dark dark:text-white';
+                const boxClass = (balanceError || res.error) ? 'border-danger' : 'border-dark dark:border-white';
+                return (
+                  <div className={`rounded-sm p-3 border-2 ${boxClass}`}>
+                    <p className={`text-lg font-black uppercase ${toneClass}`}>Seu gasto médio diário recomendado é: {valueStr}</p>
+                    {(balanceError || res.error) && (
+                      <p className="mt-1 text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">Saldo do mês zero ou negativo. Ajuste seus gastos.</p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
           <div className="flex items-center justify-between mt-2 px-1">
             <h2 className="text-xl font-black text-dark dark:text-white uppercase tracking-tight bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-2 py-1 shadow-neo-sm dark:shadow-none transform -rotate-1">Categorias</h2>
-            <span className="text-xs font-bold text-dark dark:text-white bg-secondary/20 border-2 border-dark dark:border-white px-2 py-1 rounded-sm">
-              Total: {formatCurrency(
-                projectionCategories.reduce((sum, cat) => 
-                  sum + calculateProjectedAmount(cat.amount, cat.frequency), 0
-                )
-              )}
-            </span>
           </div>
           
           {/* Add Card Form */}
@@ -506,19 +545,22 @@ const ProjecaoFutura: React.FC = () => {
           )}
           
           <div className="flex flex-col gap-4">
-            {projectionCategories.map((category) => {
-              const colorInfo = getCategoryColor(category.color);
-              const trendInfo = getTrendIcon(category.trend);
-              const chartData = generateChartData(category.trend);
-              const projectedAmount = calculateProjectedAmount(category.amount, category.frequency);
-              const isFlipped = flippedCardId === category.id;
-              
-              return (
-                <div 
-                  key={category.id} 
-                  className="group rounded-lg border-3 border-dark dark:border-white hover:translate-y-[-2px] hover:shadow-neo dark:hover:shadow-[4px_4px_0px_0px_#ffffff] transition-all bg-white dark:bg-surface-dark overflow-visible relative"
-                >
-                  <div className="relative h-64">
+            {(() => {
+              const idx = selectSingleCardIndex(selectedTimeframe, projectionCategories.length);
+              const single = idx >= 0 ? [projectionCategories[idx]] : [];
+              return single.map((category) => {
+                const colorInfo = getCategoryColor(category.color);
+                const trendInfo = getTrendIcon(category.trend);
+                const chartData = generateChartData(category.trend);
+                const projectedAmount = calculateProjectedAmount(category.amount, category.frequency);
+                const isFlipped = flippedCardId === category.id;
+                
+                return (
+                  <div 
+                    key={category.id} 
+                    className="group rounded-lg border-3 border-dark dark:border-white hover:translate-y-[-2px] hover:shadow-neo dark:hover:shadow-[4px_4px_0px_0px_#ffffff] transition-all bg-white dark:bg-surface-dark overflow-visible relative"
+                  >
+                    <div className="relative h-64">
                     {/* Front of Card */}
                     <motion.div
                       className="absolute inset-0 p-5 flex flex-col justify-between cursor-pointer bg-white dark:bg-surface-dark rounded-lg z-10"
@@ -631,8 +673,9 @@ const ProjecaoFutura: React.FC = () => {
                     </motion.div>
                   </div>
                 </div>
-              );
-            })}
+                );
+              });
+            })()}
             
             {/* Add Category Button */}
             <div className="flex justify-center pb-8 pt-4">

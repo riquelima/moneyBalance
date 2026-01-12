@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { parseLocalISODate } from '../utils/date';
 import ReactMarkdown from 'react-markdown';
 
 const Chat: React.FC = () => {
@@ -87,7 +88,7 @@ const Chat: React.FC = () => {
     const month = now.getMonth();
     const year = now.getFullYear();
     const withinMonths = (d: string, n: number) => {
-      const dt = new Date(`${d}T00:00:00`);
+      const dt = parseLocalISODate(d);
       const past = new Date(); past.setMonth(past.getMonth() - n);
       return dt >= past;
     };
@@ -97,11 +98,11 @@ const Chat: React.FC = () => {
     const paid = recent.filter((t: any) => t.type === 'expense' && t.is_paid).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const pending = recent.filter((t: any) => t.type === 'expense' && !t.is_paid).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const monthIncome = recent.filter((t: any) => {
-      const dt = new Date(`${t.date}T00:00:00`);
+      const dt = parseLocalISODate(t.date);
       return t.type === 'income' && dt.getMonth() === month && dt.getFullYear() === year;
     }).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const monthExpense = recent.filter((t: any) => {
-      const dt = new Date(`${t.date}T00:00:00`);
+      const dt = parseLocalISODate(t.date);
       return t.type === 'expense' && dt.getMonth() === month && dt.getFullYear() === year;
     }).reduce((a: number, t: any) => a + Number(t.amount || 0), 0);
     const catMap: Record<string, string> = {};

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { parseLocalISODate, toLocalISO } from '../utils/date';
 import { categories } from '../categories';
 
 const AddTransaction: React.FC = () => {
@@ -32,13 +33,6 @@ const AddTransaction: React.FC = () => {
     const today = new Date();
     return isSameDay(selectedDate, today) ? 'Hoje' : selectedDate.toLocaleDateString('pt-BR');
   }, [selectedDate]);
-  const parseLocalISODate = (iso: string) => new Date(`${iso}T00:00:00`);
-  const toLocalISO = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${dd}`;
-  };
   const monthGrid = useMemo(() => {
     const first = new Date(pickerYear, pickerMonth, 1);
     const startDowMonday = (first.getDay() + 6) % 7;
