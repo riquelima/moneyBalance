@@ -185,22 +185,24 @@ const Transactions: React.FC = () => {
       animate={{ opacity: 1 }} 
       className="flex flex-col min-h-screen pb-24 bg-background-light dark:bg-background-dark transition-colors duration-300"
     >
-      <header className="sticky top-0 z-20 flex items-center justify-between bg-white dark:bg-surface-dark p-4 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
-        <button
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-white dark:bg-surface-dark p-4 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
+        <motion.button
+          whileTap={{ scale: 0.95, y: 2 }}
           type="button"
           onClick={() => setShowFilter(true)}
           className="flex w-10 items-center justify-center text-dark dark:text-white border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all p-1"
         >
           <span className="material-symbols-outlined text-2xl">filter_alt</span>
-        </button>
+        </motion.button>
         <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">Transações</h1>
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95, y: 2 }}
           type="button"
           onClick={() => navigate('/add-transaction')}
           className="flex w-10 items-center justify-center text-white bg-primary border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all p-1"
         >
           <span className="material-symbols-outlined text-3xl">add_circle</span>
-        </button>
+        </motion.button>
       </header>
 
       <div className="p-4 z-10 relative">
@@ -228,7 +230,7 @@ const Transactions: React.FC = () => {
             {categoryFilter !== 'all' && (
               <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{categoryFilter}</span>
             )}
-            <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all">Limpar</button>
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all">Limpar</motion.button>
           </div>
         )}
       </div>
@@ -239,13 +241,14 @@ const Transactions: React.FC = () => {
         ) : filteredItems.length === 0 ? (
           <div className="px-6 py-12 text-center text-dark dark:text-white">
             <p className="font-bold">NENHUMA TRANSAÇÃO CADASTRADA.</p>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95, y: 2 }}
               type="button"
               onClick={() => navigate('/add-transaction')}
               className="mt-2 text-primary font-black hover:underline uppercase"
             >
               Adicionar transação
-            </button>
+            </motion.button>
           </div>
         ) : (
           Object.entries(grouped).map(([date, groupItems], groupIndex) => (
@@ -254,15 +257,17 @@ const Transactions: React.FC = () => {
               {(groupItems as any[]).map((t: any, i: number) => (
                 <div key={t.id} className="relative mb-3">
                   <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-0 z-0 h-full">
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.95, y: 2 }}
                       type="button"
                       onClick={() => navigate(`/add-transaction?edit=${t.id}`)}
                       className="h-full w-12 rounded-r-sm bg-primary border-y-2 border-r-2 border-dark dark:border-white text-white flex items-center justify-center shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
                       style={{ marginLeft: 'auto' }}
                     >
                       <img src="https://cdn-icons-png.flaticon.com/512/860/860814.png" alt="Editar" className="h-5 w-5 invert" />
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.95, y: 2 }}
                       type="button"
                       onClick={async () => {
                         const { error } = await supabase
@@ -277,7 +282,7 @@ const Transactions: React.FC = () => {
                       className="h-full w-12 bg-danger border-y-2 border-r-2 border-dark dark:border-white text-white flex items-center justify-center shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] ml-2"
                     >
                       <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" alt="Excluir" className="h-5 w-5 invert" />
-                    </button>
+                    </motion.button>
                   </div>
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
@@ -323,21 +328,22 @@ const Transactions: React.FC = () => {
           <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#FFFFFF]">
             <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-2">
               <h3 className="text-xl font-black uppercase text-dark dark:text-white">Filtrar transações</h3>
-              <button onClick={() => setShowFilter(false)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
                 <span className="material-symbols-outlined">close</span>
-              </button>
+              </motion.button>
             </div>
             <div className="mb-4">
               <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Status</p>
               <div className="grid grid-cols-3 gap-2">
                 {['all','paid','pending'].map((s) => (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95, y: 2 }}
                     key={s}
                     onClick={() => setStatusFilter(s as any)}
                     className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${statusFilter === s ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
                   >
                     {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -345,59 +351,64 @@ const Transactions: React.FC = () => {
               <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Tipo</p>
               <div className="grid grid-cols-3 gap-2">
                 {['all','income','expense'].map((t) => (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95, y: 2 }}
                     key={t}
                     onClick={() => setTypeFilter(t as any)}
                     className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${typeFilter === t ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
                   >
                     {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
             <div className="mb-4">
               <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Mês</p>
               <div className="grid grid-cols-4 gap-2">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => setMonthFilter('all')}
                   className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
                 >
                   Todos
-                </button>
+                </motion.button>
                 {monthNames.map((m, idx) => (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95, y: 2 }}
                     key={m}
                     onClick={() => setMonthFilter(idx)}
                     className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === idx ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
                   >
                     {m}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
             <div className="mb-4">
               <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Categoria</p>
               <div className="grid grid-cols-3 gap-2">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => setCategoryFilter('all')}
                   className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
                 >
                   Todas
-                </button>
+                </motion.button>
                 {categoriesForFilter.map((name) => (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95, y: 2 }}
                     key={name}
                     onClick={() => setCategoryFilter(name)}
                     className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === name ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
                   >
                     {name}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
             <div className="mt-8 flex gap-3">
-              <button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</button>
-              <button onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-secondary shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</motion.button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-secondary shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</motion.button>
             </div>
           </motion.div>
         </motion.div>

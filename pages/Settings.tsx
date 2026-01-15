@@ -96,14 +96,14 @@ const Settings: React.FC = () => {
 
   return (
     <motion.div 
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="flex flex-col min-h-screen pb-24 bg-background-light dark:bg-background-dark text-dark dark:text-white font-display transition-colors duration-300"
     >
-      <header className="flex items-center gap-4 p-4 sticky top-0 bg-white dark:bg-dark z-10 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
-         <button onClick={() => navigate(-1)} className="p-2 border-2 border-dark dark:border-white bg-white dark:bg-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all active:bg-surface-light dark:active:bg-white/10">
+      <header className="flex items-center gap-4 p-4 sticky top-0 bg-white dark:bg-dark z-50 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
+         <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="p-2 border-2 border-dark dark:border-white bg-white dark:bg-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all active:bg-surface-light dark:active:bg-white/10">
              <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
-        </button>
+        </motion.button>
         <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">Configurações</h1>
       </header>
 
@@ -111,7 +111,8 @@ const Settings: React.FC = () => {
         <SectionHeader title="Conta" />
         <div className="flex flex-col gap-3">
              <div className="flex items-center gap-4 p-4 bg-white dark:bg-dark border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mb-2 transition-colors duration-300">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => fileRef.current?.click()}
                   className="h-16 w-16 border-3 border-dark dark:border-white bg-surface-light dark:bg-white/10 overflow-hidden shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all relative group"
                   title="Alterar foto"
@@ -120,7 +121,7 @@ const Settings: React.FC = () => {
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="material-symbols-outlined text-white">edit</span>
                   </div>
-                </button>
+                </motion.button>
                 <input 
                   ref={fileRef}
                   type="file"
@@ -194,13 +195,14 @@ const Settings: React.FC = () => {
         </div>
 
       <div className="mt-8 px-4">
-          <button 
+          <motion.button 
+              whileTap={{ scale: 0.95, y: 2 }}
               onClick={() => navigate('/login')}
               className="w-full py-4 bg-danger text-white font-black uppercase border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-y-[4px] transition-all flex items-center justify-center gap-2"
           >
               <span className="material-symbols-outlined">logout</span>
               Sair
-          </button>
+          </motion.button>
           <p className="text-center text-xs font-bold text-dark dark:text-white uppercase mt-4 bg-white dark:bg-dark border-2 border-dark dark:border-white w-fit mx-auto px-2 py-1 shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] transform rotate-2">Versão 1.0.0</p>
       </div>
       </div>

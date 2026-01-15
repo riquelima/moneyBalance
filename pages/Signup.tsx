@@ -41,9 +41,9 @@ const Signup: React.FC = () => {
       className="flex min-h-screen w-full flex-col bg-white text-dark p-4"
     >
       <header className="flex items-center mb-6">
-        <button onClick={() => navigate('/login')} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark hover:bg-surface-light transition-all active:translate-y-[2px] shadow-neo-sm active:shadow-none">
+        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/login')} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark hover:bg-surface-light transition-all active:translate-y-[2px] shadow-neo-sm active:shadow-none">
           <span className="material-symbols-outlined">arrow_back</span>
-        </button>
+        </motion.button>
         <h1 className="flex-1 text-center text-2xl font-black uppercase pr-10">Criar Conta</h1>
       </header>
 
@@ -110,7 +110,8 @@ const Signup: React.FC = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full rounded-none bg-white border-2 border-dark p-4 pr-12 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
                     />
-                    <button
+                    <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-dark hover:text-primary transition-colors"
@@ -118,7 +119,7 @@ const Signup: React.FC = () => {
                         <span className="material-symbols-outlined text-xl">
                         {showPassword ? 'visibility' : 'visibility_off'}
                         </span>
-                    </button>
+                    </motion.button>
                 </div>
                 <p className="text-xs font-bold text-text-secondary ml-1 uppercase">Mínimo 8 caracteres, 1 letra maiúscula, 1 número.</p>
             </div>
@@ -129,7 +130,7 @@ const Signup: React.FC = () => {
         <div className="mt-4 flex flex-col items-center gap-4 pb-4">
             <motion.button
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.95, y: 2 }}
                 type="submit"
                 className="w-full rounded-sm bg-secondary border-2 border-dark py-4 text-lg font-black text-white shadow-neo hover:bg-secondary/90 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
             >
@@ -140,9 +141,9 @@ const Signup: React.FC = () => {
             )}
             <p className="text-sm text-dark font-bold uppercase">
                 Já tem uma conta?{' '}
-                <button onClick={() => navigate('/login')} className="font-black text-secondary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all">
+                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/login')} className="font-black text-secondary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all">
                     ENTRAR
-                </button>
+                </motion.button>
             </p>
         </div>
       </form>

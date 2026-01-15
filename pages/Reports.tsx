@@ -258,7 +258,7 @@ const Reports: React.FC = () => {
   };
   const makeExpenseColors = (data: Array<{ name: string; amount: number }>) => {
     return data.map((_, i) => {
-        const palette = ['#8854D0', '#FF6B6B', '#FD9644', '#000000']; // Purple, Red, Orange, Black
+        const palette = ['#2D9CDB', '#FF6B6B', '#FD9644', '#000000'];
         return palette[i % palette.length];
     });
   };
@@ -266,6 +266,7 @@ const Reports: React.FC = () => {
   const expenseColors = useMemo(() => makeExpenseColors(categories), [categories]);
   
   const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number; denominator?: number }> = ({ data, colors, size = 200, thickness = 30, denominator }) => {
+    const [opened, setOpened] = useState<Record<number, boolean>>({});
     const totalData = data.reduce((a, d) => a + Number(d.amount || 0), 0);
     const denom = typeof denominator === 'number' && denominator > 0 ? denominator : totalData;
     const R = size / 2; // raio total para pizza preenchida
@@ -282,7 +283,7 @@ const Reports: React.FC = () => {
       const rx = Math.cos(mid) * (R * 0.7); // Rótulo mais externo
       const ry = Math.sin(mid) * (R * 0.7);
       start = end;
-      return { p, path, color: colors[i % colors.length], rx, ry };
+      return { p, path, color: colors[i % colors.length], rx, ry, name: d.name };
     });
     
     // Fill remaining space with pattern or solid color if needed
@@ -305,7 +306,7 @@ const Reports: React.FC = () => {
           <circle cx="4" cy="4" r={R} className="fill-black dark:fill-white/20" />
           
           {slices.map((s, i) => (
-            <g key={i}>
+            <g key={i} onClick={() => setOpened(prev => ({ ...prev, [i]: !prev[i] }))} style={{ cursor: 'pointer' }}>
               <path d={s.path} fill={s.color} className="stroke-dark dark:stroke-white" strokeWidth="3" />
               {s.p > 0.05 && (
                 <g>
@@ -313,6 +314,11 @@ const Reports: React.FC = () => {
                     <text x={s.rx} y={s.ry} className="fill-dark dark:fill-white" fontSize={10} fontWeight={900} textAnchor="middle" dominantBaseline="middle">
                     {(s.p * 100).toFixed(0)}%
                     </text>
+                    {opened[i] && (
+                      <text x={s.rx} y={s.ry + 12} className="fill-dark dark:fill-white" fontSize={9} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
+                        {s.name}
+                      </text>
+                    )}
                 </g>
               )}
             </g>
@@ -329,47 +335,48 @@ const Reports: React.FC = () => {
       animate={{ opacity: 1 }} 
       className="flex flex-col min-h-screen p-4 pb-28 gap-8 bg-background-light dark:bg-background-dark font-display"
     >
-      <header className="flex items-center justify-between sticky top-0 bg-white dark:bg-surface-dark z-10 py-3 px-4 border-b-3 border-dark dark:border-white shadow-sm -mx-4">
-        <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
+      <header className="flex items-center justify-between sticky top-0 bg-white dark:bg-surface-dark z-50 py-3 px-4 border-b-3 border-dark dark:border-white shadow-sm -mx-4">
+        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
             <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
-        </button>
+        </motion.button>
         <h1 className="text-xl font-black uppercase text-dark dark:text-white">Relatórios</h1>
-        <button onClick={() => setShowMonthPicker(true)} className="text-dark font-bold text-xs bg-accent border-2 border-dark dark:border-white px-3 py-2 rounded-sm shadow-neo-sm dark:shadow-none uppercase active:shadow-none active:translate-y-[2px] transition-all">
+        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowMonthPicker(true)} className="text-dark font-bold text-xs bg-accent border-2 border-dark dark:border-white px-3 py-2 rounded-sm shadow-neo-sm dark:shadow-none uppercase active:shadow-none active:translate-y-[2px] transition-all">
           {(() => {
             const d = new Date();
             return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
               ? 'Mês Atual'
               : `${monthNames[selectedMonth]} ${selectedYear}`;
           })()}
-        </button>
+        </motion.button>
       </header>
 
       {showMonthPicker && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
           <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]">
             <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-2">
-              <button onClick={() => setSelectedYear(y => y - 1)} className="rounded-sm p-1 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-sm p-1 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
                 <span className="material-symbols-outlined dark:text-white">chevron_left</span>
-              </button>
+              </motion.button>
               <p className="text-xl font-black text-dark dark:text-white">{selectedYear}</p>
-              <button onClick={() => setSelectedYear(y => y + 1)} className="rounded-sm p-1 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-sm p-1 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
                 <span className="material-symbols-outlined dark:text-white">chevron_right</span>
-              </button>
+              </motion.button>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-6">
               {monthNames.map((m, i) => (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   key={m}
                   onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
                   className={`px-2 py-3 rounded-sm text-sm font-black uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${i === selectedMonth ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800'}`}
                 >
                   {m}
-                </button>
+                </motion.button>
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase text-dark dark:text-white shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all">Mês atual</button>
-              <button onClick={() => setShowMonthPicker(false)} className="flex-1 rounded-sm bg-secondary border-2 border-dark dark:border-white py-3 font-black uppercase text-white shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">Fechar</button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase text-dark dark:text-white shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all">Mês atual</motion.button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowMonthPicker(false)} className="flex-1 rounded-sm bg-secondary border-2 border-dark dark:border-white py-3 font-black uppercase text-white shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">Fechar</motion.button>
             </div>
           </motion.div>
         </motion.div>
@@ -489,7 +496,8 @@ const Reports: React.FC = () => {
             const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / --`;
             
             return (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95, y: 2 }}
                 key={c.name}
                 onClick={() => { setEditingCat(c.name); setTempLimit(limit ? String(limit) : ''); }}
                 className={`group relative ${cardBg} border-2 border-dark dark:border-white p-4 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] active:shadow-none active:translate-y-[2px] transition-all shrink-0`}
@@ -501,7 +509,7 @@ const Reports: React.FC = () => {
                 <div className="h-4 w-full border-2 border-dark dark:border-white bg-white dark:bg-surface-dark relative">
                   <div className={`h-full border-r-2 border-dark dark:border-white ${barColor} transition-all duration-500`} style={{ width: `${pct}%` }}></div>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
           {budgetCats.length === 0 && (
@@ -515,9 +523,9 @@ const Reports: React.FC = () => {
             <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-black uppercase text-dark dark:text-white">Definir Limite</h3>
-                <button onClick={() => setEditingCat(null)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
+                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEditingCat(null)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
                   <span className="material-symbols-outlined">close</span>
-                </button>
+                </motion.button>
               </div>
               <p className="text-sm font-bold text-dark uppercase mb-2 bg-accent inline-block px-2 border-2 border-dark dark:border-white">{editingCat}</p>
               <input
@@ -528,8 +536,9 @@ const Reports: React.FC = () => {
                 className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-4 text-dark dark:text-white font-bold placeholder:text-text-secondary/50 focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] focus:outline-none transition-all"
               />
               <div className="mt-8 flex gap-3">
-                <button onClick={() => setEditingCat(null)} className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase text-dark dark:text-white shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all">Cancelar</button>
-                <button
+                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEditingCat(null)} className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase text-dark dark:text-white shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all">Cancelar</motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={async () => {
                     const n = Number(String(tempLimit).replace(/[^0-9.,]/g, '').replace(',', '.'));
                     if (!Number.isNaN(n) && n >= 0 && editingCat) {
@@ -548,7 +557,7 @@ const Reports: React.FC = () => {
                   className="flex-1 rounded-sm bg-primary border-2 border-dark dark:border-white py-3 font-black text-white uppercase shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                 >
                   Salvar
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
@@ -568,12 +577,13 @@ const Reports: React.FC = () => {
       <section>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-black uppercase text-dark dark:text-white bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-2 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] flex-1 text-center mr-4">Projeção</h2>
-          <button 
+          <motion.button 
+            whileTap={{ scale: 0.95, y: 2 }}
             onClick={() => navigate('/projecao-futura')}
             className="rounded-sm p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] active:shadow-none active:translate-y-[2px] transition-all"
           >
             <span className="material-symbols-outlined text-dark dark:text-white">arrow_forward</span>
-          </button>
+          </motion.button>
         </div>
         <div className="bg-white dark:bg-surface-dark rounded-lg p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
           <div className="flex min-w-72 flex-1 flex-col gap-4">

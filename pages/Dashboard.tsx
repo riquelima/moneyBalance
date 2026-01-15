@@ -295,7 +295,7 @@ const Dashboard: React.FC = () => {
       animate="show"
       className="flex flex-col p-4 pt-6 gap-4 bg-background-light dark:bg-background-dark text-dark dark:text-white transition-colors duration-300"
     >
-      <header className="flex items-center justify-between">
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-white dark:bg-surface-dark p-4 -mx-4 border-b-3 border-dark dark:border-white shadow-sm">
         <div className="flex items-center gap-4">
             {avatarUrl && (
               <img 
@@ -311,37 +311,49 @@ const Dashboard: React.FC = () => {
             </div>
         </div>
         <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/notifications')} className="relative p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 transition-colors">
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/notifications')} className="relative p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 transition-colors">
                 <span className="material-symbols-outlined text-text-secondary dark:text-white">notifications</span>
                 <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-background-dark"></span>
-            </button>
-            <button onClick={() => navigate('/settings')} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 transition-colors">
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/settings')} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 transition-colors">
                 <span className="material-symbols-outlined text-text-secondary dark:text-white">settings</span>
-            </button>
+            </motion.button>
         </div>
       </header>
 
       <div className="flex items-center justify-end mt-2">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95, y: 2 }}
           onClick={() => setShowMonthPicker(s => !s)}
           className="text-primary-green font-bold text-sm bg-primary-green/10 px-3 py-1 rounded-full border border-transparent dark:border-primary-green"
-        >{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</button>
+        >{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</motion.button>
       </div>
       {showMonthPicker && (
         <div className="flex justify-center">
-          <div className="mt-2 w-full max-w-[680px] mx-2 rounded-xl bg-surface-dark dark:bg-surface-dark p-3 border border-surface-light dark:border-white/20">
+          <div className="mt-2 w-full max-w-[680px] mx-2 rounded-xl bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
             <div className="flex items-center justify-between mb-3">
-              <button onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_left</span></button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_left</span></motion.button>
               <span className="text-sm font-bold text-dark dark:text-white">{selectedYear}</span>
-              <button onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_right</span></button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_right</span></motion.button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {[selectedYear - 2, selectedYear - 1, selectedYear].map((y) => (
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
+                  key={y}
+                  onClick={() => setSelectedYear(y)}
+                  className={y === selectedYear ? 'px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold' : 'px-3 py-2 rounded-lg bg-surface-light dark:bg:white/10 text-xs font-medium hover:bg-surface-light/80 text-dark dark:text-white'}
+                >{y}</motion.button>
+              ))}
             </div>
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
               {monthNames.map((m, idx) => (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   key={m}
                   onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
-                  className={idx === selectedMonth ? 'px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold' : 'px-3 py-2 rounded-lg bg-surface-light dark:bg-white/10 text-xs font-medium hover:bg-surface-light/80 text-dark dark:text-white'}
-                >{m}</button>
+                  className={idx === selectedMonth ? 'px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold' : 'px-3 py-2 rounded-lg bg-surface-light dark:bg:white/10 text-xs font-medium hover:bg-surface-light/80 text-dark dark:text-white'}
+                >{m}</motion.button>
               ))}
             </div>
           </div>
@@ -388,23 +400,27 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-black uppercase text-dark dark:text-white">Gráficos</h3>
             <div className="mt-2 flex items-center gap-2 w-full justify-between">
               <div className="flex items-center gap-1 rounded-lg bg-white dark:bg-surface-dark p-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => setPeriod('day')}
                   className={period === 'day' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
-                >DIA</button>
-                <button
+                >DIA</motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => setPeriod('week')}
                   className={period === 'week' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
-                >SEM</button>
-                <button
+                >SEM</motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => setPeriod('month')}
                   className={period === 'month' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
-                >MÊS</button>
+                >MÊS</motion.button>
               </div>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95, y: 2 }}
                 onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
                 className={chartType === 'expense' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-danger shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all' : 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-secondary shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all'}
-              >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</button>
+              >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</motion.button>
             </div>
         </div>
         
@@ -452,9 +468,9 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-1">
             <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
             {entriesCollapsed && (
-              <button onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
                 <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
-              </button>
+              </motion.button>
             )}
           </div>
         </div>
@@ -485,9 +501,9 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-1">
             <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
             {expensesCollapsed && (
-              <button onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
                 <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
-              </button>
+              </motion.button>
             )}
           </div>
         </div>

@@ -428,18 +428,18 @@ const ProjecaoFutura: React.FC = () => {
       <div className="sticky top-0 z-10 bg-white dark:bg-surface-dark border-b-3 border-dark dark:border-white shadow-sm">
         <div className="flex items-center p-4 pb-3 justify-between">
           <div className="flex size-10 shrink-0 items-center justify-start">
-            <button 
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
               onClick={() => navigate(-1)}
               className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
             >
               <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
-            </button>
+            </motion.button>
           </div>
           <h1 className="text-dark dark:text-white text-xl font-black uppercase leading-tight tracking-wide flex-1 text-center">Projeções</h1>
           <div className="flex size-10 shrink-0 items-center justify-end">
-            <button className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
               <span className="material-symbols-outlined text-dark dark:text-white">tune</span>
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
@@ -448,7 +448,7 @@ const ProjecaoFutura: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-6 px-4 pt-4">
           <div className="flex p-1 bg-white dark:bg-surface-dark rounded-sm border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none">
-            <button 
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
               onClick={() => setSelectedTimeframe('6meses')}
               className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
                 selectedTimeframe === '6meses' 
@@ -457,8 +457,8 @@ const ProjecaoFutura: React.FC = () => {
               }`}
             >
               6 Meses
-            </button>
-            <button 
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
               onClick={() => setSelectedTimeframe('1ano')}
               className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
                 selectedTimeframe === '1ano' 
@@ -467,8 +467,8 @@ const ProjecaoFutura: React.FC = () => {
               }`}
             >
               1 Ano
-            </button>
-            <button 
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
               onClick={() => setSelectedTimeframe('5anos')}
               className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
                 selectedTimeframe === '5anos' 
@@ -477,7 +477,7 @@ const ProjecaoFutura: React.FC = () => {
               }`}
             >
               5 Anos
-            </button>
+            </motion.button>
           </div>
           
           <div className="relative overflow-hidden rounded-lg bg-white dark:bg-surface-dark p-5 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
@@ -520,7 +520,7 @@ const ProjecaoFutura: React.FC = () => {
                   className="flex-1 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all placeholder:text-text-secondary/50 dark:placeholder:text-gray-500"
                   autoFocus
                 />
-                <button
+                <motion.button whileTap={{ scale: 0.95, y: 2 }}
                   onClick={handleAddNewCard}
                   disabled={!newCardName.trim()}
                   className={`rounded-sm px-4 py-2 text-xs font-black uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
@@ -530,8 +530,8 @@ const ProjecaoFutura: React.FC = () => {
                   }`}
                 >
                   Adicionar
-                </button>
-                <button
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => {
                     setShowAddCardForm(false);
                     setNewCardName('');
@@ -539,7 +539,7 @@ const ProjecaoFutura: React.FC = () => {
                   className="rounded-sm px-3 py-2 text-dark dark:text-white border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
-                </button>
+                </motion.button>
               </div>
             </div>
           )}
@@ -624,12 +624,12 @@ const ProjecaoFutura: React.FC = () => {
                     >
                       <div className="flex justify-between items-center mb-4 border-b-2 border-dark dark:border-white pb-2">
                         <h3 className="text-base font-black text-dark dark:text-white uppercase">Editar {category.name}</h3>
-                        <button 
+                        <motion.button whileTap={{ scale: 0.95, y: 2 }} 
                           onClick={handleCancelEdit}
                           className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 border-2 border-transparent hover:border-dark dark:hover:border-white p-1 transition-all"
                         >
                           <span className="material-symbols-outlined">close</span>
-                        </button>
+                        </motion.button>
                       </div>
                       
                       <div className="flex flex-col gap-3 flex-grow">
@@ -657,18 +657,18 @@ const ProjecaoFutura: React.FC = () => {
                       </div>
                       
                       <div className="flex gap-2 mt-3">
-                        <button
+                        <motion.button whileTap={{ scale: 0.95, y: 2 }}
                           onClick={() => handleDeleteCategory(category.id)}
                           className="rounded-sm py-2 px-3 text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                         >
                           Excluir
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button whileTap={{ scale: 0.95, y: 2 }}
                           onClick={() => handleSaveEdit(category.id)}
                           className="flex-1 rounded-sm py-2 text-xs font-black uppercase bg-primary text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
                         >
                           Salvar
-                        </button>
+                        </motion.button>
                       </div>
                     </motion.div>
                   </div>
@@ -680,13 +680,13 @@ const ProjecaoFutura: React.FC = () => {
             {/* Add Category Button */}
             <div className="flex justify-center pb-8 pt-4">
               {!showAddCardForm ? (
-                <button 
+                <motion.button whileTap={{ scale: 0.95, y: 2 }} 
                   onClick={() => setShowAddCardForm(true)}
                   className="flex items-center gap-2 text-sm font-black uppercase text-dark bg-white border-2 border-dark px-4 py-3 rounded-sm shadow-neo hover:shadow-neo-lg active:shadow-none active:translate-y-[2px] transition-all"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
                   Nova Projeção
-                </button>
+                </motion.button>
               ) : null}
             </div>
           </div>
@@ -717,7 +717,7 @@ const ProjecaoFutura: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-4 border-b-2 border-dark dark:border-white pb-2">
                 <h3 className="text-lg font-black uppercase text-dark dark:text-white">Adicionar Categoria</h3>
-                <button 
+                <motion.button whileTap={{ scale: 0.95, y: 2 }} 
                   onClick={() => {
                     setShowCategoryPicker(false);
                     setShowCustomCategoryInput(false);
@@ -726,7 +726,7 @@ const ProjecaoFutura: React.FC = () => {
                   className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 border-2 border-transparent hover:border-dark dark:hover:border-white p-1 transition-all"
                 >
                   <span className="material-symbols-outlined">close</span>
-                </button>
+                </motion.button>
               </div>
               
               <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase mb-4 bg-surface-light dark:bg-gray-800 p-2 border-2 border-dark dark:border-white inline-block">Selecione uma categoria</p>
@@ -737,7 +737,7 @@ const ProjecaoFutura: React.FC = () => {
                     {categories.map((category) => {
                       const isSelected = projectionCategories.some(cat => cat.name === category);
                       return (
-                        <button
+                        <motion.button whileTap={{ scale: 0.95, y: 2 }}
                           key={category}
                           onClick={() => handleCategorySelect(category)}
                           disabled={isSelected}
@@ -748,21 +748,21 @@ const ProjecaoFutura: React.FC = () => {
                           }`}
                         >
                           {category}
-                        </button>
+                        </motion.button>
                       );
                     })}
                     {/* Custom Category Button */}
-                    <button
+                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
                       onClick={() => setShowCustomCategoryInput(true)}
                       className="p-3 rounded-sm text-xs font-black uppercase border-2 border-dashed border-dark dark:border-white text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 flex flex-col items-center justify-center gap-1"
                     >
                       <span className="material-symbols-outlined">add</span>
                       <span>Personalizada</span>
-                    </button>
+                    </motion.button>
                   </div>
                   
                   <div className="mt-6 flex gap-3">
-                    <button
+                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
                       onClick={() => {
                         setShowCategoryPicker(false);
                         setShowCustomCategoryInput(false);
@@ -771,7 +771,7 @@ const ProjecaoFutura: React.FC = () => {
                       className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all dark:text-white"
                     >
                       Cancelar
-                    </button>
+                    </motion.button>
                   </div>
                 </>
               ) : (
@@ -789,7 +789,7 @@ const ProjecaoFutura: React.FC = () => {
                   </div>
                   
                   <div className="flex gap-3">
-                    <button
+                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
                       onClick={() => {
                         setShowCustomCategoryInput(false);
                         setCustomCategoryName('');
@@ -797,8 +797,8 @@ const ProjecaoFutura: React.FC = () => {
                       className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all dark:text-white"
                     >
                       Voltar
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
                       onClick={() => {
                         if (customCategoryName.trim()) {
                           handleCategorySelect(customCategoryName.trim());
@@ -812,7 +812,7 @@ const ProjecaoFutura: React.FC = () => {
                       }`}
                     >
                       Adicionar
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               )}

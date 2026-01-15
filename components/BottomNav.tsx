@@ -34,8 +34,9 @@ const BottomNav: React.FC = () => {
           }
 
           return (
-            <button
+            <motion.button
               key={item.label}
+              whileTap={{ scale: 0.95, y: 1 }}
               onClick={() => navigate(item.path)}
               className={`flex flex-col items-center gap-1 transition-colors ${isActive ? 'text-primary font-bold' : 'text-dark dark:text-white hover:text-primary dark:hover:text-primary'}`}
             >
@@ -43,7 +44,7 @@ const BottomNav: React.FC = () => {
                 {item.icon}
               </span>
               <span className="text-[10px] uppercase font-bold tracking-wider">{item.label}</span>
-            </button>
+            </motion.button>
           );
         })}
       </div>

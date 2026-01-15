@@ -73,20 +73,59 @@ const Notifications: React.FC = () => {
         }
       });
 
-      const twoDays = new Date(now);
-      twoDays.setDate(now.getDate() + 2);
-      const { data: upcoming } = await supabase
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      const todayISO = fmt(now);
+      const tomorrowISO = fmt(tomorrow);
+
+      const { data: expTomorrow } = await supabase
         .from('user_transactions')
         .select('description, amount, type, is_paid, date')
         .eq('user_id', user.id)
         .eq('type', 'expense')
         .eq('is_paid', false)
-        .eq('date', fmt(twoDays));
-      (upcoming || []).forEach((t: any) => {
+        .eq('date', tomorrowISO);
+      (expTomorrow || []).forEach((t: any) => {
         const desc = String(t.description || '').trim();
         const amountStr = Number(t.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        const suffix = desc ? ` ${desc}` : '';
-        alerts.push({ icon: 'calendar_today', title: 'Lembrete de Pagamento', text: `Lembre-se de pagar sua conta${suffix}. Vencimento em 2 dias.`, tag: 'Lembrete', tagClass: 'text-primary-blue', time: 'Hoje', tone: 'info' });
+        alerts.push({ icon: 'event_upcoming', title: 'Vencimento Amanhã (Despesa)', text: `Amanhã vence: ${desc || 'Despesa'} (${amountStr}).`, tag: 'Atenção', tagClass: 'text-warning', time: 'Amanhã', tone: 'warning' });
+      });
+
+      const { data: expToday } = await supabase
+        .from('user_transactions')
+        .select('description, amount, type, is_paid, date')
+        .eq('user_id', user.id)
+        .eq('type', 'expense')
+        .eq('is_paid', false)
+        .eq('date', todayISO);
+      (expToday || []).forEach((t: any) => {
+        const desc = String(t.description || '').trim();
+        const amountStr = Number(t.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        alerts.push({ icon: 'calendar_today', title: 'Vencimento Hoje (Despesa)', text: `Vence hoje: ${desc || 'Despesa'} (${amountStr}).`, tag: 'Vence hoje', tagClass: 'text-danger', time: 'Hoje', tone: 'danger' });
+      });
+
+      const { data: incTomorrow } = await supabase
+        .from('user_transactions')
+        .select('description, amount, type, date')
+        .eq('user_id', user.id)
+        .eq('type', 'income')
+        .eq('date', tomorrowISO);
+      (incTomorrow || []).forEach((t: any) => {
+        const desc = String(t.description || '').trim();
+        const amountStr = Number(t.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        alerts.push({ icon: 'payments', title: 'Entrada Amanhã', text: `Amanhã você deve receber: ${desc || 'Entrada'} (${amountStr}).`, tag: 'Recebimento', tagClass: 'text-primary-blue', time: 'Amanhã', tone: 'info' });
+      });
+
+      const { data: incToday } = await supabase
+        .from('user_transactions')
+        .select('description, amount, type, date')
+        .eq('user_id', user.id)
+        .eq('type', 'income')
+        .eq('date', todayISO);
+      (incToday || []).forEach((t: any) => {
+        const desc = String(t.description || '').trim();
+        const amountStr = Number(t.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        alerts.push({ icon: 'attach_money', title: 'Entrada Hoje', text: `Entrada prevista para hoje: ${desc || 'Entrada'} (${amountStr}).`, tag: 'Recebimento', tagClass: 'text-primary-blue', time: 'Hoje', tone: 'info' });
       });
       setItems(alerts);
     };
@@ -106,7 +145,7 @@ const Notifications: React.FC = () => {
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed inset-0 z-50 flex flex-col bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex flex-col bg-black/60 backdrop-blur-sm font-display"
     >
       <div className="flex h-full w-full flex-col justify-end">
         <motion.div
@@ -115,31 +154,36 @@ const Notifications: React.FC = () => {
           dragElastic={0.06}
           dragMomentum={false}
           onDragEnd={(e, info) => { if (info.offset.y > 60) navigate(-1); }}
-          className="flex h-[95%] w-full flex-col rounded-t-3xl border-t border-surface-light bg-background-dark/95"
+          className="flex h-[95%] w-full flex-col bg-white dark:bg-surface-dark rounded-t-lg overflow-hidden shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] border-t-4 border-x-4 border-dark dark:border-white"
         >
-          <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-surface-light"></div>
-          <header className="flex items-center justify-between p-6">
-            <h1 className="text-2xl font-bold text-text-primary">Notificações</h1>
-            <div className="flex items-center gap-2">
-              <button onClick={() => navigate(-1)} className="text-text-secondary hover:text-primary">
-                <span className="material-symbols-outlined !text-3xl">close</span>
-              </button>
-            </div>
+          <div className="flex w-full justify-center pt-3 pb-1">
+            <div className="h-1.5 w-12 rounded-full bg-dark dark:bg-white opacity-20"></div>
+          </div>
+          <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-2 bg-white dark:bg-surface-dark border-b-2 border-dark dark:border-white pb-4">
+            <h1 className="text-xl font-black text-dark dark:text-white uppercase">Notificações</h1>
+            <motion.button 
+              whileTap={{ scale: 0.95, y: 2 }} 
+              onClick={() => navigate(-1)} 
+              className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-transparent hover:border-dark dark:hover:border-white text-dark dark:text-white transition-all"
+            >
+              <span className="material-symbols-outlined !text-3xl">close</span>
+            </motion.button>
           </header>
-          <div className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="flex-1 overflow-y-auto px-4 pb-6">
             <div className="flex flex-col gap-4">
               {items.map((it, idx) => {
                 const cls = toneClasses(it.tone);
-                const faded = it.tone === 'neutral' ? 'opacity-60' : '';
+                const faded = it.tone === 'neutral' ? 'opacity-70' : '';
                 return (
                   <div key={idx} className="relative">
                     <div className="absolute inset-0 z-0 flex items-center justify-end pr-4">
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
                         onClick={() => setItems(arr => arr.filter((_, i) => i !== idx))}
-                        className="flex items-center justify-center h-10 w-10 rounded-full bg-danger/20 text-danger hover:bg-danger/30"
+                        className="flex items-center justify-center h-10 w-10 rounded-sm bg-danger/20 text-danger hover:bg-danger/30 border-2 border-dark dark:border-white"
                       >
                         <span className="material-symbols-outlined">delete</span>
-                      </button>
+                      </motion.button>
                     </div>
                     <motion.div
                       drag="x"
@@ -147,19 +191,19 @@ const Notifications: React.FC = () => {
                       dragElastic={0.06}
                       dragMomentum={false}
                       onDragEnd={(e, info) => { if (info.offset.x < -80) setItems(arr => arr.filter((_, i) => i !== idx)); }}
-                      className={`relative z-10 flex items-start gap-4 rounded-xl border ${cls.border} bg-surface-dark/50 p-4 ${faded}`}
+                      className={`relative z-10 flex items-start gap-4 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark p-4 shadow-neo-sm dark:shadow-none ${faded}`}
                     >
-                      <div className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${cls.iconBg} ${cls.iconText}`}>
+                      <div className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-sm border-2 border-dark dark:border-white ${cls.iconBg} ${cls.iconText}`}>
                         <span className="material-symbols-outlined">{it.icon}</span>
                       </div>
                       <div className="flex-1">
-                        <h2 className={`font-bold ${it.tone === 'neutral' ? 'text-text-secondary' : 'text-text-primary'}`}>{it.title}</h2>
-                        <p className="text-sm text-text-secondary">{it.text}</p>
+                        <h2 className={`font-black uppercase ${it.tone === 'neutral' ? 'text-text-secondary dark:text-gray-400' : 'text-dark dark:text-white'}`}>{it.title}</h2>
+                        <p className="text-sm font-bold text-text-secondary dark:text-gray-400">{it.text}</p>
                         {it.tag && (
-                          <span className={`mt-2 inline-block text-xs font-medium ${it.tagClass}`}>{it.tag}</span>
+                          <span className={`mt-2 inline-block text-[10px] font-black uppercase px-2 py-1 border-2 border-dark dark:border-white bg-white dark:bg-surface-dark ${it.tagClass}`}>{it.tag}</span>
                         )}
                       </div>
-                      <span className="text-xs text-text-secondary">{it.time}</span>
+                      <span className="text-xs font-bold text-text-secondary dark:text-gray-400">{it.time}</span>
                     </motion.div>
                   </div>
                 );

@@ -42,10 +42,10 @@ const CategoryExpenses: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark p-4 gap-4 font-display">
-      <header className="flex items-center gap-4 py-2 border-b-3 border-dark dark:border-white pb-4 bg-white dark:bg-surface-dark -mx-4 px-4 sticky top-0 z-10 shadow-sm">
-        <button onClick={() => navigate(-1)} className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
+      <header className="flex items-center gap-4 py-2 border-b-3 border-dark dark:border-white pb-4 bg-white dark:bg-surface-dark -mx-4 px-4 sticky top-0 z-50 shadow-sm">
+        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
              <span className="material-symbols-outlined text-dark dark:text-white">arrow_back_ios_new</span>
-        </button>
+        </motion.button>
         <h1 className="text-xl font-black flex-1 text-center pr-10 uppercase text-dark dark:text-white">Gastos por Categoria</h1>
       </header>
       
@@ -63,7 +63,8 @@ const CategoryExpenses: React.FC = () => {
                 initial={false}
                 className="bg-white dark:bg-surface-dark rounded-lg border-3 border-dark dark:border-white overflow-hidden shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]"
             >
-                <button 
+                <motion.button 
+                    whileTap={{ scale: 0.95, y: 2 }}
                     onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
                     className="w-full p-4 flex flex-col gap-3"
                 >
@@ -90,7 +91,7 @@ const CategoryExpenses: React.FC = () => {
                     <div className="w-full bg-surface-light dark:bg-background-dark h-3 rounded-none border-2 border-dark dark:border-white overflow-hidden">
                         <div className={`h-full ${cat.barColor} border-r-2 border-dark dark:border-white`} style={{ width: cat.percent }}></div>
                     </div>
-                </button>
+                </motion.button>
 
                 <AnimatePresence>
                     {expanded === cat.id && (

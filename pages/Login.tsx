@@ -109,7 +109,8 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-none bg-white border-2 border-dark p-4 pr-12 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
               />
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95, y: 2 }}
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-dark hover:text-primary transition-colors"
@@ -117,19 +118,19 @@ const Login: React.FC = () => {
                 <span className="material-symbols-outlined text-xl">
                   {showPassword ? 'visibility' : 'visibility_off'}
                 </span>
-              </button>
+              </motion.button>
             </div>
           </div>
 
           <div className="flex justify-end">
-            <button type="button" onClick={handleReset} className="text-xs font-black text-dark hover:bg-accent px-1 border-2 border-transparent hover:border-dark hover:shadow-neo-sm transition-all uppercase">
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} type="button" onClick={handleReset} className="text-xs font-black text-dark hover:bg-accent px-1 border-2 border-transparent hover:border-dark hover:shadow-neo-sm transition-all uppercase">
               Esqueci minha senha
-            </button>
+            </motion.button>
           </div>
 
           <motion.button
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.95, y: 2 }}
             type="submit"
             className="w-full rounded-sm bg-primary border-2 border-dark py-4 text-lg font-black text-white shadow-neo hover:bg-primary/90 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
           >
@@ -138,9 +139,9 @@ const Login: React.FC = () => {
           {error && (
             <div className="mt-2 space-y-2">
               <p className="text-danger font-bold text-sm bg-danger/10 p-2 border-2 border-danger">{error}</p>
-              <button onClick={() => navigate('/settings')} className="text-xs font-bold text-dark hover:underline uppercase">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/settings')} className="text-xs font-bold text-dark hover:underline uppercase">
                 Configurar conexão Supabase
-              </button>
+              </motion.button>
             </div>
           )}
         </form>
@@ -148,9 +149,9 @@ const Login: React.FC = () => {
         <div className="mt-8 text-center">
           <p className="text-sm text-dark font-bold">
             AINDA NÃO TEM UMA CONTA?{' '}
-            <button onClick={() => navigate('/signup')} className="font-black text-primary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all uppercase">
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/signup')} className="font-black text-primary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all uppercase">
               CRIAR NOVA CONTA
-            </button>
+            </motion.button>
           </p>
         </div>
       </div>
