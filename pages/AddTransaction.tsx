@@ -22,6 +22,11 @@ const AddTransaction: React.FC = () => {
   const [pickerYear, setPickerYear] = useState<number>(new Date().getFullYear());
   const [pickerMonth, setPickerMonth] = useState<number>(new Date().getMonth());
   const [isRecurring, setIsRecurring] = useState(false);
+  const [userCategories, setUserCategories] = useState<string[]>([]);
+  const [showNewCategoryModal, setShowNewCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
 
   // Colors based on type
   const activeColor = type === 'expense' ? '#FF455F' : '#00D68F'; // Pink/Red for expense, Green for income
@@ -76,6 +81,25 @@ const AddTransaction: React.FC = () => {
       })();
     }
   }, [location.search]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_categories')
+        .select('name')
+        .eq('user_id', user.id)
+        .order('name', { ascending: true });
+      const names = Array.from(new Set((data || []).map((x: any) => String(x.name || '')).filter(Boolean)));
+      setUserCategories(names);
+    })();
+  }, []);
+
+  const allCategories = useMemo(() => {
+    return Array.from(new Set([...categories, ...userCategories]));
+  }, [userCategories]);
 
   return (
     <motion.div 
@@ -212,7 +236,7 @@ const AddTransaction: React.FC = () => {
                 </button>
                 {showCategoryPicker && (
                   <div className="grid grid-cols-2 gap-2 mt-2 p-2 border-2 border-dark dark:border-white bg-surface-light dark:bg-background-dark shadow-neo-sm dark:shadow-none">
-                    {categories.map((c) => (
+                    {allCategories.map((c) => (
                       <button
                         key={c}
                         onClick={() => { setCategoryName(c); setShowCategoryPicker(false); }}
@@ -221,6 +245,76 @@ const AddTransaction: React.FC = () => {
                         {c}
                       </button>
                     ))}
+                    <button
+                      onClick={() => { setNewCategoryError(null); setNewCategoryName(''); setShowNewCategoryModal(true); }}
+                      className="px-3 py-2 rounded-sm text-sm font-black uppercase border-2 border-dark dark:border-white bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800"
+                      aria-label="Criar nova categoria"
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
+                {showNewCategoryModal && (
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60" onClick={() => setShowNewCategoryModal(false)}>
+                    <div className="w-80 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-4 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]" onClick={(e) => e.stopPropagation()}>
+                      <h2 className="text-dark dark:text-white font-black text-base uppercase mb-3">Nova Categoria</h2>
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="NOME DA CATEGORIA"
+                        className="w-full h-12 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 text-dark dark:text-white font-bold uppercase placeholder:text-text-secondary/70 dark:placeholder:text-gray-500 focus:outline-none mb-2"
+                      />
+                      {newCategoryError && (
+                        <div className="text-primary font-bold text-xs uppercase mb-2">{newCategoryError}</div>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowNewCategoryModal(false)}
+                          className="flex-1 px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (creatingCategory) return;
+                            setNewCategoryError(null);
+                            const name = String(newCategoryName || '').trim();
+                            if (!name) {
+                              setNewCategoryError('Informe um nome válido');
+                              return;
+                            }
+                            const exists = allCategories.some(c => String(c).toLowerCase() === name.toLowerCase());
+                            if (exists) {
+                              setNewCategoryError('Categoria já existe');
+                              return;
+                            }
+                            setCreatingCategory(true);
+                            const { data: userData } = await supabase.auth.getUser();
+                            const user = userData?.user;
+                            if (!user) {
+                              setNewCategoryError('Faça login para criar categoria');
+                              setCreatingCategory(false);
+                              return;
+                            }
+                            const { error: catErr } = await supabase
+                              .from('user_categories')
+                              .upsert({ user_id: user.id, name, type }, { onConflict: 'user_id,name' });
+                            setCreatingCategory(false);
+                            if (catErr) {
+                              setNewCategoryError('Erro ao criar categoria');
+                              return;
+                            }
+                            setUserCategories(prev => Array.from(new Set([...prev, name])));
+                            setCategoryName(name);
+                            setShowNewCategoryModal(false);
+                          }}
+                          className="flex-1 px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white bg-primary text-white hover:opacity-90"
+                        >
+                          Criar
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 

@@ -2,8 +2,147 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
-import { parseLocalISODate } from '../utils/date';
+import { parseLocalISODate, toLocalISO } from '../utils/date';
 import ReactMarkdown from 'react-markdown';
+
+export const monthNamePT = (m: number) => (['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m - 1] || '');
+export const buildMonthly2026 = (normalized: any[]) => {
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const byMonth = months.map((m) => {
+    const transacoes = normalized.filter((t: any) => {
+      const d = parseLocalISODate(t.data);
+      return d.getFullYear() === 2026 && (d.getMonth() + 1) === m;
+    }).sort((a: any, b: any) => {
+      const da = parseLocalISODate(a.data).getTime();
+      const db = parseLocalISODate(b.data).getTime();
+      const ta = Date.parse(String(a.timestamp || ''));
+      const tb = Date.parse(String(b.timestamp || ''));
+      if (da !== db) return da - db;
+      if (!isNaN(ta) && !isNaN(tb)) return ta - tb;
+      return 0;
+    });
+    const entradas = transacoes.filter((t: any) => t.tipo === 'entrada');
+    const saidas = transacoes.filter((t: any) => t.tipo === 'saída');
+    const totalEntradas = entradas.reduce((s: number, t: any) => s + Number(t.valor_num || 0), 0);
+    const totalSaidas = saidas.reduce((s: number, t: any) => s + Number(t.valor_num || 0), 0);
+    const resumo = {
+      totalEntradas: Number(totalEntradas.toFixed(2)),
+      totalSaidas: Number(totalSaidas.toFixed(2)),
+      saldo: Number((totalEntradas - totalSaidas).toFixed(2)),
+      quantidadeTransacoes: transacoes.length
+    };
+    return {
+      header: `${monthNamePT(m)} 2026`,
+      ano: 2026,
+      mes: m,
+      entradas,
+      saidas,
+      transacoes,
+      resumo
+    };
+  });
+  return byMonth;
+};
+export const buildWebhookPayload = (user: any, transactions: any[], categories: any[], profile: any, chatMessages: any[]) => {
+  const catMap: Record<string, string> = {};
+  (categories || []).forEach((c: any) => { if (c?.id) catMap[String(c.id)] = String(c.name || 'Categoria'); });
+  const normalized = (transactions || []).map((t: any) => {
+    const dt = typeof t.date === 'string' ? t.date : toLocalISO(parseLocalISODate(String(t.date || '')));
+    const tipo = t.type === 'income' ? 'entrada' : 'saída';
+    const nome = String(t.description || (t.type === 'income' ? 'Entrada' : 'Despesa'));
+    const categoria = t.category_id ? (catMap[String(t.category_id)] || 'Categoria') : 'Sem Categoria';
+    const valorNum = Number(t.amount || 0);
+    const valor = valorNum.toFixed(2);
+    return {
+      id: String(t.id || ''),
+      nomeTransacao: nome,
+      descricao: String(t.description || ''),
+      valor,
+      valor_num: Number(valor),
+      data: dt,
+      timestamp: String(t.created_at || ''),
+      tipo,
+      categoria,
+      pago: !!t.is_paid
+    };
+  });
+  const group: Record<string, any> = {};
+  normalized.forEach((t: any) => {
+    const d = parseLocalISODate(t.data);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const key = `${y}-${String(m).padStart(2, '0')}`;
+    if (!group[key]) group[key] = { ano: y, mes: m, entradas: [], saidas: [], transacoes: [], categoriasPorNome: {} as Record<string, any[]> };
+    if (t.tipo === 'entrada') group[key].entradas.push(t);
+    else group[key].saidas.push(t);
+    group[key].transacoes.push(t);
+    if (!group[key].categoriasPorNome[t.categoria]) group[key].categoriasPorNome[t.categoria] = [];
+    group[key].categoriasPorNome[t.categoria].push(t);
+  });
+  Object.keys(group).forEach((k) => {
+    const g = group[k];
+    g.transacoes.sort((a: any, b: any) => {
+      const da = parseLocalISODate(a.data).getTime();
+      const db = parseLocalISODate(b.data).getTime();
+      const ta = Date.parse(String(a.timestamp || ''));
+      const tb = Date.parse(String(b.timestamp || ''));
+      if (da !== db) return da - db;
+      if (!isNaN(ta) && !isNaN(tb)) return ta - tb;
+      return 0;
+    });
+    const te = g.entradas.reduce((s: number, t: any) => s + Number(t.valor_num || 0), 0);
+    const ts = g.saidas.reduce((s: number, t: any) => s + Number(t.valor_num || 0), 0);
+    g.resumo = {
+      totalEntradas: Number(te.toFixed(2)),
+      totalSaidas: Number(ts.toFixed(2)),
+      saldo: Number((te - ts).toFixed(2)),
+      quantidadeTransacoes: (g.transacoes || []).length
+    };
+  });
+  const historico = Object.values(group).sort((a: any, b: any) => {
+    const da = new Date(a.ano, a.mes - 1, 1).getTime();
+    const db = new Date(b.ano, b.mes - 1, 1).getTime();
+    return da - db;
+  });
+  const now = new Date();
+  const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const mesAtual = group[nowKey] || { ano: now.getFullYear(), mes: now.getMonth() + 1, entradas: [], saidas: [], categoriasPorNome: {} };
+  const nomeMeta = (user?.user_metadata?.name as string) || '';
+  const lastMeta = (user?.user_metadata?.lastName as string) || '';
+  const usernameMeta = (user?.user_metadata?.username as string) || '';
+  const display = (profile?.display_name as string) || (nomeMeta && lastMeta ? `${nomeMeta} ${lastMeta}` : (nomeMeta || usernameMeta || user?.email || 'Usuário'));
+  const cliente = {
+    id: user?.id || '',
+    nome: display,
+    email: user?.email || '',
+    avatarUrl: profile?.avatar_url || ''
+  };
+  const meses2026 = buildMonthly2026(normalized);
+  const ano2026Meses: Record<string, any> = meses2026.reduce((acc: Record<string, any>, m: any) => {
+    const key = `2026-${String(m.mes).padStart(2, '0')}`;
+    acc[key] = m;
+    return acc;
+  }, {});
+  const chatMensagens = (chatMessages || []).map((m: any) => ({
+    id: String(m.id || ''),
+    papel: String(m.role || ''),
+    texto: String(m.message || ''),
+    created_at: String(m.created_at || '')
+  }));
+  const payload = {
+    cliente,
+    historico,
+    mesAtual,
+    ano2026: ano2026Meses,
+    meses2026,
+    chatMensagens,
+    metadados: {
+      totalRegistros: normalized.length,
+      geradoEm: toLocalISO(new Date())
+    }
+  };
+  return payload;
+};
 
 const Chat: React.FC = () => {
   const navigate = useNavigate();
@@ -60,30 +199,80 @@ const Chat: React.FC = () => {
   const fetchUserData = async () => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
-    if (!user) return { user: null, transactions: [], budgets: [], categories: [] } as any;
-    const { data: transactions } = await supabase
+    if (!user) return { user: null, transactions: [], budgets: [], categories: [], profile: null, txCount: 0, chatMessages: [], chatCount: 0 } as any;
+    // Count total transactions for integrity check
+    const { count: txCount } = await supabase
       .from('user_transactions')
-      .select('id, description, amount, type, date, is_paid, category_id')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(300);
-    const catIds = Array.from(new Set((transactions || []).map((x: any) => x.category_id).filter(Boolean)));
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    // Paginate all transactions in chunks of 1000
+    const pageSize = 1000;
+    const pages = Math.max(1, Math.ceil((txCount || 0) / pageSize));
+    let all: any[] = [];
+    for (let i = 0; i < pages; i++) {
+      const from = i * pageSize;
+      const to = from + pageSize - 1;
+      const { data: chunk } = await supabase
+        .from('user_transactions')
+        .select('id, description, amount, type, date, is_paid, category_id, created_at')
+        .eq('user_id', user.id)
+        .order('date', { ascending: true })
+        .order('created_at', { ascending: true })
+        .range(from, to);
+      if (Array.isArray(chunk)) all = all.concat(chunk);
+    }
+    // Fetch all chat messages
+    const { count: chatCount } = await supabase
+      .from('user_chat_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    const chatPageSize = 1000;
+    const chatPages = Math.max(1, Math.ceil((chatCount || 0) / chatPageSize));
+    let allMsgs: any[] = [];
+    for (let i = 0; i < chatPages; i++) {
+      const from = i * chatPageSize;
+      const to = from + chatPageSize - 1;
+      const { data: chunk } = await supabase
+        .from('user_chat_messages')
+        .select('id, role, message, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .range(from, to);
+      if (Array.isArray(chunk)) allMsgs = allMsgs.concat(chunk);
+    }
+    // Fetch all categories referenced
+    const catIds = Array.from(new Set((all || []).map((x: any) => x.category_id).filter(Boolean)));
     const { data: categories } = catIds.length ? await supabase
       .from('user_categories')
       .select('id, name, type')
       .in('id', catIds) : { data: [] as any };
+    // Budgets (optional for context)
     const { data: budgets } = await supabase
       .from('user_budgets')
-      .select('id, category, limit_amount')
+      .select('id, category, limit_amount, year, month')
       .eq('user_id', user.id);
-    return { user, transactions: transactions || [], budgets: budgets || [], categories: categories || [] };
+    // Basic profile info if available
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('display_name, avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+    return { user, transactions: all, budgets: budgets || [], categories: categories || [], profile: profile || null, txCount: txCount || (all?.length || 0), chatMessages: allMsgs, chatCount: chatCount || (allMsgs?.length || 0) };
   };
+
+  // helpers moved to top-level exports
 
   const askGemini = async (question: string) => {
     setError(null);
-    const { user, transactions, budgets, categories } = await fetchUserData();
+    const { user, transactions, budgets, categories, profile, txCount, chatMessages, chatCount } = await fetchUserData();
     if (!user) return 'Faça login para que eu consiga acessar seus dados e responder.';
+    // Integrity validations
+    if ((transactions || []).length < (txCount || 0)) {
+      throw new Error('Nem todas as transações foram carregadas. Tente novamente.');
+    }
+    if ((chatMessages || []).length < (chatCount || 0)) {
+      throw new Error('Nem todas as mensagens do chat foram carregadas.');
+    }
     const now = new Date();
     const month = now.getMonth();
     const year = now.getFullYear();
@@ -119,12 +308,92 @@ const Chat: React.FC = () => {
       resumoMesAtual: { entradas: monthIncome, saídas: monthExpense },
       categoriasTopDespesas: top.map(([name, amount]) => ({ name, amount })),
       orcamentos: (budgets || []).map((b: any) => ({ categoria: String(b.category || ''), limite: Number(b.limit_amount || 0) })),
-      amostraTransacoesRecentes: recent.slice(0, 40).map((t: any) => ({ descricao: t.description || (t.type === 'income' ? 'Entrada' : 'Despesa'), valor: Number(t.amount || 0), tipo: t.type, data: t.date, pago: !!t.is_paid, categoria: t.category_id ? (catMap[String(t.category_id)] || 'Categoria') : 'Sem Categoria' }))
+      amostraTransacoesRecentes: recent.slice(0, 40).map((t: any) => ({ descricao: t.description || (t.type === 'income' ? 'Entrada' : 'Despesa'), valor: Number(t.amount || 0), tipo: t.type, data: t.date, pago: !!t.is_paid, categoria: t.category_id ? (catMap[String(t.category_id)] || 'Categoria') : 'Sem Categoria' })),
+      mesAtualDetalhado: (() => {
+        const dt = new Date();
+        const y = dt.getFullYear();
+        const m = dt.getMonth();
+        const cur = (transactions || []).filter((t: any) => {
+          const d = parseLocalISODate(t.date);
+          return d.getFullYear() === y && d.getMonth() === m;
+        }).map((t: any) => ({
+          nomeTransacao: String(t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')),
+          descricao: String(t.description || ''),
+          valor: Number(t.amount || 0),
+          data: typeof t.date === 'string' ? t.date : toLocalISO(parseLocalISODate(String(t.date || ''))),
+          tipo: t.type === 'income' ? 'entrada' : 'saída',
+          categoria: t.category_id ? (catMap[String(t.category_id)] || 'Categoria') : 'Sem Categoria',
+          pago: !!t.is_paid
+        }));
+        return cur;
+      })(),
+      ano2026Detalhado: (() => {
+        const arr = (transactions || []).filter((t: any) => {
+          const d = parseLocalISODate(t.date);
+          return d.getFullYear() === 2026;
+        }).map((t: any) => ({
+          nomeTransacao: String(t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')),
+          descricao: String(t.description || ''),
+          valor: Number(t.amount || 0),
+          data: typeof t.date === 'string' ? t.date : toLocalISO(parseLocalISODate(String(t.date || ''))),
+          tipo: t.type === 'income' ? 'entrada' : 'saída',
+          categoria: t.category_id ? (catMap[String(t.category_id)] || 'Categoria') : 'Sem Categoria',
+          pago: !!t.is_paid
+        }));
+        return arr;
+      })(),
+      meses2026: (() => {
+        const catMapLocal: Record<string, string> = {};
+        (categories || []).forEach((c: any) => { if (c?.id) catMapLocal[String(c.id)] = String(c.name || 'Categoria'); });
+        const normalizedLocal = (transactions || []).map((t: any) => {
+          const dt = typeof t.date === 'string' ? t.date : toLocalISO(parseLocalISODate(String(t.date || '')));
+          const tipo = t.type === 'income' ? 'entrada' : 'saída';
+          const nome = String(t.description || (t.type === 'income' ? 'Entrada' : 'Despesa'));
+          const categoria = t.category_id ? (catMapLocal[String(t.category_id)] || 'Categoria') : 'Sem Categoria';
+          const valorNum = Number(t.amount || 0);
+          const valor = valorNum.toFixed(2);
+          return {
+            id: String(t.id || ''),
+            nomeTransacao: nome,
+            descricao: String(t.description || ''),
+            valor,
+            valor_num: Number(valor),
+            data: dt,
+            timestamp: String(t.created_at || ''),
+            tipo,
+            categoria,
+            pago: !!t.is_paid
+          };
+        });
+        return buildMonthly2026(normalizedLocal);
+      })()
     };
+    const payload = buildWebhookPayload(user, transactions, categories, profile, chatMessages);
+    // Basic required fields validation
+    if (!payload.cliente?.id || !payload.cliente?.email) {
+      throw new Error('Dados cadastrais incompletos para envio ao webhook.');
+    }
+    if ((payload.metadados?.totalRegistros || 0) <= 0) {
+      throw new Error('Nenhuma transação encontrada para envio ao webhook.');
+    }
+    if (!Array.isArray(payload.meses2026) || payload.meses2026.length !== 12) {
+      throw new Error('Estrutura mensal de 2026 incompleta.');
+    }
+    const isISODate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
+    payload.meses2026.forEach((m: any) => {
+      const te = m.entradas.reduce((s: number, t: any) => s + Number(t.valor_num || 0), 0);
+      const ts = m.saidas.reduce((s: number, t: any) => s + Number(t.valor_num || 0), 0);
+      if (Number(m.resumo.totalEntradas || 0) !== Number(te.toFixed(2))) throw new Error('Total de entradas inconsistente em 2026.');
+      if (Number(m.resumo.totalSaidas || 0) !== Number(ts.toFixed(2))) throw new Error('Total de saídas inconsistente em 2026.');
+      m.transacoes.forEach((t: any) => {
+        if (!isISODate(t.data)) throw new Error('Data fora do formato ISO.');
+        if (isNaN(Date.parse(String(t.timestamp || '')))) throw new Error('Timestamp inválido.');
+      });
+    });
     const resp = await fetch('https://n8n.intelektus.tech/webhook/moneyBalanceChatEntry', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question, context })
+      body: JSON.stringify({ question, context, meses2026: payload.meses2026, payload })
     });
     if (!resp.ok) {
       const errText = await resp.text().catch(() => '');
@@ -236,23 +505,22 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark relative">
-      <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(1200px 400px at 20% 0%, rgba(19,236,91,0.12), transparent 60%), radial-gradient(800px 600px at 80% 100%, rgba(19,236,91,0.08), transparent 50%)' }} />
+    <div className="flex flex-col h-screen bg-white dark:bg-background-dark relative font-display">
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative flex items-center justify-between p-4 bg-white/70 dark:bg-background-dark/70 backdrop-blur rounded-b-2xl border border-primary-green shadow-glow-green z-10"
+        className="relative flex items-center justify-between p-4 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo z-10"
       >
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full border border-primary-green/30 hover:bg-surface-light dark:hover:bg-background-dark/60">
-          <span className="material-symbols-outlined text-primary-green">arrow_back_ios_new</span>
+        <button onClick={() => navigate(-1)} className="h-10 w-10 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark hover:bg-surface-light dark:hover:bg-gray-800">
+          <span className="material-symbols-outlined text-dark dark:text-white">arrow_back_ios_new</span>
         </button>
-        <h1 className="font-bold text-lg text-primary-green tracking-wide">Chat com IA</h1>
-        <button className="p-2 rounded-full border border-primary-green/30 hover:bg-surface-light dark:hover:bg-background-dark/60">
-          <span className="material-symbols-outlined text-primary-green">more_vert</span>
+        <h1 className="text-dark dark:text-white font-black text-lg uppercase">Chat com IA</h1>
+        <button className="h-10 w-10 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark hover:bg-surface-light dark:hover:bg-gray-800">
+          <span className="material-symbols-outlined text-dark dark:text-white">more_vert</span>
         </button>
       </motion.header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-surface-dark">
         {messages.map((msg) => (
           <motion.div 
             key={msg.id}
@@ -261,7 +529,7 @@ const Chat: React.FC = () => {
             className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
           >
             {msg.sender === 'ai' && (
-                <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-surface-light">
+                <div className="h-8 w-8 rounded-sm shrink-0 overflow-hidden bg-white dark:bg-surface-dark border-2 border-dark dark:border-white">
                     <img src="https://cdn-icons-png.flaticon.com/512/10881/10881863.png" alt="IA" className="h-full w-full object-cover" />
                 </div>
             )}
@@ -269,28 +537,18 @@ const Chat: React.FC = () => {
             <div className={`flex flex-col gap-1 max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                 <span className="text-xs text-text-secondary ml-1">{msg.sender === 'ai' ? 'Good Money - Assitente IA' : 'Você'}</span>
                 {msg.sender === 'ai' ? (
-                  <motion.div
-                    initial={{ boxShadow: '0 0 0 rgba(19,236,91,0)' }}
-                    animate={{ boxShadow: '0 0 22px rgba(19,236,91,0.25)' }}
-                    transition={{ duration: 0.6 }}
-                    className="px-4 py-4 rounded-2xl rounded-bl-none text-sm leading-relaxed font-zain font-light bg-white dark:bg-background-dark border border-primary-green text-dark dark:text-text-primary"
-                  >
+                  <motion.div className="px-4 py-3 rounded-sm text-sm font-bold bg-white dark:bg-surface-dark border-2 border-dark dark:border-white text-dark dark:text-white shadow-neo-sm">
                     <ReactMarkdown>{msg.text}</ReactMarkdown>
                   </motion.div>
                 ) : (
-                  <motion.div
-                    initial={{ boxShadow: '0 0 0 rgba(19,91,236,0)' }}
-                    animate={{ boxShadow: '0 0 22px rgba(19,91,236,0.25)' }}
-                    transition={{ duration: 0.6 }}
-                    className="px-4 py-4 rounded-2xl rounded-br-none text-sm leading-relaxed font-zain font-light bg-white dark:bg-background-dark border border-primary-blue text-dark dark:text-text-primary"
-                  >
+                  <motion.div className="px-4 py-3 rounded-sm text-sm font-bold bg-white dark:bg-surface-dark border-2 border-dark dark:border-white text-dark dark:text-white shadow-neo-sm">
                     {msg.text}
                   </motion.div>
                 )}
             </div>
 
             {msg.sender === 'user' && (
-                <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-surface-light">
+                <div className="h-8 w-8 rounded-sm shrink-0 overflow-hidden bg-white dark:bg-surface-dark border-2 border-dark dark:border-white">
                      {avatarUrl ? (
                        <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                      ) : (
@@ -303,10 +561,10 @@ const Chat: React.FC = () => {
 
         {isTyping && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-3">
-                 <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-surface-light">
+                 <div className="h-8 w-8 rounded-sm shrink-0 overflow-hidden bg-white dark:bg-surface-dark border-2 border-dark dark:border-white">
                     <img src="https://cdn-icons-png.flaticon.com/512/10881/10881863.png" alt="IA" className="h-full w-full object-cover" />
                 </div>
-                <div className="bg-surface-light px-4 py-3 rounded-2xl rounded-bl-none flex gap-1">
+                <div className="bg-white dark:bg-surface-dark px-3 py-2 rounded-sm border-2 border-dark dark:border-white flex gap-1">
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
@@ -316,7 +574,7 @@ const Chat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-        <div className="p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur border-t border-surface-light dark:border-surface-light">
+        <div className="p-4 bg-white dark:bg-surface-dark border-t-2 border-dark dark:border-white">
         <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
             {[
               'Maior gasto mês atual',
@@ -331,7 +589,7 @@ const Chat: React.FC = () => {
                 <button 
                   onClick={() => setInputValue(chip)}
                   onContextMenu={(e) => e.preventDefault()}
-                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-background-dark text-primary-green border border-primary-green shadow-glow-green hover:bg-surface-light dark:hover:bg-background-dark/80 text-xs font-bold"
+                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-sm bg-white dark:bg-surface-dark text-dark dark:text-white border-2 border-dark dark:border-white shadow-neo-sm hover:bg-surface-light dark:hover:bg-gray-800 text-xs font-bold uppercase"
                 >
                   {chip}
                 </button>
@@ -345,14 +603,14 @@ const Chat: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Pergunte algo..."
-              className="flex-1 bg-white dark:bg-background-dark rounded-full px-6 py-3 text-sm border border-primary-green text-dark dark:text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-green/40 shadow-glow-green"
+              className="flex-1 bg-white dark:bg-surface-dark rounded-sm px-4 py-3 text-sm border-2 border-dark dark:border-white text-dark dark:text-white placeholder:text-text-secondary focus:outline-none"
             />
             <motion.button 
               whileTap={{ scale: 0.9 }}
               onClick={handleSend}
               disabled={!inputValue}
               onContextMenu={(e) => e.preventDefault()}
-              className="no-callout select-none h-12 w-12 rounded-full bg-primary-green flex items-center justify-center text-background-dark shadow-glow-green disabled:opacity-50 disabled:cursor-not-allowed"
+              className="no-callout select-none h-12 w-12 rounded-sm bg-primary flex items-center justify-center text-white border-2 border-dark dark:border-white shadow-neo-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined">send</span>
             </motion.button>
@@ -363,7 +621,7 @@ const Chat: React.FC = () => {
               onPointerLeave={stopRecordingAndSend}
               disabled={isTyping}
               onContextMenu={(e) => e.preventDefault()}
-              className={`no-callout select-none h-12 w-12 rounded-full flex items-center justify-center text-background-dark border border-primary-green ${isRecording ? 'bg-primary-teal animate-pulse' : 'bg-primary-green'} shadow-glow-green disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`no-callout select-none h-12 w-12 rounded-sm flex items-center justify-center text-white border-2 border-dark dark:border-white ${isRecording ? 'bg-secondary animate-pulse' : 'bg-secondary'} shadow-neo-sm disabled:opacity-50 disabled:cursor-not-allowed`}
               aria-label="Segure para falar"
             >
               <span className="material-symbols-outlined">mic</span>
