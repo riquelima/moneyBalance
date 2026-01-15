@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { BiometricCapture } from '../components/BiometricCapture';
+import { arrayToDescriptor, matchFace } from '../utils/faceAuth';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +11,9 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showBiometric, setShowBiometric] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><rect x='0' y='0' width='64' height='64' rx='12' fill='#13ec5b'/><rect x='14' y='22' width='36' height='22' rx='6' fill='#8d5a3a' stroke='#2d2d2d' stroke-width='2'/><circle cx='44' cy='33' r='3' fill='#2d2d2d'/><rect x='20' y='16' width='20' height='10' rx='2' fill='#14d86a'/></svg>`;
   const fallbackLogo = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 
@@ -51,6 +56,56 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleBiometricLogin = async (capturedDescriptor: Float32Array) => {
+    if (isVerifying) return;
+    setIsVerifying(true);
+    
+    try {
+      // Baixar descritores públicos
+      const { data: biometrics, error: fetchError } = await supabase
+        .from('face_biometrics')
+        .select('user_id, descriptor');
+
+      if (fetchError) throw fetchError;
+      
+      if (!biometrics || biometrics.length === 0) {
+        setError('Nenhum dado biométrico encontrado no sistema.');
+        setShowBiometric(false);
+        return;
+      }
+
+      const storedDescriptors = biometrics.map(b => ({
+        userId: b.user_id,
+        descriptor: arrayToDescriptor(b.descriptor)
+      }));
+
+      const match = matchFace(capturedDescriptor, storedDescriptors);
+
+      if (match) {
+        // Reconhecimento bem sucedido
+        // AVISO: Sem backend, não podemos gerar sessão real.
+        // Vamos redirecionar, mas o dashboard pode pedir login.
+        setShowBiometric(false);
+        navigate('/');
+      } else {
+        // Não fechamos o modal imediatamente, damos chance de tentar de novo ou avisamos
+        // Mas o componente BiometricCapture fica rodando.
+        // Vamos apenas logar ou mostrar erro temporário?
+        // Como o matchFace retorna null se não achar, o usuário continua tentando.
+        // Mas o loop do componente captura pode disparar várias vezes.
+        // Se falhar, vamos fechar e avisar para não ficar num loop de erro.
+        setError('Rosto não reconhecido. Tente novamente ou use a senha.');
+        setShowBiometric(false);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError('Erro na validação biométrica: ' + err.message);
+      setShowBiometric(false);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const handleReset = async () => {
     setError(null);
     const emailTrim = String(email).trim();
@@ -67,6 +122,15 @@ const Login: React.FC = () => {
       exit={{ opacity: 0, x: 20 }}
       className="flex min-h-screen w-full flex-col items-center justify-center bg-background-dark p-4 font-display"
     >
+      {showBiometric && (
+        <BiometricCapture 
+          mode="login"
+          onCapture={handleBiometricLogin}
+          onCancel={() => setShowBiometric(false)}
+          isProcessing={isVerifying}
+        />
+      )}
+
       <div className="flex w-full max-w-sm flex-col items-center rounded-sm bg-white p-8 shadow-neo border-3 border-dark">
         <motion.div 
           initial={{ scale: 0 }}
@@ -127,6 +191,16 @@ const Login: React.FC = () => {
               Esqueci minha senha
             </motion.button>
           </div>
+
+          <motion.button
+            whileTap={{ scale: 0.95, y: 2 }}
+            type="button"
+            onClick={() => setShowBiometric(true)}
+            className="w-full rounded-sm bg-white border-2 border-dark py-4 text-lg font-black text-dark shadow-neo hover:bg-gray-50 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined">face</span>
+            Login Facial
+          </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.02 }}

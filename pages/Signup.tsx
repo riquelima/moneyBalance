@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { BiometricCapture } from '../components/BiometricCapture';
+import { descriptorToArray } from '../utils/faceAuth';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +15,9 @@ const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showBiometric, setShowBiometric] = useState(false);
+  const [registeredUserId, setRegisteredUserId] = useState<string | null>(null);
+  const [isSavingBiometric, setIsSavingBiometric] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +34,38 @@ const Signup: React.FC = () => {
       return;
     }
     if (data?.user) {
-      navigate('/success');
+      setRegisteredUserId(data.user.id);
+      setShowBiometric(true);
     }
+  };
+
+  const handleBiometricCapture = async (descriptor: Float32Array) => {
+    if (!registeredUserId) return;
+    
+    setIsSavingBiometric(true);
+    try {
+      const descriptorArray = descriptorToArray(descriptor);
+      
+      // Salvar na tabela customizada
+      const { error } = await supabase
+        .from('face_biometrics')
+        .insert({
+          user_id: registeredUserId,
+          descriptor: descriptorArray
+        });
+
+      if (error) throw error;
+      
+      navigate('/success');
+    } catch (err: any) {
+      console.error(err);
+      setError('Erro ao salvar biometria: ' + err.message);
+      setIsSavingBiometric(false);
+    }
+  };
+
+  const handleSkipBiometric = () => {
+    navigate('/success');
   };
 
   return (
@@ -40,6 +75,15 @@ const Signup: React.FC = () => {
       exit={{ opacity: 0, x: -20 }}
       className="flex min-h-screen w-full flex-col bg-white text-dark p-4"
     >
+      {showBiometric && (
+        <BiometricCapture 
+          mode="enroll"
+          onCapture={handleBiometricCapture}
+          onCancel={handleSkipBiometric}
+          isProcessing={isSavingBiometric}
+        />
+      )}
+
       <header className="flex items-center mb-6">
         <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/login')} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark hover:bg-surface-light transition-all active:translate-y-[2px] shadow-neo-sm active:shadow-none">
           <span className="material-symbols-outlined">arrow_back</span>

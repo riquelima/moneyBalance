@@ -2,14 +2,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseUrl, supabaseAnon } from '../supabaseClient';
+import { BiometricCapture } from '../components/BiometricCapture';
+import { descriptorToArray } from '../utils/faceAuth';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ name: string; lastName: string; email: string; avatarUrl: string } | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [supabaseUrl, setSupabaseUrl] = useState<string>('');
-  const [supabaseAnon, setSupabaseAnon] = useState<string>('');
+  const [supabaseUrlState, setSupabaseUrl] = useState<string>('');
+  const [supabaseAnonState, setSupabaseAnon] = useState<string>('');
   const [isDark, setIsDark] = useState(true);
+  
+  // Biometric States
+  const [hasBiometrics, setHasBiometrics] = useState(false);
+  const [showBiometricCapture, setShowBiometricCapture] = useState(false);
+  const [isBiometricProcessing, setIsBiometricProcessing] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -25,6 +33,17 @@ const Settings: React.FC = () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
       if (!user) return;
+
+      // Check Biometrics
+      const { count } = await supabase
+        .from('face_biometrics')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      if (mounted) {
+        setHasBiometrics(!!count && count > 0);
+      }
+
       const email = user.email || '';
       const metaName = (user.user_metadata?.name as string) || '';
       const metaLast = (user.user_metadata?.lastName as string) || '';
@@ -47,8 +66,8 @@ const Settings: React.FC = () => {
     load();
     const u = window.localStorage.getItem('SUPABASE_URL') || '';
     const k = window.localStorage.getItem('SUPABASE_ANON_KEY') || '';
-    setSupabaseUrl(u || supabaseUrl);
-    setSupabaseAnon(k || supabaseAnon);
+    setSupabaseUrl(u || supabaseUrlState);
+    setSupabaseAnon(k || supabaseAnonState);
     
     return () => { mounted = false; };
   }, []);
@@ -62,6 +81,61 @@ const Settings: React.FC = () => {
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
+    }
+  };
+
+  const handleBiometricToggle = async () => {
+    setBiometricError(null);
+    if (hasBiometrics) {
+      // Remove biometrics
+      const confirmRemove = window.confirm('Deseja remover sua biometria facial? Você precisará cadastrar novamente para usar o login facial.');
+      if (!confirmRemove) return;
+
+      setIsBiometricProcessing(true);
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        const { error } = await supabase
+          .from('face_biometrics')
+          .delete()
+          .eq('user_id', userData.user.id);
+        
+        if (!error) {
+          setHasBiometrics(false);
+        } else {
+          setBiometricError('Erro ao remover biometria.');
+        }
+      }
+      setIsBiometricProcessing(false);
+    } else {
+      // Start enrollment
+      setShowBiometricCapture(true);
+    }
+  };
+
+  const handleBiometricEnroll = async (descriptor: Float32Array) => {
+    setIsBiometricProcessing(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) throw new Error('Usuário não autenticado');
+
+      const descriptorArray = descriptorToArray(descriptor);
+      
+      const { error } = await supabase
+        .from('face_biometrics')
+        .insert({
+          user_id: userData.user.id,
+          descriptor: descriptorArray
+        });
+
+      if (error) throw error;
+      
+      setHasBiometrics(true);
+      setShowBiometricCapture(false);
+    } catch (err: any) {
+      console.error(err);
+      setBiometricError('Erro ao salvar biometria: ' + err.message);
+    } finally {
+      setIsBiometricProcessing(false);
     }
   };
 
@@ -106,6 +180,15 @@ const Settings: React.FC = () => {
         </motion.button>
         <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">Configurações</h1>
       </header>
+
+      {showBiometricCapture && (
+        <BiometricCapture 
+          mode="enroll"
+          onCapture={handleBiometricEnroll}
+          onCancel={() => setShowBiometricCapture(false)}
+          isProcessing={isBiometricProcessing}
+        />
+      )}
 
       <div className="px-4 pt-4">
         <SectionHeader title="Conta" />
@@ -157,18 +240,31 @@ const Settings: React.FC = () => {
         <SectionHeader title="Segurança" />
         <div className="flex flex-col">
             <SettingItem icon="lock_reset" label="Alterar Senha" color="bg-accent text-dark" />
-            <div className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group">
+            <motion.div 
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBiometricToggle}
+                className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group cursor-pointer"
+            >
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center bg-primary text-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
                         <span className="material-symbols-outlined font-black">fingerprint</span>
                     </div>
-                    <p className="font-black text-dark dark:text-white uppercase text-sm">Biometria</p>
+                    <div>
+                        <p className="font-black text-dark dark:text-white uppercase text-sm">Biometria</p>
+                        {biometricError && <p className="text-xs text-danger font-bold">{biometricError}</p>}
+                        {isBiometricProcessing && <p className="text-xs text-primary font-bold animate-pulse">Processando...</p>}
+                    </div>
                 </div>
                 <div className="relative inline-flex items-center cursor-pointer p-1">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={hasBiometrics} 
+                        readOnly 
+                    />
                     <div className="w-12 h-7 bg-surface-light dark:bg-white/10 peer-focus:outline-none border-2 border-dark dark:border-white peer peer-checked:after:translate-x-full peer-checked:after:border-dark dark:peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-dark dark:after:bg-white after:border-dark dark:after:border-white after:border-2 after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
                 </div>
-            </div>
+            </motion.div>
             <SettingItem icon="shield_lock" label="Privacidade" color="bg-dark text-white dark:bg-white dark:text-dark" />
         </div>
 
