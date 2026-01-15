@@ -22,6 +22,7 @@ const Dashboard: React.FC = () => {
   const [expenseItems, setExpenseItems] = useState<any[]>([]);
   const [entriesCollapsed, setEntriesCollapsed] = useState<boolean>(false);
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
+  const [hideValues, setHideValues] = useState<boolean>(false);
   
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[]; raw?: number[] }> = {
@@ -321,7 +322,15 @@ const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex items-center justify-end mt-2">
+      <div className="flex items-center justify-between mt-2">
+        <motion.button
+          whileTap={{ scale: 0.95, y: 2 }}
+          onClick={() => setHideValues(v => !v)}
+          aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+          className="h-8 w-8 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo-sm dark:shadow-none"
+        >
+          <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-4 w-4" />
+        </motion.button>
         <motion.button
           whileTap={{ scale: 0.95, y: 2 }}
           onClick={() => setShowMonthPicker(s => !s)}
@@ -365,7 +374,7 @@ const Dashboard: React.FC = () => {
         className="rounded-lg bg-white dark:bg-surface-dark p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
       >
         <p className="text-sm font-bold text-dark dark:text-white mb-1 text-center uppercase tracking-widest">Total de Saldo</p>
-        <h2 className="text-4xl font-black tracking-tight text-dark dark:text-white text-center">{formatBRL(summary.balance)}</h2>
+        <h2 className={`text-4xl font-black tracking-tight text-dark dark:text-white text-center ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
@@ -390,7 +399,7 @@ const Dashboard: React.FC = () => {
               <span className="material-symbols-outlined text-xl">{item.icon}</span>
               <p className="text-xs font-black uppercase tracking-wider text-dark dark:text-white">{item.label}</p>
             </div>
-            <p className="text-lg font-black text-dark dark:text-white">{item.value}</p>
+            <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{item.value}</p>
           </motion.div>
         ))}
       </motion.section>
@@ -443,7 +452,7 @@ const Dashboard: React.FC = () => {
                     >
                       {showLabel && (
                         <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
-                          {labelText}
+                          <span className={`${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{labelText}</span>
                         </span>
                       )}
                     </motion.div>
@@ -485,7 +494,7 @@ const Dashboard: React.FC = () => {
                   <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
                   <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
                 </div>
-                <span className={`text-sm font-black text-dark dark:text-white bg-secondary/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                <span className={`text-sm font-black text-dark dark:text-white bg-secondary/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
               </div>
             ))}
           </div>
@@ -518,7 +527,7 @@ const Dashboard: React.FC = () => {
                   <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
                   <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
                 </div>
-                <span className={`text-sm font-black text-dark dark:text-white bg-danger/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                <span className={`text-sm font-black text-dark dark:text-white bg-danger/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
               </div>
             ))}
           </div>
