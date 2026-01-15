@@ -379,6 +379,7 @@ const Dashboard: React.FC = () => {
       <motion.section 
         variants={itemVariants}
         className="rounded-lg bg-white dark:bg-surface-dark p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
+        data-onboarding="saldo-total"
       >
         <p className="text-sm font-bold text-dark dark:text-white mb-1 text-center uppercase tracking-widest">Total de Saldo</p>
         <h2 className={`text-4xl font-black tracking-tight text-dark dark:text-white text-center ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
@@ -395,6 +396,7 @@ const Dashboard: React.FC = () => {
             key={idx}
             className={`rounded-lg ${item.bg} p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer`}
             whileHover={{ y: -2 }}
+            data-onboarding={item.label === 'Entradas' ? 'card-entradas' : (item.label === 'Já pagos' ? 'card-ja-pagos' : (item.label === 'Não Pagos' ? 'card-nao-pagos' : undefined))}
             onClick={() => {
               if (item.label === 'Entradas') navigate('/transactions?type=income');
               if (item.label === 'Saídas') navigate('/transactions?type=expense');

@@ -27,6 +27,8 @@ const BottomNav: React.FC = () => {
                   whileTap={{ scale: 0.95, y: 0 }}
                   onClick={() => navigate(item.path)}
                   className="flex h-14 w-14 -translate-y-4 transform items-center justify-center rounded-full border-3 border-dark dark:border-white bg-primary text-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
+                  data-onboarding="add-fab"
+                  aria-label="Adicionar transação"
                 >
                   <span className="material-symbols-outlined !text-3xl">add</span>
                 </motion.button>
