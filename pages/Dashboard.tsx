@@ -24,6 +24,13 @@ const Dashboard: React.FC = () => {
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
   const [hideValues, setHideValues] = useState<boolean>(false);
   
+  useEffect(() => {
+    const persisted = localStorage.getItem('hideValues');
+    if (persisted === 'true' || persisted === 'false') {
+      setHideValues(persisted === 'true');
+    }
+  }, []);
+
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[]; raw?: number[] }> = {
     day: {
@@ -325,7 +332,7 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between mt-2">
         <motion.button
           whileTap={{ scale: 0.95, y: 2 }}
-          onClick={() => setHideValues(v => !v)}
+          onClick={() => setHideValues(v => { const next = !v; localStorage.setItem('hideValues', next ? 'true' : 'false'); return next; })}
           aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
           className="h-8 w-8 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo-sm dark:shadow-none"
         >
