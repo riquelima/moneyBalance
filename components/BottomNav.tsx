@@ -11,7 +11,7 @@ const BottomNav: React.FC = () => {
     { icon: 'pie_chart', label: 'Gastos', path: '/reports' },
     { icon: 'add', label: '', path: '/add-transaction', isFab: true }, // Central FAB redirects to Add Transaction page
     { icon: 'swap_horiz', label: 'Transações', path: '/transactions' },
-    { icon: 'settings', label: 'Ajustes', path: '/settings' },
+    { icon: 'calendar_month', label: 'Agenda', path: '/calendar' },
   ];
 
   return (

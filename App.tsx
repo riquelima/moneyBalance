@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import AddTransaction from './pages/AddTransaction';
 import Notifications from './pages/Notifications';
 import ProjecaoFutura from './pages/ProjecaoFutura';
+import CalendarPage from './pages/CalendarPage';
 
 // Components
 import BottomNav from './components/BottomNav';
@@ -180,6 +181,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/transactions" element={<AppLayout><Transactions /></AppLayout>} />
         <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
         <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+        <Route path="/calendar" element={<AppLayout><CalendarPage /></AppLayout>} />
         <Route path="/projecao-futura" element={<AppLayout><ProjecaoFutura /></AppLayout>} />
         
         {/* Detail Routes */}

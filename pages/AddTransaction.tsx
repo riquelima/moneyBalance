@@ -147,7 +147,7 @@ const AddTransaction: React.FC = () => {
                 <motion.button 
                     whileTap={{ scale: 0.95, y: 2 }}
                     onClick={() => setType('expense')}
-                    className={`flex-1 py-2 rounded-sm text-sm font-black uppercase transition-all border-2 ${type === 'expense' ? 'bg-primary text-white border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-1' : 'bg-transparent text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'}`}
+                    className={`flex-1 py-2 rounded-sm text-sm font-black uppercase transition-all border-2 ${type === 'expense' ? 'bg-danger text-white border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-1' : 'bg-transparent text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'}`}
                 >
                     Despesa
                 </motion.button>
@@ -164,7 +164,7 @@ const AddTransaction: React.FC = () => {
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0,00"
                         autoFocus
-                        className={`bg-transparent border-none p-0 text-6xl font-black placeholder-text-secondary/30 focus:ring-0 w-48 text-center ${type === 'expense' ? 'text-primary' : 'text-secondary'}`}
+                        className={`bg-transparent border-none p-0 text-6xl font-black placeholder-text-secondary/30 focus:ring-0 w-48 text-center ${type === 'expense' ? 'text-danger' : 'text-secondary'}`}
                     />
                 </div>
                 {showDatePicker && (
@@ -341,7 +341,7 @@ const AddTransaction: React.FC = () => {
                         <motion.button 
                           whileTap={{ scale: 0.95, y: 2 }}
                             onClick={() => setIsPaid(!isPaid)}
-                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark dark:border-white ${isPaid ? (type === 'expense' ? 'bg-primary' : 'bg-secondary') : 'bg-surface-light dark:bg-gray-700'}`}
+                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark dark:border-white ${isPaid ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-surface-light dark:bg-gray-700'}`}
                         >
                             <div className={`absolute -top-1 -left-1 bg-white dark:bg-surface-dark h-4 w-4 rounded-sm border-2 border-dark dark:border-white shadow-sm transition-transform ${isPaid ? 'translate-x-4' : 'translate-x-0'}`} />
                         </motion.button>
@@ -353,7 +353,7 @@ const AddTransaction: React.FC = () => {
                         <motion.button 
                           whileTap={{ scale: 0.95, y: 2 }}
                             onClick={() => setIsRecurring(!isRecurring)}
-                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark dark:border-white ${isRecurring ? (type === 'expense' ? 'bg-primary' : 'bg-secondary') : 'bg-surface-light dark:bg-gray-700'}`}
+                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark dark:border-white ${isRecurring ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-surface-light dark:bg-gray-700'}`}
                         >
                             <div className={`absolute -top-1 -left-1 bg-white dark:bg-surface-dark h-4 w-4 rounded-sm border-2 border-dark dark:border-white shadow-sm transition-transform ${isRecurring ? 'translate-x-4' : 'translate-x-0'}`} />
                         </motion.button>

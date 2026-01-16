@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, labelForDate } from '../utils/date';
 
+import PastSelfWidget from '../components/dashboard/PastSelfWidget';
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -412,6 +414,8 @@ const Dashboard: React.FC = () => {
           </motion.div>
         ))}
       </motion.section>
+
+      <PastSelfWidget />
 
       <motion.section variants={itemVariants}>
         <div className="mb-4 px-4">
