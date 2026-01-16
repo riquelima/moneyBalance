@@ -353,13 +353,15 @@ const Reports: React.FC = () => {
       {showMonthPicker && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
           <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]">
-            <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-2">
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-sm p-1 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
-                <span className="material-symbols-outlined dark:text-white">chevron_left</span>
+            <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-4">
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-sm p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
+                <span className="material-symbols-outlined text-dark dark:text-white">chevron_left</span>
               </motion.button>
-              <p className="text-xl font-black text-dark dark:text-white">{selectedYear}</p>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-sm p-1 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
-                <span className="material-symbols-outlined dark:text-white">chevron_right</span>
+              <div className="bg-surface-light dark:bg-gray-800 px-6 py-2 border-2 border-dark dark:border-white rounded-sm shadow-inner">
+                <p className="text-2xl font-black text-dark dark:text-white">{selectedYear}</p>
+              </div>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-sm p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
+                <span className="material-symbols-outlined text-dark dark:text-white">chevron_right</span>
               </motion.button>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-6">
