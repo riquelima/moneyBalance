@@ -6,19 +6,20 @@ import { format } from 'date-fns';
 const CalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showYear, setShowYear] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
+        // Show year when sentinel is NOT visible (scrolled past)
         setShowYear(!entry.isIntersecting);
       },
-      { threshold: 0.2 } // Trigger when header is mostly out of view
+      { threshold: 0, root: scrollContainerRef.current }
     );
 
-    if (headerRef.current) {
-      observer.observe(headerRef.current);
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
     }
 
     return () => observer.disconnect();
@@ -26,7 +27,7 @@ const CalendarPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark relative">
-      <header ref={headerRef} className="sticky top-0 z-50 flex items-center justify-center bg-white dark:bg-surface-dark p-4 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
+      <header className="sticky top-0 z-50 flex items-center justify-center bg-white dark:bg-surface-dark p-4 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
         <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">AGENDA</h1>
       </header>
 
@@ -49,6 +50,7 @@ const CalendarPage: React.FC = () => {
       </AnimatePresence>
 
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
+        <div ref={sentinelRef} className="h-1 w-full absolute top-0 pointer-events-none" />
         <CalendarView currentDate={currentDate} setCurrentDate={setCurrentDate} />
       </div>
     </div>
