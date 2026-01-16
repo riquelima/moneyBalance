@@ -454,13 +454,6 @@ const Dashboard: React.FC = () => {
         <div className="mb-4 px-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black uppercase text-dark dark:text-white">Gráficos</h3>
-              {period === 'month' && (
-                <div className="flex items-center gap-2">
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setDirection(-1); setChartYear(y => y - 1); }} className="p-1 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined text-lg">chevron_left</span></motion.button>
-                  <span className="text-xs font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-2 py-1 rounded-sm border border-dark dark:border-white">{chartYear}</span>
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setDirection(1); setChartYear(y => y + 1); }} className="p-1 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined text-lg">chevron_right</span></motion.button>
-                </div>
-              )}
             </div>
             <div className="mt-2 flex items-center gap-2 w-full justify-between">
               <div className="flex items-center gap-1 rounded-lg bg-white dark:bg-surface-dark p-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
