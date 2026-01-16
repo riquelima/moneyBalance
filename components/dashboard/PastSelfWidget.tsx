@@ -137,8 +137,8 @@ const PastSelfWidget: React.FC = () => {
       // Sort by absolute difference to show most impactful changes
       results.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));
 
-      // Take top 3
-      setComparisons(results.slice(0, 3));
+      // Take top 20
+      setComparisons(results.slice(0, 20));
 
     } catch (err) {
       console.error('Error fetching comparison:', err);

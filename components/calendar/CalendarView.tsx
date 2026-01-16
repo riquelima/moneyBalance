@@ -140,8 +140,8 @@ const CalendarView: React.FC = () => {
   const selectedTransactions = selectedDate ? getDayTransactions(selectedDate) : [];
 
   return (
-    <div className="flex flex-col h-full bg-background-light dark:bg-background-dark p-4">
-      <div className="flex flex-col h-full border-3 border-dark dark:border-white rounded-xl shadow-neo bg-white dark:bg-surface-dark overflow-hidden">
+    <div className="flex flex-col h-auto bg-background-light dark:bg-background-dark p-4">
+      <div className="flex flex-col h-auto border-3 border-dark dark:border-white rounded-xl shadow-neo bg-white dark:bg-surface-dark overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 bg-white dark:bg-surface-dark border-b-3 border-dark dark:border-white">
           <button 
@@ -173,7 +173,7 @@ const CalendarView: React.FC = () => {
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 flex-1 bg-gray-100 dark:bg-gray-900 gap-0.5 border-b-2 border-dark dark:border-white overflow-y-auto">
+        <div className="grid grid-cols-7 bg-gray-100 dark:bg-gray-900 gap-0.5 border-b-2 border-dark dark:border-white">
           {calendarDays.map(renderDay)}
         </div>
       </div>
