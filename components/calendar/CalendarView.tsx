@@ -156,7 +156,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
           </button>
           
           <h2 className="text-2xl font-black uppercase tracking-tight text-dark dark:text-white">
-            {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+            {format(currentDate, 'MMMM', { locale: ptBR })}
           </h2>
 
           <button 

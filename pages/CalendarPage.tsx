@@ -1,29 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import CalendarView from '../components/calendar/CalendarView';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
 
 const CalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [showYear, setShowYear] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Show year when sentinel is NOT visible (scrolled past)
-        setShowYear(!entry.isIntersecting);
-      },
-      { threshold: 0, root: scrollContainerRef.current }
-    );
-
-    if (sentinelRef.current) {
-      observer.observe(sentinelRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark relative">
@@ -31,26 +10,7 @@ const CalendarPage: React.FC = () => {
         <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">AGENDA</h1>
       </header>
 
-      {/* Sticky Year Indicator */}
-      <AnimatePresence>
-        {showYear && (
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -50, opacity: 0 }}
-            className="absolute top-20 left-0 right-0 z-40 flex justify-center pointer-events-none"
-          >
-            <div className="bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-4 py-1 rounded-full shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-              <span className="text-sm font-black text-dark dark:text-white">
-                {format(currentDate, 'yyyy')}
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
-        <div ref={sentinelRef} className="h-1 w-full absolute top-0 pointer-events-none" />
+      <div className="flex-1 overflow-y-auto">
         <CalendarView currentDate={currentDate} setCurrentDate={setCurrentDate} />
       </div>
     </div>
