@@ -27,8 +27,12 @@ interface Transaction {
   category_id?: string;
 }
 
-const CalendarView: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+interface CalendarViewProps {
+  currentDate: Date;
+  setCurrentDate: React.Dispatch<React.SetStateAction<Date>>;
+}
+
+const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
