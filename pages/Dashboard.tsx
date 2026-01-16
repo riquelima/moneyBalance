@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, labelForDate } from '../utils/date';
 
@@ -18,6 +18,7 @@ const Dashboard: React.FC = () => {
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const [chart, setChart] = useState<{ values: number[]; labels: string[]; raw?: number[] }>({ values: [], labels: [] });
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [showMonthPicker, setShowMonthPicker] = useState<boolean>(false);
   const [incomeItems, setIncomeItems] = useState<any[]>([]);
@@ -70,6 +71,37 @@ const Dashboard: React.FC = () => {
   );
   const now = new Date();
   const highlightIndex = period === 'month' ? selectedMonth : 3;
+
+  const [direction, setDirection] = useState(0);
+
+  // Swipe handlers
+  const handleChartSwipe = (event: any, info: any) => {
+    if (period !== 'month') return;
+    if (info.offset.x > 50) {
+      setDirection(-1);
+      setChartYear(y => y - 1);
+    } else if (info.offset.x < -50) {
+      setDirection(1);
+      setChartYear(y => y + 1);
+    }
+  };
+
+  const chartVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 300 : -300,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (dir: number) => ({
+      zIndex: 0,
+      x: dir < 0 ? 300 : -300,
+      opacity: 0
+    })
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -208,8 +240,9 @@ const Dashboard: React.FC = () => {
             setChart({ labels, values: normalize(vals), raw: vals });
         }
       } else {
-        const from = new Date(selectedYear, 0, 1);
-        const to = new Date(selectedYear, 11, 31);
+        // Month view: show all months for chartYear
+        const from = new Date(chartYear, 0, 1);
+        const to = new Date(chartYear, 11, 31);
         const { data, error } = await supabase
           .from('user_transactions')
           .select('amount, date, type')
@@ -233,7 +266,7 @@ const Dashboard: React.FC = () => {
     };
     buildChart();
     return () => { mounted = false; };
-  }, [period, selectedYear, selectedMonth, chartType]);
+  }, [period, selectedYear, selectedMonth, chartType, chartYear]);
 
   useEffect(() => {
     let mounted = true;
@@ -419,7 +452,16 @@ const Dashboard: React.FC = () => {
 
       <motion.section variants={itemVariants}>
         <div className="mb-4 px-4">
-            <h3 className="text-lg font-black uppercase text-dark dark:text-white">Gráficos</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black uppercase text-dark dark:text-white">Gráficos</h3>
+              {period === 'month' && (
+                <div className="flex items-center gap-2">
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setDirection(-1); setChartYear(y => y - 1); }} className="p-1 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined text-lg">chevron_left</span></motion.button>
+                  <span className="text-xs font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-2 py-1 rounded-sm border border-dark dark:border-white">{chartYear}</span>
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setDirection(1); setChartYear(y => y + 1); }} className="p-1 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined text-lg">chevron_right</span></motion.button>
+                </div>
+              )}
+            </div>
             <div className="mt-2 flex items-center gap-2 w-full justify-between">
               <div className="flex items-center gap-1 rounded-lg bg-white dark:bg-surface-dark p-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
                 <motion.button
@@ -446,38 +488,61 @@ const Dashboard: React.FC = () => {
             </div>
         </div>
         
-        <div className="flex h-56 w-full flex-col justify-end rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] relative overflow-visible">
-            <div className="grid h-full w-full items-end gap-1" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
-              {current.values.map((h, i) => {
-                const rawVal = (chart.raw || current.raw || [])[i] || 0;
-                const labelText = formatBRL(rawVal);
-                const charCount = labelText.replace(/\s/g, '').length;
-                const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
-                const showLabel = rawVal > 0 && (period === 'month' || h >= 12);
-                return (
-                  <div key={i} className="relative flex flex-col justify-end items-center h-full">
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${h}%` }}
-                      transition={{ duration: 1, delay: i * 0.05 }}
-                      className={`${chartType === 'expense' ? 'bg-danger' : 'bg-secondary'} border-2 border-dark dark:border-white relative flex items-center justify-center ${period === 'month' ? 'w-[14px] sm:w-[16px]' : 'w-full'}`}
-                      style={{ backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#20BF55', opacity: 1, minHeight: showLabel ? `${minPx}px` : undefined }}
-                    >
-                      {showLabel && (
-                        <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
-                          <span className={`${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{labelText}</span>
-                        </span>
-                      )}
-                    </motion.div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-3 grid w-full border-t-2 border-dark dark:border-white pt-2 text-xs text-dark dark:text-white font-bold uppercase" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
-                {current.labels.map((l, idx) => (
-                  <span key={idx} className="text-center">{l}</span>
-                ))}
-            </div>
+        <div className="flex h-56 w-full flex-col justify-end rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] relative overflow-hidden">
+          <AnimatePresence initial={false} custom={direction} mode="wait">
+            <motion.div
+              key={`${period}-${chartYear}-${chartType}`}
+              custom={direction}
+              variants={chartVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+              className="w-full h-full flex flex-col justify-end"
+              drag={period === 'month' ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleChartSwipe}
+            >
+              <div className="grid h-full w-full items-end gap-1" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+                {current.values.map((h, i) => {
+                  const rawVal = (chart.raw || current.raw || [])[i] || 0;
+                  const labelText = formatBRL(rawVal);
+                  const charCount = labelText.replace(/\s/g, '').length;
+                  const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
+                  const showLabel = rawVal > 0 && (period === 'month' || h >= 12);
+                  const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
+
+                  return (
+                    <div key={i} className="relative flex flex-col justify-end items-center h-full">
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: `${h}%` }}
+                        transition={{ duration: 1, delay: i * 0.05 }}
+                        className={`${chartType === 'expense' ? 'bg-danger' : 'bg-secondary'} border-2 border-dark dark:border-white relative flex items-center justify-center ${period === 'month' ? 'w-[14px] sm:w-[16px]' : 'w-full'}`}
+                        style={{ 
+                          backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#20BF55', 
+                          opacity: (period === 'month' && !isHighlighted && chartYear === selectedYear) ? 0.6 : 1, 
+                          minHeight: showLabel ? `${minPx}px` : undefined 
+                        }}
+                      >
+                        {showLabel && (
+                          <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
+                            <span className={`${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{labelText}</span>
+                          </span>
+                        )}
+                      </motion.div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 grid w-full border-t-2 border-dark dark:border-white pt-2 text-xs text-dark dark:text-white font-bold uppercase" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+                  {current.labels.map((l, idx) => (
+                    <span key={idx} className={`text-center ${period === 'month' && idx === selectedMonth && chartYear === selectedYear ? 'text-primary' : ''}`}>{l}</span>
+                  ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </motion.section>
 
