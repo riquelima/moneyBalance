@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, toLocalISO, labelForDate } from '../utils/date';
 import { categories } from '../categories';
@@ -267,6 +267,127 @@ const Transactions: React.FC = () => {
             className="w-full bg-transparent text-dark dark:text-white placeholder:text-text-secondary dark:placeholder:text-text-secondary/70 outline-none border-none focus:ring-0 p-0 font-bold uppercase"
           />
         </div>
+
+        <AnimatePresence>
+          {showFilter && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }} 
+              animate={{ height: 'auto', opacity: 1 }} 
+              exit={{ height: 0, opacity: 0 }} 
+              className="overflow-hidden"
+            >
+              <div className="mt-4 bg-white dark:bg-surface-dark p-6 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+                <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-2">
+                  <h3 className="text-xl font-black uppercase text-dark dark:text-white">Filtrar transações</h3>
+                  <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
+                    <span className="material-symbols-outlined">close</span>
+                  </motion.button>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Status</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['all','paid','pending'].map((s) => (
+                      <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
+                        key={s}
+                        onClick={() => setStatusFilter(s as any)}
+                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${statusFilter === s ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                      >
+                        {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Tipo</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['all','income','expense'].map((t) => (
+                      <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
+                        key={t}
+                        onClick={() => setTypeFilter(t as any)}
+                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${typeFilter === t ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                      >
+                        {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Ano</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    <motion.button
+                      whileTap={{ scale: 0.95, y: 2 }}
+                      onClick={() => setYearFilter('all')}
+                      className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                    >
+                      Todos
+                    </motion.button>
+                    {availableYears.map((y) => (
+                      <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
+                        key={y}
+                        onClick={() => setYearFilter(y)}
+                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === y ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                      >
+                        {y}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Mês</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    <motion.button
+                      whileTap={{ scale: 0.95, y: 2 }}
+                      onClick={() => setMonthFilter('all')}
+                      className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                    >
+                      Todos
+                    </motion.button>
+                    {monthNames.map((m, idx) => (
+                      <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
+                        key={m}
+                        onClick={() => setMonthFilter(idx)}
+                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === idx ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                      >
+                        {m}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Categoria</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <motion.button
+                      whileTap={{ scale: 0.95, y: 2 }}
+                      onClick={() => setCategoryFilter('all')}
+                      className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                    >
+                      Todas
+                    </motion.button>
+                    {categoriesForFilter.map((name) => (
+                      <motion.button
+                        whileTap={{ scale: 0.95, y: 2 }}
+                        key={name}
+                        onClick={() => setCategoryFilter(name)}
+                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === name ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                      >
+                        {name}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-8 flex gap-3">
+                  <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</motion.button>
+                  <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-secondary shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (yearFilter !== 'all') || (categoryFilter !== 'all')) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {statusFilter !== 'all' && (
@@ -376,119 +497,6 @@ const Transactions: React.FC = () => {
           ))
         )}
       </div>
-
-      {showFilter && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
-          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#FFFFFF]">
-            <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-2">
-              <h3 className="text-xl font-black uppercase text-dark dark:text-white">Filtrar transações</h3>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
-                <span className="material-symbols-outlined">close</span>
-              </motion.button>
-            </div>
-            <div className="mb-4">
-              <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Status</p>
-              <div className="grid grid-cols-3 gap-2">
-                {['all','paid','pending'].map((s) => (
-                  <motion.button
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    key={s}
-                    onClick={() => setStatusFilter(s as any)}
-                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${statusFilter === s ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                  >
-                    {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
-              <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Tipo</p>
-              <div className="grid grid-cols-3 gap-2">
-                {['all','income','expense'].map((t) => (
-                  <motion.button
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    key={t}
-                    onClick={() => setTypeFilter(t as any)}
-                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${typeFilter === t ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                  >
-                    {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
-              <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Ano</p>
-              <div className="grid grid-cols-4 gap-2">
-                <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
-                  onClick={() => setYearFilter('all')}
-                  className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                >
-                  Todos
-                </motion.button>
-                {availableYears.map((y) => (
-                  <motion.button
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    key={y}
-                    onClick={() => setYearFilter(y)}
-                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === y ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                  >
-                    {y}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
-              <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Mês</p>
-              <div className="grid grid-cols-4 gap-2">
-                <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
-                  onClick={() => setMonthFilter('all')}
-                  className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                >
-                  Todos
-                </motion.button>
-                {monthNames.map((m, idx) => (
-                  <motion.button
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    key={m}
-                    onClick={() => setMonthFilter(idx)}
-                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === idx ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                  >
-                    {m}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
-              <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Categoria</p>
-              <div className="grid grid-cols-3 gap-2">
-                <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
-                  onClick={() => setCategoryFilter('all')}
-                  className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                >
-                  Todas
-                </motion.button>
-                {categoriesForFilter.map((name) => (
-                  <motion.button
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    key={name}
-                    onClick={() => setCategoryFilter(name)}
-                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === name ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                  >
-                    {name}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-8 flex gap-3">
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</motion.button>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-secondary shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</motion.button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
     </motion.div>
   );
 };
