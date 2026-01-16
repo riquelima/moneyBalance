@@ -18,6 +18,7 @@ const Transactions: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [monthFilter, setMonthFilter] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [userCategoryList, setUserCategoryList] = useState<string[]>([]);
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const categoryOrder = [...categories, 'Sem Categoria'];
   const hues = [15, 35, 55, 85, 160, 190, 210, 235, 255, 275, 300, 330, 350];
@@ -124,11 +125,44 @@ const Transactions: React.FC = () => {
   
 
 
+  useEffect(() => {
+    let mounted = true;
+    const fetchCategories = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data } = await supabase
+        .from('user_categories')
+        .select('name')
+        .eq('user_id', userData.user.id)
+        .order('name');
+
+      if (mounted && data) {
+        setUserCategoryList(data.map((c: any) => c.name));
+      }
+    };
+
+    fetchCategories();
+
+    const channel = supabase
+      .channel('public:user_categories')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_categories' }, () => {
+        fetchCategories();
+      })
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const categoriesForFilter = useMemo(() => {
     const hasNone = items.some(i => !i.category_id);
-    const names = hasNone ? (['Sem Categoria', ...categories]) : categories.slice();
-    return names;
-  }, [items]);
+    const list = userCategoryList;
+    const names = hasNone ? (['Sem Categoria', ...list]) : list.slice();
+    return Array.from(new Set(names)).sort();
+  }, [items, userCategoryList]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
