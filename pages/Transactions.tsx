@@ -17,6 +17,7 @@ const Transactions: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [monthFilter, setMonthFilter] = useState<number | 'all'>('all');
+  const [yearFilter, setYearFilter] = useState<number | 'all'>(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [userCategoryList, setUserCategoryList] = useState<string[]>([]);
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -164,11 +165,22 @@ const Transactions: React.FC = () => {
     return Array.from(new Set(names)).sort();
   }, [items, userCategoryList]);
 
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    years.add(new Date().getFullYear()); // Always include current year
+    items.forEach(item => {
+      const y = parseLocalISODate(item.date).getFullYear();
+      if (!Number.isNaN(y)) years.add(y);
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [items]);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const status = params.get('status');
     const type = params.get('type');
     const month = params.get('month');
+    const year = params.get('year');
     if (status === 'pending') setStatusFilter('pending');
     if (status === 'paid') setStatusFilter('paid');
     if (type === 'expense' || type === 'income') setTypeFilter(type as any);
@@ -179,6 +191,10 @@ const Transactions: React.FC = () => {
       // Default to current month if no month filter is provided
       setMonthFilter(new Date().getMonth());
     }
+    if (year !== null) {
+      const y = Number(year);
+      if (!Number.isNaN(y) && y > 2000) setYearFilter(y);
+    }
     setCategoryFilter('all');
   }, [location.search]);
 
@@ -187,6 +203,7 @@ const Transactions: React.FC = () => {
     if (statusFilter === 'paid') arr = arr.filter(t => t.is_paid);
     if (statusFilter === 'pending') arr = arr.filter(t => !t.is_paid);
     if (typeFilter !== 'all') arr = arr.filter(t => t.type === typeFilter);
+    if (yearFilter !== 'all') arr = arr.filter(t => parseLocalISODate(t.date).getFullYear() === yearFilter);
     if (monthFilter !== 'all') arr = arr.filter(t => parseLocalISODate(t.date).getMonth() === monthFilter);
     if (categoryFilter !== 'all') {
       if (categoryFilter === 'Sem Categoria') arr = arr.filter(t => !t.category_id);
@@ -250,7 +267,7 @@ const Transactions: React.FC = () => {
             className="w-full bg-transparent text-dark dark:text-white placeholder:text-text-secondary dark:placeholder:text-text-secondary/70 outline-none border-none focus:ring-0 p-0 font-bold uppercase"
           />
         </div>
-        {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (categoryFilter !== 'all')) && (
+        {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (yearFilter !== 'all') || (categoryFilter !== 'all')) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {statusFilter !== 'all' && (
               <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
@@ -258,13 +275,16 @@ const Transactions: React.FC = () => {
             {typeFilter !== 'all' && (
               <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
             )}
+            {yearFilter !== 'all' && (
+              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{yearFilter}</span>
+            )}
             {monthFilter !== 'all' && (
               <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{monthNames[monthFilter as number]}</span>
             )}
             {categoryFilter !== 'all' && (
               <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{categoryFilter}</span>
             )}
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all">Limpar</motion.button>
+            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all">Limpar</motion.button>
           </div>
         )}
       </div>
@@ -397,6 +417,28 @@ const Transactions: React.FC = () => {
               </div>
             </div>
             <div className="mb-4">
+              <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Ano</p>
+              <div className="grid grid-cols-4 gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.95, y: 2 }}
+                  onClick={() => setYearFilter('all')}
+                  className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                >
+                  Todos
+                </motion.button>
+                {availableYears.map((y) => (
+                  <motion.button
+                    whileTap={{ scale: 0.95, y: 2 }}
+                    key={y}
+                    onClick={() => setYearFilter(y)}
+                    className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === y ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                  >
+                    {y}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
               <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Mês</p>
               <div className="grid grid-cols-4 gap-2">
                 <motion.button
@@ -441,7 +483,7 @@ const Transactions: React.FC = () => {
               </div>
             </div>
             <div className="mt-8 flex gap-3">
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</motion.button>
+              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</motion.button>
               <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-secondary shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</motion.button>
             </div>
           </motion.div>

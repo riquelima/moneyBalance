@@ -161,7 +161,7 @@ const PastSelfWidget: React.FC = () => {
         aria-controls="past-self-content"
       >
         <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">history_edu</span>
+          <span className="material-symbols-outlined text-primary">history</span>
           Eu do Passado
         </h3>
         <span 
