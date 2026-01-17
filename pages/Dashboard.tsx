@@ -25,14 +25,68 @@ const Dashboard: React.FC = () => {
   const [expenseItems, setExpenseItems] = useState<any[]>([]);
   const [entriesCollapsed, setEntriesCollapsed] = useState<boolean>(false);
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
+  const [isChartsOpen, setIsChartsOpen] = useState<boolean>(true);
   const [hideValues, setHideValues] = useState<boolean>(false);
   
+  const [todayExpense, setTodayExpense] = useState(0);
+  const [yesterdayExpense, setYesterdayExpense] = useState(0);
+
+  const getSPDateISO = (date: Date) => {
+    return new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(date).split('/').reverse().join('-');
+  };
+
   useEffect(() => {
     const persisted = localStorage.getItem('hideValues');
     if (persisted === 'true' || persisted === 'false') {
       setHideValues(persisted === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    const fetchDailyData = async () => {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData?.user) return;
+
+        const now = new Date();
+        const todayISO = getSPDateISO(now);
+        
+        const [y, m, d] = todayISO.split('-').map(Number);
+        const todayDateObj = new Date(y, m-1, d);
+        const yesterdayDateObj = new Date(todayDateObj);
+        yesterdayDateObj.setDate(todayDateObj.getDate() - 1);
+        
+        const yStr = yesterdayDateObj.getFullYear();
+        const mStr = String(yesterdayDateObj.getMonth() + 1).padStart(2, '0');
+        const dStr = String(yesterdayDateObj.getDate()).padStart(2, '0');
+        const yesterdayISO = `${yStr}-${mStr}-${dStr}`;
+
+        const { data: todayData } = await supabase
+            .from('user_transactions')
+            .select('amount')
+            .eq('user_id', userData.user.id)
+            .eq('type', 'expense')
+            .eq('date', todayISO);
+
+        const { data: yesterdayData } = await supabase
+            .from('user_transactions')
+            .select('amount')
+            .eq('user_id', userData.user.id)
+            .eq('type', 'expense')
+            .eq('date', yesterdayISO);
+
+        const tTotal = todayData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+        const yTotal = yesterdayData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+
+        setTodayExpense(tTotal);
+        setYesterdayExpense(yTotal);
+    };
+    fetchDailyData();
+  }, [location.key]);
 
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[]; raw?: number[] }> = {
@@ -424,8 +478,8 @@ const Dashboard: React.FC = () => {
         {[
           { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-secondary', bg: 'bg-[#F1F8E9] dark:bg-[#1B3320]' },
           { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger', bg: 'bg-[#FFEBEE] dark:bg-[#3D1A1A]' },
-          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-danger', bg: 'bg-[#FFEBEE] dark:bg-[#3D1A1A]' },
           { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'check_circle', color: 'text-secondary', bg: 'bg-[#F1F8E9] dark:bg-[#1B3320]' },
+          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-danger', bg: 'bg-[#FFEBEE] dark:bg-[#3D1A1A]' },
         ].map((item, idx) => (
           <motion.div
             key={idx}
@@ -446,15 +500,113 @@ const Dashboard: React.FC = () => {
             <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{item.value}</p>
           </motion.div>
         ))}
+
+        {/* Card Hoje */}
+        <motion.div
+          className="rounded-lg bg-[#E3F2FD] dark:bg-[#0D47A1] p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer relative group"
+          whileHover={{ y: -2 }}
+          onClick={() => {
+            const now = new Date();
+            const todayISO = getSPDateISO(now);
+            navigate(`/transactions?type=expense&date=${todayISO}`);
+          }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-primary">
+              <span className="material-symbols-outlined text-xl">today</span>
+              <p className="text-xs font-black uppercase tracking-wider text-dark dark:text-white">Hoje</p>
+            </div>
+             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-dark text-white text-[10px] p-1 rounded pointer-events-none z-10">
+                Comparação com ontem
+             </div>
+          </div>
+          <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'blur-sm' : ''}`}>
+             {formatBRL(todayExpense)}
+          </p>
+          
+          <div className="flex items-center gap-1 mt-1">
+             {(() => {
+                const diff = todayExpense - yesterdayExpense;
+                if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-sm text-gray-500 font-bold">drag_handle</span>;
+                if (yesterdayExpense === 0 && todayExpense > 0) return (
+                    <>
+                        <span className="material-symbols-outlined text-sm text-[#4CAF50] font-bold">arrow_upward</span>
+                        <span className="text-xs font-bold text-[#4CAF50]">100%</span>
+                    </>
+                );
+                
+                const pct = (diff / yesterdayExpense) * 100;
+                if (diff > 0) return (
+                     <>
+                        <span className="material-symbols-outlined text-sm text-[#4CAF50] font-bold">arrow_upward</span>
+                        <span className="text-xs font-bold text-[#4CAF50]">{pct.toFixed(1)}%</span>
+                     </>
+                );
+                if (diff < 0) return (
+                     <>
+                        <span className="material-symbols-outlined text-sm text-[#F44336] font-bold">arrow_downward</span>
+                        <span className="text-xs font-bold text-[#F44336]">{Math.abs(pct).toFixed(1)}%</span>
+                     </>
+                );
+                return <span className="material-symbols-outlined text-sm text-gray-500 font-bold">drag_handle</span>;
+             })()}
+          </div>
+        </motion.div>
+
+        {/* Card Ontem */}
+        <motion.div
+          className="rounded-lg bg-[#F3E5F5] dark:bg-[#4A148C] p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer group relative"
+          whileHover={{ y: -2 }}
+          onClick={() => {
+            const now = new Date();
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            const yesterdayISO = getSPDateISO(yesterday);
+            navigate(`/transactions?type=expense&date=${yesterdayISO}`);
+          }}
+        >
+            <div className="flex items-center gap-2 text-secondary mb-2">
+              <span className="material-symbols-outlined text-xl">calendar_today</span>
+              <p className="text-xs font-black uppercase tracking-wider text-dark dark:text-white">Ontem</p>
+            </div>
+             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-dark text-white text-[10px] p-1 rounded pointer-events-none z-10">
+                Total de saídas de ontem
+             </div>
+          <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'blur-sm' : ''}`}>
+             {formatBRL(yesterdayExpense)}
+          </p>
+        </motion.div>
       </motion.section>
 
       <PastSelfWidget />
 
       <motion.section variants={itemVariants}>
-        <div className="mb-4 px-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black uppercase text-dark dark:text-white">Gráficos</h3>
-            </div>
+        <button 
+          onClick={() => setIsChartsOpen(!isChartsOpen)}
+          className="w-full flex items-center justify-between group focus:outline-none px-4 mb-4"
+          aria-expanded={isChartsOpen}
+        >
+          <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
+            <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-6 h-6" />
+            Gráficos
+          </h3>
+          <span 
+            className={`material-symbols-outlined text-dark dark:text-white transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
+          >
+            expand_more
+          </span>
+        </button>
+
+        <AnimatePresence>
+          {isChartsOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+            <div className="mb-4 px-4">
             <div className="mt-2 flex items-center gap-2 w-full justify-between">
               <div className="flex items-center gap-1 rounded-lg bg-white dark:bg-surface-dark p-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
                 <motion.button
@@ -537,6 +689,9 @@ const Dashboard: React.FC = () => {
             </motion.div>
           </AnimatePresence>
         </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.section>
 
       <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={entriesRef}>

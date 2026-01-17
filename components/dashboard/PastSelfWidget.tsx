@@ -156,12 +156,12 @@ const PastSelfWidget: React.FC = () => {
     <div className="space-y-4">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between group focus:outline-none"
+        className="w-full flex items-center justify-between group focus:outline-none px-4"
         aria-expanded={isOpen}
         aria-controls="past-self-content"
       >
         <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">history</span>
+          <img src="https://cdn-icons-png.flaticon.com/512/3073/3073484.png" alt="Ícone histórico" className="w-6 h-6" />
           Eu do Passado
         </h3>
         <span 
