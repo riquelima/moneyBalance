@@ -156,7 +156,7 @@ const PastSelfWidget: React.FC = () => {
     <div className="space-y-4">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between group focus:outline-none px-4"
+        className="w-full flex items-center justify-between group focus:outline-none"
         aria-expanded={isOpen}
         aria-controls="past-self-content"
       >

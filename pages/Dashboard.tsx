@@ -222,7 +222,12 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const fmt = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    };
     const normalize = (vals: number[]) => {
       const max = Math.max(0, ...vals);
       if (max === 0) return vals.map(() => 0);
@@ -241,7 +246,16 @@ const Dashboard: React.FC = () => {
         return;
       }
       if (period === 'day') {
-        const today = new Date();
+        const now = new Date();
+        // Use SP timezone to ensure consistency with "Hoje" card
+        const todayISO = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(now).split('/').reverse().join('-');
+        
+        const today = parseLocalISODate(todayISO);
         const mondayOffset = (today.getDay() + 6) % 7;
         const start = new Date(today);
         start.setDate(today.getDate() - mondayOffset);

@@ -6,7 +6,7 @@ export const toLocalISO = (d: Date) => {
 };
 
 export const parseLocalISODate = (iso: string) => {
-  const [y, m, dd] = String(iso).split('-').map(Number);
+  const [y, m, dd] = String(iso).split('T')[0].split('-').map(Number);
   return new Date(y, (m || 1) - 1, dd || 1);
 };
 
