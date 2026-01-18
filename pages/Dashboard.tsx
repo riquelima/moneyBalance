@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, labelForDate } from '../utils/date';
+import { usePrivacy } from '../src/context/PrivacyContext';
 
 import PastSelfWidget from '../components/dashboard/PastSelfWidget';
 
@@ -27,7 +28,7 @@ const Dashboard: React.FC = () => {
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
   const [isChartsOpen, setIsChartsOpen] = useState<boolean>(true);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(true);
-  const [hideValues, setHideValues] = useState<boolean>(false);
+  const { isPrivacyEnabled, togglePrivacy } = usePrivacy();
   
   const [todayExpense, setTodayExpense] = useState(0);
   const [yesterdayExpense, setYesterdayExpense] = useState(0);
@@ -40,13 +41,6 @@ const Dashboard: React.FC = () => {
         day: '2-digit'
     }).format(date).split('/').reverse().join('-');
   };
-
-  useEffect(() => {
-    const persisted = localStorage.getItem('hideValues');
-    if (persisted === 'true' || persisted === 'false') {
-      setHideValues(persisted === 'true');
-    }
-  }, []);
 
   useEffect(() => {
     const fetchDailyData = async () => {
@@ -475,8 +469,8 @@ const Dashboard: React.FC = () => {
         {/* Hide Values Button - Top Left */}
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setHideValues(v => { const next = !v; localStorage.setItem('hideValues', next ? 'true' : 'false'); return next; })}
-          aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+          onClick={togglePrivacy}
+          aria-label={isPrivacyEnabled ? 'Mostrar valores' : 'Ocultar valores'}
           className="absolute top-6 left-6 p-0 border-0 bg-transparent cursor-pointer hover:opacity-70 transition-opacity"
         >
           <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
@@ -492,7 +486,7 @@ const Dashboard: React.FC = () => {
         </motion.button>
 
         <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
-        <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+        <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
@@ -518,7 +512,7 @@ const Dashboard: React.FC = () => {
               <span className="material-symbols-outlined text-xl">{item.icon}</span>
               <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">{item.label}</p>
             </div>
-            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
+            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
           </motion.div>
         ))}
 
@@ -541,7 +535,7 @@ const Dashboard: React.FC = () => {
                 Comparação com ontem
              </div>
           </div>
-          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${hideValues ? 'blur-sm' : ''}`}>
+          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
              {formatBRL(todayExpense)}
           </p>
           
@@ -593,7 +587,7 @@ const Dashboard: React.FC = () => {
              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
                 Total de saídas de ontem
              </div>
-          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${hideValues ? 'blur-sm' : ''}`}>
+          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
              {formatBRL(yesterdayExpense)}
           </p>
         </motion.div>
@@ -691,7 +685,7 @@ const Dashboard: React.FC = () => {
                       >
                         {showLabel && (
                           <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
-                            <span className={`${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{labelText}</span>
+                            <span className={`${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{labelText}</span>
                           </span>
                         )}
                       </motion.div>
@@ -765,7 +759,7 @@ const Dashboard: React.FC = () => {
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
                           <span className={`text-sm font-bold text-gray-900 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
-                        <span className={`text-sm font-black text-success bg-success/10 px-3 py-1 rounded-lg border border-success/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                        <span className={`text-sm font-black text-success bg-success/10 px-3 py-1 rounded-lg border border-success/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>
                     ))}
                   </div>
@@ -798,7 +792,7 @@ const Dashboard: React.FC = () => {
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
                           <span className={`text-sm font-bold text-gray-900 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
-                        <span className={`text-sm font-black text-danger bg-danger/10 px-3 py-1 rounded-lg border border-danger/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                        <span className={`text-sm font-black text-danger bg-danger/10 px-3 py-1 rounded-lg border border-danger/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>
                     ))}
                   </div>
