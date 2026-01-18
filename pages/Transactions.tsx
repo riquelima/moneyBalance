@@ -34,8 +34,8 @@ const Transactions: React.FC = () => {
       const hue = 140;
       return {
         backgroundColor: `hsla(${hue}, 85%, 55%, 0.15)`,
-        color: `hsl(${hue}, 85%, 60%)`,
-        borderColor: `hsla(${hue}, 85%, 60%, 0.30)`
+        color: `hsl(${hue}, 85%, 35%)`,
+        borderColor: `hsla(${hue}, 85%, 45%, 0.30)`
       } as React.CSSProperties;
     }
     const idx = categoryOrder.indexOf(n);
@@ -43,8 +43,8 @@ const Transactions: React.FC = () => {
     const hue = hues[i];
     return {
       backgroundColor: `hsla(${hue}, 85%, 55%, 0.15)`,
-      color: `hsl(${hue}, 85%, 60%)`,
-      borderColor: `hsla(${hue}, 85%, 60%, 0.30)`
+      color: `hsl(${hue}, 85%, 35%)`,
+      borderColor: `hsla(${hue}, 85%, 45%, 0.30)`
     } as React.CSSProperties;
   };
   const badgeClass = (name: string, typ?: 'income' | 'expense') => {
@@ -255,35 +255,35 @@ const Transactions: React.FC = () => {
       animate={{ opacity: 1 }} 
       className="flex flex-col min-h-screen pb-24 transition-colors duration-300"
     >
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-xl bg-white/5 border-b border-white/10 shadow-glass">
+      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-xl bg-white/80 border-b border-white/40 shadow-glass">
         <motion.button
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={() => setShowFilter(true)}
-          className="flex w-10 h-10 items-center justify-center text-white rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-glass hover:bg-white/20 transition-all"
+          className="flex w-10 h-10 items-center justify-center text-gray-600 rounded-full bg-white/50 border border-white/40 backdrop-blur-md shadow-glass hover:bg-white/80 transition-all"
         >
           <span className="material-symbols-outlined text-xl">filter_alt</span>
         </motion.button>
-        <h1 className="text-xl font-bold tracking-wide text-white drop-shadow-sm">Transações</h1>
+        <h1 className="text-xl font-bold tracking-wide text-gray-900 drop-shadow-sm">Transações</h1>
         <motion.button
           whileTap={{ scale: 0.95 }}
           type="button"
           onClick={() => navigate('/add-transaction')}
-          className="flex w-10 h-10 items-center justify-center text-white rounded-full bg-primary/80 border border-white/20 backdrop-blur-md shadow-glass hover:bg-primary transition-all"
+          className="flex w-10 h-10 items-center justify-center text-white rounded-full bg-primary/80 border border-white/40 backdrop-blur-md shadow-glass hover:bg-primary transition-all"
         >
           <span className="material-symbols-outlined text-2xl">add_circle</span>
         </motion.button>
       </header>
 
       <div className="p-4 z-10 relative space-y-4">
-        <div className="flex items-center rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-glass px-4 py-3">
-          <span className="material-symbols-outlined text-white/70 mr-3">search</span>
+        <div className="flex items-center rounded-2xl bg-white/60 border border-white/40 backdrop-blur-md shadow-glass px-4 py-3">
+          <span className="material-symbols-outlined text-gray-500 mr-3">search</span>
           <input 
             type="text" 
             placeholder="Buscar transações"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-white placeholder:text-white/50 outline-none border-none focus:ring-0 p-0 font-medium"
+            className="w-full bg-transparent text-gray-900 placeholder:text-gray-400 outline-none border-none focus:ring-0 p-0 font-medium"
           />
         </div>
 
@@ -321,14 +321,14 @@ const Transactions: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Tipo</p>
+                    <p className="text-xs font-bold uppercase mb-3 text-gray-500 tracking-wider">Tipo</p>
                     <div className="flex flex-wrap gap-2">
                       {['all','income','expense'].map((t) => (
                         <motion.button
                           whileTap={{ scale: 0.95 }}
                           key={t}
                           onClick={() => setTypeFilter(t as any)}
-                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${typeFilter === t ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${typeFilter === t ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                         >
                           {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
                         </motion.button>
@@ -337,12 +337,12 @@ const Transactions: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Ano</p>
+                    <p className="text-xs font-bold uppercase mb-3 text-gray-500 tracking-wider">Ano</p>
                     <div className="flex flex-wrap gap-2">
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setYearFilter('all')}
-                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${yearFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${yearFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                       >
                         Todos
                       </motion.button>
@@ -351,7 +351,7 @@ const Transactions: React.FC = () => {
                           whileTap={{ scale: 0.95 }}
                           key={y}
                           onClick={() => setYearFilter(y)}
-                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${yearFilter === y ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${yearFilter === y ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                         >
                           {y}
                         </motion.button>
@@ -360,12 +360,12 @@ const Transactions: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Mês</p>
+                    <p className="text-xs font-bold uppercase mb-3 text-gray-500 tracking-wider">Mês</p>
                     <div className="grid grid-cols-4 gap-2">
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setMonthFilter('all')}
-                        className={`px-2 py-2 rounded-xl text-xs font-medium border text-center transition-all ${monthFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        className={`px-2 py-2 rounded-xl text-xs font-medium border text-center transition-all ${monthFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                       >
                         Todos
                       </motion.button>
@@ -374,7 +374,7 @@ const Transactions: React.FC = () => {
                           whileTap={{ scale: 0.95 }}
                           key={m}
                           onClick={() => setMonthFilter(idx)}
-                          className={`px-2 py-2 rounded-xl text-xs font-medium border text-center transition-all ${monthFilter === idx ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                          className={`px-2 py-2 rounded-xl text-xs font-medium border text-center transition-all ${monthFilter === idx ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                         >
                           {m}
                         </motion.button>
@@ -383,12 +383,12 @@ const Transactions: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Categoria</p>
+                    <p className="text-xs font-bold uppercase mb-3 text-gray-500 tracking-wider">Categoria</p>
                     <div className="flex flex-wrap gap-2">
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setCategoryFilter('all')}
-                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${categoryFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${categoryFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                       >
                         Todas
                       </motion.button>
@@ -397,7 +397,7 @@ const Transactions: React.FC = () => {
                           whileTap={{ scale: 0.95 }}
                           key={name}
                           onClick={() => setCategoryFilter(name)}
-                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${categoryFilter === name ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${categoryFilter === name ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-black/5 border-black/5 text-gray-500 hover:bg-black/10'}`}
                         >
                           {name}
                         </motion.button>
@@ -407,7 +407,7 @@ const Transactions: React.FC = () => {
                 </div>
 
                 <div className="mt-8 flex gap-3">
-                  <motion.button whileTap={{ scale: 0.98 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="flex-1 rounded-xl border border-white/20 bg-white/5 py-3 font-bold hover:bg-white/10 transition-all text-white">Limpar</motion.button>
+                  <motion.button whileTap={{ scale: 0.98 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="flex-1 rounded-xl border border-gray-200 bg-gray-50 py-3 font-bold hover:bg-gray-100 transition-all text-gray-900">Limpar</motion.button>
                   <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-xl bg-secondary/80 border border-white/20 shadow-lg shadow-secondary/20 py-3 font-bold text-white transition-all hover:bg-secondary">Aplicar</motion.button>
                 </div>
               </div>
@@ -418,26 +418,26 @@ const Transactions: React.FC = () => {
         {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (yearFilter !== 'all') || (categoryFilter !== 'all') || dateFilter) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {dateFilter && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/20 border border-primary/30 text-white backdrop-blur-md">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/20 border border-primary/30 text-gray-900 backdrop-blur-md">
                 Data: {parseLocalISODate(dateFilter).toLocaleDateString('pt-BR')}
               </span>
             )}
             {statusFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/5 border border-black/10 text-gray-900 backdrop-blur-md">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
             )}
             {typeFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/5 border border-black/10 text-gray-900 backdrop-blur-md">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
             )}
             {yearFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{yearFilter}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/5 border border-black/10 text-gray-900 backdrop-blur-md">{yearFilter}</span>
             )}
             {monthFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{monthNames[monthFilter as number]}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/5 border border-black/10 text-gray-900 backdrop-blur-md">{monthNames[monthFilter as number]}</span>
             )}
             {categoryFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{categoryFilter}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/5 border border-black/10 text-gray-900 backdrop-blur-md">{categoryFilter}</span>
             )}
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/20 text-white border border-danger/30 backdrop-blur-md hover:bg-danger/30 transition-all">Limpar</motion.button>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/20 text-danger border border-danger/30 backdrop-blur-md hover:bg-danger/30 transition-all">Limpar</motion.button>
           </div>
         )}
       </div>
@@ -445,10 +445,10 @@ const Transactions: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {loading ? (
           <div className="flex justify-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-white/70">
+          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
             <span className="material-symbols-outlined text-4xl mb-2 opacity-50">receipt_long</span>
             <p className="font-medium">Nenhuma transação encontrada</p>
             <motion.button
@@ -463,7 +463,7 @@ const Transactions: React.FC = () => {
         ) : (
           Object.entries(grouped).map(([date, groupItems], groupIndex) => (
             <div key={date} className="mb-6">
-              <h2 className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-white/50 mb-2">{date}</h2>
+              <h2 className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{date}</h2>
               <div className="space-y-3">
                 {(groupItems as any[]).map((t: any, i: number) => (
                   <div key={t.id} className="relative group">
@@ -472,7 +472,7 @@ const Transactions: React.FC = () => {
                         whileTap={{ scale: 0.95 }}
                         type="button"
                         onClick={() => navigate(`/add-transaction?edit=${t.id}`)}
-                        className="h-full w-12 rounded-xl bg-primary/80 border border-white/10 text-white flex items-center justify-center shadow-lg backdrop-blur-md"
+                        className="h-full w-12 rounded-xl bg-primary/80 border border-white/40 text-white flex items-center justify-center shadow-lg backdrop-blur-md"
                         style={{ marginLeft: 'auto' }}
                       >
                         <span className="material-symbols-outlined text-xl">edit</span>
@@ -490,7 +490,7 @@ const Transactions: React.FC = () => {
                             setOpenId(null);
                           }
                         }}
-                        className="h-full w-12 rounded-xl bg-danger/80 border border-white/10 text-white flex items-center justify-center shadow-lg backdrop-blur-md ml-2"
+                        className="h-full w-12 rounded-xl bg-danger/80 border border-white/40 text-white flex items-center justify-center shadow-lg backdrop-blur-md ml-2"
                       >
                         <span className="material-symbols-outlined text-xl">delete</span>
                       </motion.button>
@@ -507,25 +507,30 @@ const Transactions: React.FC = () => {
                       onDragEnd={(e, info) => {
                         setOpenId(info.offset.x < -50 ? t.id : null);
                       }}
-                      className="relative z-10 flex items-center gap-4 px-4 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-glass active:scale-[0.99] transition-all"
+                      className="relative z-10 flex items-center gap-4 px-4 py-4 bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl shadow-glass active:scale-[0.99] transition-all"
                     >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 ${t.type === 'income' ? 'bg-secondary/20 text-secondary-light' : 'bg-danger/20 text-danger-light'} self-center shadow-inner`}>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 ${t.type === 'income' ? 'bg-secondary/20 text-secondary' : 'bg-danger/20 text-danger'} self-center shadow-inner`}>
                       <span className="material-symbols-outlined font-bold text-xl">{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
                     </div>
                       <div className="flex flex-1 flex-col overflow-hidden">
-                        <p className={`font-bold text-white text-sm truncate ${t.is_paid ? 'line-through opacity-50' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
+                        <p className={`font-bold text-gray-900 text-sm truncate ${t.is_paid ? 'line-through opacity-50' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          {(() => {
-                            const cat = t.category_id ? catMap[t.category_id as string] : null;
-                            const name = cat?.name || 'Sem Categoria';
-                            return (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-medium text-white/70">{name}</span>
-                            );
-                          })()}
-                          <span className="text-[10px] text-white/40">{parseLocalISODate(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</span>
-                        </div>
+                            {(() => {
+                              const cat = t.category_id ? catMap[t.category_id as string] : null;
+                              const name = cat?.name || 'Sem Categoria';
+                              return (
+                                <span 
+                                  className="inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold shadow-sm backdrop-blur-sm"
+                                  style={styleForBadge(name)}
+                                >
+                                  {name}
+                                </span>
+                              );
+                            })()}
+                            <span className="text-[10px] text-gray-500">{parseLocalISODate(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</span>
+                          </div>
                       </div>
-                      <p className={`font-bold text-base ${t.type === 'income' ? 'text-secondary-light' : 'text-danger-light'} self-center ${t.is_paid ? 'line-through opacity-50' : ''}`}>
+                      <p className={`font-bold text-base ${t.type === 'income' ? 'text-secondary' : 'text-danger'} self-center ${t.is_paid ? 'line-through opacity-50' : ''}`}>
                         {formatBRL(Number(t.amount))}
                       </p>
                     </motion.div>

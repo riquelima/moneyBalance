@@ -16,8 +16,8 @@ const BottomNav: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* Glassmorphism Background */}
-      <div className="absolute inset-0 rounded-t-3xl bg-[#1A1A1A]/80 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]" />
+      {/* Glassmorphism Background - Light Theme */}
+      <div className="absolute inset-0 rounded-t-3xl bg-white/80 backdrop-blur-xl border-t border-white/40 shadow-[0_-4px_30px_rgba(0,0,0,0.1)]" />
       
       <div className="relative flex items-center justify-between px-4 py-2 pb-4">
         {navItems.map((item) => {
@@ -29,9 +29,9 @@ const BottomNav: React.FC = () => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(item.path)}
-                    className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white shadow-lg border-[6px] border-[#121212] backdrop-blur-md"
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white shadow-lg border-[6px] border-[#F3F4F6] backdrop-blur-md"
                     style={{
-                        boxShadow: '0 8px 20px rgba(0, 214, 143, 0.4)',
+                        boxShadow: '0 8px 20px rgba(136, 84, 208, 0.3)',
                     }}
                     data-onboarding="add-fab"
                     aria-label="Adicionar transação"
@@ -47,7 +47,7 @@ const BottomNav: React.FC = () => {
               key={item.label}
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 relative ${isActive ? 'text-primary' : 'text-white/40 hover:text-white'}`}
+              className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 relative ${isActive ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
             >
               {isActive && (
                 <motion.div

@@ -118,14 +118,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
         onClick={() => handleDayClick(day)}
         className={`
           aspect-square p-1 sm:p-2 relative cursor-pointer transition-all flex flex-col items-center justify-start gap-1 rounded-xl
-          ${!isCurrentMonth ? 'opacity-30' : 'hover:bg-white/10'}
+          ${!isCurrentMonth ? 'opacity-30' : 'hover:bg-gray-100'}
           ${isToday(day) ? 'bg-primary/20 ring-1 ring-primary/50' : ''}
-          ${isSameDay(day, selectedDate || new Date(0)) ? 'bg-white/10 ring-1 ring-white/30' : ''}
+          ${isSameDay(day, selectedDate || new Date(0)) ? 'bg-gray-100 ring-1 ring-gray-300' : ''}
         `}
       >
         <span className={`
           text-xs sm:text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full
-          ${isToday(day) ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-white'}
+          ${isToday(day) ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-gray-700'}
         `}>
           {format(day, 'd')}
         </span>
@@ -146,30 +146,30 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
 
   return (
     <div className="flex flex-col h-auto p-4 pb-24">
-      <div className="flex flex-col h-auto border border-white/10 rounded-3xl shadow-glass bg-white/5 backdrop-blur-xl overflow-hidden">
+      <div className="flex flex-col h-auto border border-white/40 rounded-3xl shadow-glass bg-white/70 backdrop-blur-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <button 
             onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all active:scale-95"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white text-gray-700 transition-all active:scale-95 shadow-sm"
           >
             <span className="material-symbols-outlined text-lg">chevron_left</span>
           </button>
           
-          <h2 className="text-xl font-bold capitalize text-white tracking-wide">
+          <h2 className="text-xl font-bold capitalize text-gray-900 tracking-wide">
             {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
           </h2>
 
           <button 
             onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all active:scale-95"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white text-gray-700 transition-all active:scale-95 shadow-sm"
           >
             <span className="material-symbols-outlined text-lg">chevron_right</span>
           </button>
         </div>
 
         {/* Week Days Header */}
-        <div className="grid grid-cols-7 border-b border-white/5 bg-white/5 text-white/70">
+        <div className="grid grid-cols-7 border-b border-gray-100 bg-white/30 text-gray-500">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
             <div key={day} className="py-3 text-center text-[10px] font-bold uppercase tracking-widest">
               {day}
@@ -191,7 +191,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
       >
         <div className="space-y-4">
           {selectedTransactions.length === 0 ? (
-            <div className="text-center py-8 text-white/50">
+            <div className="text-center py-8 text-gray-400">
               <span className="material-symbols-outlined text-4xl mb-2 opacity-50">event_busy</span>
               <p>Nenhum lançamento para esta data.</p>
             </div>
@@ -201,21 +201,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
                 key={transaction.id}
                 className={`
                   flex items-center justify-between p-4 rounded-2xl border backdrop-blur-md transition-all
-                  ${transaction.type === 'expense' ? 'border-danger/20 bg-danger/10 hover:bg-danger/15' : 'border-secondary/20 bg-secondary/10 hover:bg-secondary/15'}
+                  ${transaction.type === 'expense' ? 'border-danger/20 bg-danger/5 hover:bg-danger/10' : 'border-secondary/20 bg-secondary/5 hover:bg-secondary/10'}
                 `}
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <div className={`
                     p-2 rounded-xl shrink-0
-                    ${transaction.type === 'expense' ? 'bg-danger/20 text-danger-light' : 'bg-secondary/20 text-secondary-light'}
+                    ${transaction.type === 'expense' ? 'bg-danger/10 text-danger' : 'bg-secondary/10 text-secondary'}
                   `}>
                     <span className="material-symbols-outlined text-lg">
                       {transaction.type === 'expense' ? 'arrow_downward' : 'arrow_upward'}
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-white truncate text-sm">{transaction.description || 'Sem descrição'}</h3>
-                    <p className={`text-xs font-bold ${transaction.type === 'expense' ? 'text-danger-light' : 'text-secondary-light'}`}>
+                    <h3 className="font-bold text-gray-900 truncate text-sm">{transaction.description || 'Sem descrição'}</h3>
+                    <p className={`text-xs font-bold ${transaction.type === 'expense' ? 'text-danger' : 'text-secondary'}`}>
                       R$ {Number(transaction.amount).toFixed(2)}
                     </p>
                   </div>
@@ -227,7 +227,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
                     w-10 h-10 flex items-center justify-center rounded-full border transition-all active:scale-95 shrink-0 ml-2
                     ${transaction.is_paid 
                       ? 'bg-secondary border-secondary text-white shadow-lg shadow-secondary/30' 
-                      : 'bg-transparent border-white/20 text-white/30 hover:border-secondary hover:text-secondary'}
+                      : 'bg-transparent border-gray-200 text-gray-400 hover:border-secondary hover:text-secondary'}
                   `}
                   title={transaction.is_paid ? "Pago" : "Marcar como pago"}
                 >
@@ -239,7 +239,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
           
           <button 
             onClick={() => setIsSheetOpen(false)}
-            className="w-full py-4 mt-4 font-bold text-center text-white border border-white/20 rounded-2xl hover:bg-white/10 transition-all bg-white/5 backdrop-blur-md"
+            className="w-full py-4 mt-4 font-bold text-center text-gray-700 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all bg-white backdrop-blur-md"
           >
             Fechar
           </button>

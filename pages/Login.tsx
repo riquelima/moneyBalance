@@ -120,14 +120,13 @@ const Login: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex min-h-screen w-full flex-col items-center justify-center p-4 font-display relative overflow-hidden"
+      className="flex min-h-screen w-full flex-col items-center justify-center p-4 font-display relative overflow-hidden bg-gray-50"
     >
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-background-dark z-0"></div>
       <div className="absolute top-0 left-0 w-full h-full z-0 opacity-30 pointer-events-none" 
-           style={{ background: 'radial-gradient(circle at 50% 30%, rgba(0,214,143,0.15), transparent 70%)' }}></div>
+           style={{ background: 'radial-gradient(circle at 50% 30%, rgba(0,214,143,0.05), transparent 70%)' }}></div>
       <div className="absolute bottom-0 right-0 w-full h-full z-0 opacity-20 pointer-events-none" 
-           style={{ background: 'radial-gradient(circle at 80% 80%, rgba(255,69,95,0.15), transparent 70%)' }}></div>
+           style={{ background: 'radial-gradient(circle at 80% 80%, rgba(255,69,95,0.05), transparent 70%)' }}></div>
 
       {showBiometric && (
         <BiometricCapture 
@@ -143,56 +142,56 @@ const Login: React.FC = () => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="w-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-8 shadow-2xl"
+          className="w-full rounded-3xl bg-white/80 backdrop-blur-xl border border-white/40 p-8 shadow-glass-lg"
         >
           <div className="flex flex-col items-center mb-8">
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-              className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 border border-white/20 shadow-glass backdrop-blur-md"
+              className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-white/40 shadow-glass-sm"
             >
-              <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-12 w-12 object-contain drop-shadow-lg" onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }} />
+              <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-12 w-12 object-contain drop-shadow-sm" onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }} />
             </motion.div>
             
             <h1 
-              className="text-white text-3xl font-bold tracking-tight mb-2 text-center"
+              className="text-gray-900 text-3xl font-bold tracking-tight mb-2 text-center"
               style={{ fontFamily: '"Poetsen One", cursive' }}
             >
               Money Balance
             </h1>
-            <p className="text-white/50 text-xs font-bold uppercase tracking-widest text-center">
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest text-center">
               Gestão Financeira Inteligente
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="w-full space-y-5">
             <div className="space-y-2">
-              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">E-mail</label>
+              <label className="text-gray-500 text-xs font-bold uppercase ml-1 tracking-wider">E-mail</label>
               <input 
                 type="email" 
                 placeholder="Seu e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl bg-white/5 border border-white/10 p-4 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all"
+                className="w-full rounded-xl bg-gray-50 border border-gray-200 p-4 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Senha</label>
+              <label className="text-gray-500 text-xs font-bold uppercase ml-1 tracking-wider">Senha</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
                   placeholder="Sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 p-4 pr-12 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all"
+                  className="w-full rounded-xl bg-gray-50 border border-gray-200 p-4 pr-12 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm transition-all"
                 />
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <span className="material-symbols-outlined text-xl">
                     {showPassword ? 'visibility' : 'visibility_off'}
@@ -202,7 +201,7 @@ const Login: React.FC = () => {
             </div>
 
             <div className="flex justify-end">
-              <motion.button whileTap={{ scale: 0.95 }} type="button" onClick={handleReset} className="text-xs font-medium text-white/50 hover:text-white transition-colors">
+              <motion.button whileTap={{ scale: 0.95 }} type="button" onClick={handleReset} className="text-xs font-medium text-gray-500 hover:text-primary transition-colors">
                 Esqueci minha senha
               </motion.button>
             </div>
@@ -221,7 +220,7 @@ const Login: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={() => setShowBiometric(true)}
-                className="w-full rounded-xl bg-white/5 border border-white/10 py-4 text-sm font-bold text-white shadow-glass hover:bg-white/10 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-white border border-gray-200 py-4 text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-lg">face</span>
                 Login Facial
@@ -232,11 +231,11 @@ const Login: React.FC = () => {
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger-light text-xs font-medium text-center"
+                className="mt-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-xs font-medium text-center"
               >
                 {error}
                 <div className="mt-2 pt-2 border-t border-danger/10">
-                  <button onClick={() => navigate('/settings')} className="underline hover:text-white transition-colors">
+                  <button onClick={() => navigate('/settings')} className="underline hover:text-danger-dark transition-colors">
                     Configurar conexão
                   </button>
                 </div>
@@ -246,9 +245,9 @@ const Login: React.FC = () => {
         </motion.div>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-white/50 font-medium">
+          <p className="text-sm text-gray-500 font-medium">
             Ainda não tem conta?{' '}
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/signup')} className="font-bold text-white hover:text-primary transition-colors ml-1">
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/signup')} className="font-bold text-primary hover:text-primary-dark transition-colors ml-1">
               Criar agora
             </motion.button>
           </p>

@@ -303,19 +303,19 @@ const Reports: React.FC = () => {
       <svg width={size + 20} height={size + 20} viewBox={`-10 -10 ${size + 20} ${size + 20}`} className="mx-auto overflow-visible">
         <g transform={`translate(${size / 2},${size / 2})`}>
           {/* Sombra dura deslocada para o gráfico inteiro */}
-          <circle cx="4" cy="4" r={R} className="fill-black dark:fill-white/20" />
+          <circle cx="4" cy="4" r={R} className="fill-black/5" />
           
           {slices.map((s, i) => (
             <g key={i} onClick={() => setOpened(prev => ({ ...prev, [i]: !prev[i] }))} style={{ cursor: 'pointer' }}>
-              <path d={s.path} fill={s.color} className="stroke-dark dark:stroke-white" strokeWidth="3" />
+              <path d={s.path} fill={s.color} className="stroke-white" strokeWidth="3" />
               {s.p > 0.05 && (
                 <g>
-                    <rect x={s.rx - 18} y={s.ry - 8} width="36" height="16" className="fill-white dark:fill-surface-dark stroke-dark dark:stroke-white" strokeWidth="2" />
-                    <text x={s.rx} y={s.ry} className="fill-dark dark:fill-white" fontSize={10} fontWeight={900} textAnchor="middle" dominantBaseline="middle">
+                    <rect x={s.rx - 18} y={s.ry - 8} width="36" height="16" className="fill-white stroke-white" strokeWidth="2" />
+                    <text x={s.rx} y={s.ry} className="fill-gray-900" fontSize={10} fontWeight={900} textAnchor="middle" dominantBaseline="middle">
                     {(s.p * 100).toFixed(0)}%
                     </text>
                     {opened[i] && (
-                      <text x={s.rx} y={s.ry + 12} className="fill-dark dark:fill-white" fontSize={9} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
+                      <text x={s.rx} y={s.ry + 12} className="fill-gray-900" fontSize={9} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
                         {s.name}
                       </text>
                     )}
@@ -323,7 +323,7 @@ const Reports: React.FC = () => {
               )}
             </g>
           ))}
-          <circle cx="0" cy="0" r={R} fill="none" className="stroke-dark dark:stroke-white" strokeWidth="3" />
+          <circle cx="0" cy="0" r={R} fill="none" className="stroke-white" strokeWidth="3" />
         </g>
       </svg>
     );
@@ -333,14 +333,14 @@ const Reports: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="flex flex-col min-h-screen p-4 pb-28 gap-8 bg-background-light dark:bg-background-dark font-display text-text-primary dark:text-white"
+      className="flex flex-col min-h-screen p-4 pb-28 gap-8 font-display text-gray-900"
     >
-      <header className="flex items-center justify-between sticky top-0 bg-white/80 dark:bg-black/60 z-50 py-3 px-4 border-b border-white/20 dark:border-white/10 backdrop-blur-xl shadow-glass-sm -mx-4 transition-all duration-300">
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/20 transition-all">
-            <span className="material-symbols-outlined text-text-primary dark:text-white">arrow_back</span>
+      <header className="flex items-center justify-between sticky top-0 bg-white/80 z-50 py-3 px-4 border-b border-white/40 backdrop-blur-xl shadow-glass-sm -mx-4 transition-all duration-300">
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 hover:bg-white/80 border border-white/40 transition-all">
+            <span className="material-symbols-outlined text-gray-900">arrow_back</span>
         </motion.button>
-        <h1 className="text-lg font-bold text-text-primary dark:text-white">Relatórios</h1>
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-text-primary dark:text-white font-bold text-xs bg-white/50 dark:bg-white/10 border border-white/20 px-4 py-2 rounded-full backdrop-blur-md uppercase">
+        <h1 className="text-lg font-bold text-gray-900">Relatórios</h1>
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-gray-900 font-bold text-xs bg-white/50 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md uppercase">
           {(() => {
             const d = new Date();
             return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
@@ -352,16 +352,16 @@ const Reports: React.FC = () => {
 
       {showMonthPicker && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-md">
-          <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/20 shadow-glass-lg">
-            <div className="flex items-center justify-between mb-6 border-b border-gray-200/50 dark:border-white/10 pb-4">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10 transition-all">
-                <span className="material-symbols-outlined text-text-primary dark:text-white">chevron_left</span>
+          <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/40 shadow-glass-lg">
+            <div className="flex items-center justify-between mb-6 border-b border-gray-200/50 pb-4">
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-full p-2 hover:bg-black/5 transition-all">
+                <span className="material-symbols-outlined text-gray-900">chevron_left</span>
               </motion.button>
               <div className="px-6 py-2">
-                <p className="text-2xl font-bold text-text-primary dark:text-white">{selectedYear}</p>
+                <p className="text-2xl font-bold text-gray-900">{selectedYear}</p>
               </div>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10 transition-all">
-                <span className="material-symbols-outlined text-text-primary dark:text-white">chevron_right</span>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-full p-2 hover:bg-black/5 transition-all">
+                <span className="material-symbols-outlined text-gray-900">chevron_right</span>
               </motion.button>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-6">
@@ -370,14 +370,14 @@ const Reports: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   key={m}
                   onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
-                  className={`px-2 py-3 rounded-xl text-sm font-bold uppercase transition-all ${i === selectedMonth ? 'bg-primary text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 text-text-secondary dark:text-gray-300 hover:bg-black/10'}`}
+                  className={`px-2 py-3 rounded-xl text-sm font-bold uppercase transition-all ${i === selectedMonth ? 'bg-primary text-white shadow-lg' : 'bg-black/5 text-gray-600 hover:bg-black/10'}`}
                 >
                   {m}
                 </motion.button>
               ))}
             </div>
             <div className="flex gap-3">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-xl bg-black/5 dark:bg-white/5 py-3 font-bold uppercase text-text-primary dark:text-white hover:bg-black/10 transition-all">Mês atual</motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-xl bg-black/5 py-3 font-bold uppercase text-gray-900 hover:bg-black/10 transition-all">Mês atual</motion.button>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(false)} className="flex-1 rounded-xl bg-secondary py-3 font-bold uppercase text-white shadow-lg shadow-secondary/30 transition-all">Fechar</motion.button>
             </div>
           </motion.div>
@@ -385,19 +385,19 @@ const Reports: React.FC = () => {
       )}
 
       <section>
-        <h2 className="text-xl font-bold mb-6 text-text-primary dark:text-white px-2">Estatísticas</h2>
+        <h2 className="text-xl font-bold mb-6 text-gray-900 px-2">Estatísticas</h2>
         <div className="w-full overflow-hidden">
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-1 no-scrollbar">
             {/* Card Saídas */}
             <div className="min-w-full snap-center">
               <motion.div
-                className="bg-white/60 dark:bg-black/40 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-glass"
+                className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass"
                 initial={{ x: 0 }}
                 whileHover={{ y: -4 }}
               >
                 <div className="flex flex-col gap-4 items-center">
-                    <div className="w-full border-b border-gray-200/50 dark:border-white/10 pb-4 mb-2">
-                      <p className="text-text-secondary dark:text-gray-400 text-xs font-bold text-center uppercase tracking-widest mb-1">Saídas</p>
+                    <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
+                      <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Saídas</p>
                       <p className="text-danger text-4xl font-black text-center tracking-tight">{fmtBRL(monthTotal)}</p>
                     </div>
                     
@@ -408,15 +408,15 @@ const Reports: React.FC = () => {
                     <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                       {categories.length === 0 ? (
                         <div className="h-20 flex items-center justify-center">
-                          <p className="text-center text-text-secondary dark:text-gray-400 font-medium text-sm">Sem despesas.</p>
+                          <p className="text-center text-gray-500 font-medium text-sm">Sem despesas.</p>
                         </div>
                       ) : (
                         <div className="flex flex-col gap-2">
                           {categories.map((d, i) => (
-                            <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5">
+                            <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/20">
                               <div className="flex items-center gap-3">
                                   <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></div>
-                                  <p className="text-xs text-text-primary dark:text-white font-bold uppercase truncate max-w-[140px]">{d.name}</p>
+                                  <p className="text-xs text-gray-900 font-bold uppercase truncate max-w-[140px]">{d.name}</p>
                               </div>
                               <p className="text-danger text-xs font-black">- {fmtBRL(d.amount)}</p>
                             </div>
@@ -430,10 +430,10 @@ const Reports: React.FC = () => {
             
             {/* Card Entradas */}
             <div className="min-w-full snap-center">
-              <div className="bg-white/60 dark:bg-black/40 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-glass transition-all hover:-translate-y-1">
+              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass transition-all hover:-translate-y-1">
                 <div className="flex flex-col gap-4 items-center">
-                  <div className="w-full border-b border-gray-200/50 dark:border-white/10 pb-4 mb-2">
-                    <p className="text-text-secondary dark:text-gray-400 text-xs font-bold text-center uppercase tracking-widest mb-1">Entradas</p>
+                  <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
+                    <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Entradas</p>
                     <p className="text-secondary text-4xl font-black text-center tracking-tight">{fmtBRL(incomeTotal)}</p>
                   </div>
 
@@ -444,15 +444,15 @@ const Reports: React.FC = () => {
                   <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {incomeCategories.length === 0 ? (
                       <div className="h-20 flex items-center justify-center">
-                        <p className="text-center text-text-secondary dark:text-gray-400 font-medium text-sm">Sem receitas.</p>
+                        <p className="text-center text-gray-500 font-medium text-sm">Sem receitas.</p>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {incomeCategories.map((d, i) => (
-                          <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5">
+                          <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/20">
                             <div className="flex items-center gap-3">
                                 <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></div>
-                                <p className="text-xs text-text-primary dark:text-white font-bold uppercase truncate max-w-[140px]">{d.name}</p>
+                                <p className="text-xs text-gray-900 font-bold uppercase truncate max-w-[140px]">{d.name}</p>
                             </div>
                             <p className="text-secondary text-xs font-black">+ {fmtBRL(d.amount)}</p>
                           </div>
@@ -469,7 +469,7 @@ const Reports: React.FC = () => {
 
       {/* Budgets */}
       <section>
-        <h2 className="text-xl font-bold mb-6 text-text-primary dark:text-white px-2">Orçamentos</h2>
+        <h2 className="text-xl font-bold mb-6 text-gray-900 px-2">Orçamentos</h2>
         <div className="flex flex-col gap-4 max-h-[340px] overflow-y-auto pr-1 p-1 custom-scrollbar">
           {budgetCats.map((c, index) => {
             const limit = Number(budgets[c.name] || 0);
@@ -493,7 +493,7 @@ const Reports: React.FC = () => {
                 if (spent === limit) return 'bg-secondary';
                 return 'bg-danger';
               }
-              return 'bg-gray-200 dark:bg-gray-700';
+              return 'bg-gray-200';
             })();
             const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / --`;
             
@@ -505,40 +505,40 @@ const Reports: React.FC = () => {
                 className={`group relative ${cardStyle} border rounded-2xl p-4 shadow-sm backdrop-blur-md transition-all shrink-0`}
               >
                 <div className="flex items-center justify-between mb-3 relative z-10">
-                  <p className="font-bold text-text-primary dark:text-white uppercase text-xs tracking-wider">{c.name}</p>
-                  <p className="text-[10px] text-text-secondary dark:text-white font-bold bg-white/50 dark:bg-black/20 px-2 py-1 rounded-lg backdrop-blur-md">{right}</p>
+                  <p className="font-bold text-gray-900 uppercase text-xs tracking-wider">{c.name}</p>
+                  <p className="text-[10px] text-gray-500 font-bold bg-white/50 px-2 py-1 rounded-lg backdrop-blur-md">{right}</p>
                 </div>
-                <div className="h-2 w-full bg-white/30 dark:bg-black/20 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-white/30 rounded-full overflow-hidden">
                   <div className={`h-full ${barColor} transition-all duration-500 rounded-full`} style={{ width: `${pct}%` }}></div>
                 </div>
               </motion.button>
             );
           })}
           {budgetCats.length === 0 && (
-            <div className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl border border-white/20 text-text-secondary dark:text-gray-400 text-center backdrop-blur-md">
+            <div className="bg-white/50 p-6 rounded-2xl border border-white/20 text-gray-500 text-center backdrop-blur-md">
               <p className="font-medium">Nenhum orçamento configurado.</p>
             </div>
           )}
         </div>
         {editingCat && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-md">
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/20 shadow-glass-lg">
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/20 shadow-glass-lg">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold uppercase text-text-primary dark:text-white">Definir Limite</h3>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="text-text-secondary hover:text-text-primary p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all">
+                <h3 className="text-lg font-bold uppercase text-gray-900">Definir Limite</h3>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="text-gray-500 hover:text-gray-900 p-2 rounded-full hover:bg-black/5 transition-all">
                   <span className="material-symbols-outlined">close</span>
                 </motion.button>
               </div>
-              <p className="text-xs font-bold text-text-secondary uppercase mb-2 bg-accent/20 text-accent inline-block px-2 py-1 rounded-md">{editingCat}</p>
+              <p className="text-xs font-bold text-gray-500 uppercase mb-2 bg-accent/20 text-accent inline-block px-2 py-1 rounded-md">{editingCat}</p>
               <input
                 type="text"
                 value={tempLimit}
                 onChange={(e) => setTempLimit(e.target.value)}
                 placeholder="EX: 800"
-                className="w-full rounded-xl bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 p-4 text-text-primary dark:text-white font-bold placeholder:text-gray-400 focus:ring-2 focus:ring-primary/50 focus:outline-none transition-all"
+                className="w-full rounded-xl bg-white/50 border border-gray-200 p-4 text-gray-900 font-bold placeholder:text-gray-400 focus:ring-2 focus:ring-primary/50 focus:outline-none transition-all"
               />
               <div className="mt-8 flex gap-3">
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="flex-1 rounded-xl bg-gray-100 dark:bg-white/5 py-3 font-bold uppercase text-text-secondary dark:text-white hover:bg-gray-200 transition-all">Cancelar</motion.button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="flex-1 rounded-xl bg-gray-100 py-3 font-bold uppercase text-gray-500 hover:bg-gray-200 transition-all">Cancelar</motion.button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={async () => {
@@ -578,25 +578,25 @@ const Reports: React.FC = () => {
 
       <section>
         <div className="flex items-center justify-between mb-6 px-2">
-          <h2 className="text-xl font-bold uppercase text-text-primary dark:text-white">Projeção</h2>
+          <h2 className="text-xl font-bold uppercase text-gray-900">Projeção</h2>
           <motion.button 
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/projecao-futura')}
-            className="rounded-full p-2 bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/20 transition-all"
+            className="rounded-full p-2 bg-white/50 hover:bg-white/80 border border-white/20 transition-all"
           >
-            <span className="material-symbols-outlined text-text-primary dark:text-white">arrow_forward</span>
+            <span className="material-symbols-outlined text-gray-900">arrow_forward</span>
           </motion.button>
         </div>
-        <div className="bg-white/60 dark:bg-black/40 rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-glass backdrop-blur-xl">
+        <div className="bg-white/60 rounded-3xl p-6 border border-white/40 shadow-glass backdrop-blur-xl">
           <div className="flex min-w-72 flex-1 flex-col gap-4">
-            <div className="border-b border-gray-200/50 dark:border-white/10 pb-4">
-                <p className="text-text-secondary dark:text-gray-400 text-xs font-bold uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
+            <div className="border-b border-gray-200/50 pb-4">
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
                 <p className="text-primary text-4xl font-black text-center tracking-tight">{fmtBRL(projection.total)}</p>
             </div>
             
-            <div className="flex justify-center gap-2 items-center bg-white/40 dark:bg-white/5 border border-white/20 rounded-xl p-2 backdrop-blur-sm">
-              <p className="text-text-secondary dark:text-gray-300 text-[10px] font-bold uppercase">Próximos 3 meses</p>
-              <p className={`${projection.percent >= 0 ? 'text-secondary' : 'text-danger'} text-xs font-black bg-white/80 dark:bg-black/40 px-2 py-0.5 rounded-md`}>{`${projection.percent >= 0 ? '+' : ''}${projection.percent.toFixed(1)}%`}</p>
+            <div className="flex justify-center gap-2 items-center bg-white/40 border border-white/20 rounded-xl p-2 backdrop-blur-sm">
+              <p className="text-gray-500 text-[10px] font-bold uppercase">Próximos 3 meses</p>
+              <p className={`${projection.percent >= 0 ? 'text-secondary' : 'text-danger'} text-xs font-black bg-white/80 px-2 py-0.5 rounded-md`}>{`${projection.percent >= 0 ? '+' : ''}${projection.percent.toFixed(1)}%`}</p>
             </div>
 
             <div className="flex min-h-[180px] flex-1 flex-col gap-4 py-4 relative">
@@ -654,7 +654,7 @@ const Reports: React.FC = () => {
                               cx={x} 
                               cy={y} 
                               r={isActive ? 6 : 4} 
-                              className={`${isProj ? 'fill-gray-200 dark:fill-gray-700' : 'fill-white dark:fill-surface-dark'} stroke-primary transition-all duration-300`} 
+                              className={`${isProj ? 'fill-gray-200' : 'fill-white'} stroke-primary transition-all duration-300`} 
                               strokeWidth={2}
                             />
                             
@@ -674,13 +674,13 @@ const Reports: React.FC = () => {
                     );
                 })}
               </svg>
-              <div className="flex justify-between px-2 border-t border-gray-200/50 dark:border-white/10 pt-3">
+              <div className="flex justify-between px-2 border-t border-gray-200/50 pt-3">
                 {projection.labels.map((l, i) => {
                   const isActive = hoveredPoint === i || clickedPoint === i;
                   return (
                     <p 
                       key={l} 
-                      className={`text-[10px] font-bold uppercase cursor-pointer transition-colors ${isActive ? 'text-primary scale-110' : 'text-text-secondary dark:text-gray-400'}`}
+                      className={`text-[10px] font-bold uppercase cursor-pointer transition-colors ${isActive ? 'text-primary scale-110' : 'text-gray-500'}`}
                       onMouseEnter={() => setHoveredPoint(i)}
                       onClick={(e) => {
                         e.stopPropagation();

@@ -112,20 +112,20 @@ const AddTransaction: React.FC = () => {
       {/* Click outside to close simulation */}
       <div className="h-10 w-full" onClick={() => navigate(-1)}></div>
 
-      <div className="flex-1 flex flex-col bg-[#1A1A1A] rounded-t-3xl overflow-hidden shadow-2xl border-t border-white/10">
+      <div className="flex-1 flex flex-col bg-white rounded-t-3xl overflow-hidden shadow-2xl border-t border-white/40">
         {/* Drag Handle */}
         <div className="flex w-full justify-center pt-3 pb-1" onClick={() => navigate(-1)}>
-          <div className="h-1.5 w-12 rounded-full bg-white/20"></div>
+          <div className="h-1.5 w-12 rounded-full bg-gray-300"></div>
         </div>
 
         {/* Header */}
-        <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-white/5">
+        <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div className="w-10"></div> {/* Spacer */}
-            <h1 className="text-lg font-bold text-white tracking-wide">Nova Transação</h1>
+            <h1 className="text-lg font-bold text-gray-900 tracking-wide">Nova Transação</h1>
             <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(-1)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-all"
             >
                 <span className="material-symbols-outlined">close</span>
             </motion.button>
@@ -136,18 +136,18 @@ const AddTransaction: React.FC = () => {
           <div className="max-w-md mx-auto space-y-8">
             
             {/* Type Segmented Control */}
-            <div className="flex bg-white/5 rounded-2xl p-1 shadow-inner">
+            <div className="flex bg-gray-100 rounded-2xl p-1 shadow-inner">
                 <motion.button 
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setType('income')}
-                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'income' ? 'bg-secondary/20 text-secondary-light shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'income' ? 'bg-white text-secondary shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'}`}
                 >
                     Receita
                 </motion.button>
                 <motion.button 
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setType('expense')}
-                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'expense' ? 'bg-danger/20 text-danger-light shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'expense' ? 'bg-white text-danger shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'}`}
                 >
                     Despesa
                 </motion.button>
@@ -156,7 +156,7 @@ const AddTransaction: React.FC = () => {
             {/* Amount Input */}
             <div className="flex flex-col items-center justify-center">
                 <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold text-white/50">R$</span>
+                    <span className="text-3xl font-bold text-gray-400">R$</span>
                     <input 
                         type="text" 
                         inputMode="decimal"
@@ -164,11 +164,11 @@ const AddTransaction: React.FC = () => {
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0,00"
                         autoFocus
-                        className={`bg-transparent border-none p-0 text-6xl font-bold placeholder-white/10 focus:ring-0 w-64 text-center outline-none ${type === 'expense' ? 'text-danger-light drop-shadow-[0_0_15px_rgba(255,69,95,0.3)]' : 'text-secondary-light drop-shadow-[0_0_15px_rgba(0,214,143,0.3)]'}`}
+                        className={`bg-transparent border-none p-0 text-6xl font-bold placeholder-gray-200 focus:ring-0 w-64 text-center outline-none ${type === 'expense' ? 'text-danger drop-shadow-sm' : 'text-secondary drop-shadow-sm'}`}
                     />
                 </div>
                 {showDatePicker && (
-                  <div className="mt-6 w-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 p-4 select-none shadow-glass animate-in fade-in zoom-in duration-200">
+                  <div className="mt-6 w-full rounded-3xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 select-none shadow-glass animate-in fade-in zoom-in duration-200">
                     <div className="flex items-center justify-between mb-4">
                       <motion.button
                         whileTap={{ scale: 0.95 }}
@@ -176,23 +176,23 @@ const AddTransaction: React.FC = () => {
                           const m = pickerMonth - 1; const y = pickerYear + (m < 0 ? -1 : 0);
                           setPickerYear(y); setPickerMonth((m + 12) % 12);
                         }}
-                        className="h-8 w-8 rounded-full bg-white/5 text-white flex items-center justify-center hover:bg-white/10 transition-all"
+                        className="h-8 w-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-all"
                       >
                         <span className="material-symbols-outlined text-sm">chevron_left</span>
                       </motion.button>
-                      <span className="text-white font-bold text-sm uppercase tracking-wider">{monthNames[pickerMonth]} {pickerYear}</span>
+                      <span className="text-gray-900 font-bold text-sm uppercase tracking-wider">{monthNames[pickerMonth]} {pickerYear}</span>
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => {
                           const m = pickerMonth + 1; const y = pickerYear + (m > 11 ? 1 : 0);
                           setPickerYear(y); setPickerMonth(m % 12);
                         }}
-                        className="h-8 w-8 rounded-full bg-white/5 text-white flex items-center justify-center hover:bg-white/10 transition-all"
+                        className="h-8 w-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-all"
                       >
                         <span className="material-symbols-outlined text-sm">chevron_right</span>
                       </motion.button>
                     </div>
-                    <div className="grid grid-cols-7 gap-1 text-[10px] text-white/50 font-bold mb-2 uppercase text-center">
+                    <div className="grid grid-cols-7 gap-1 text-[10px] text-gray-400 font-bold mb-2 uppercase text-center">
                       {['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d => (
                         <div key={d}>{d}</div>
                       ))}
@@ -208,7 +208,7 @@ const AddTransaction: React.FC = () => {
                             whileTap={{ scale: 0.95 }}
                             key={i}
                             onClick={() => { setSelectedDate(curr); setShowDatePicker(false); }}
-                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center transition-all ${isSel ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-white hover:bg-white/5'} ${isToday && !isSel ? 'text-primary ring-1 ring-primary/50' : ''}`}
+                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center transition-all ${isSel ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-gray-600 hover:bg-gray-100'} ${isToday && !isSel ? 'text-primary ring-1 ring-primary/50' : ''}`}
                           >
                             {String(d)}
                           </motion.button>
@@ -228,7 +228,7 @@ const AddTransaction: React.FC = () => {
                         placeholder="Descrição"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 px-4 text-white font-medium placeholder:text-white/30 focus:bg-white/10 focus:border-white/20 focus:outline-none transition-all"
+                        className="w-full h-14 rounded-2xl bg-gray-50 border border-gray-200 px-4 text-gray-900 font-bold placeholder:text-gray-400 focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
 
@@ -236,22 +236,22 @@ const AddTransaction: React.FC = () => {
                 <motion.button 
                   whileTap={{ scale: 0.98 }} 
                   onClick={() => setShowCategoryPicker(v => !v)} 
-                  className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center justify-between group hover:bg-white/10 transition-all"
+                  className="w-full h-14 rounded-2xl bg-gray-50 border border-gray-200 px-4 flex items-center justify-between group hover:bg-gray-100 transition-all"
                 >
-                    <span className="text-white/70 font-medium group-hover:text-white transition-colors">Categoria</span>
+                    <span className="text-gray-500 font-bold group-hover:text-gray-700 transition-colors">Categoria</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-white font-bold">{categoryName || 'Selecionar'}</span>
-                        <span className="material-symbols-outlined text-white/50">chevron_right</span>
+                        <span className="text-gray-900 font-bold">{categoryName || 'Selecionar'}</span>
+                        <span className="material-symbols-outlined text-gray-400">chevron_right</span>
                     </div>
                 </motion.button>
                 {showCategoryPicker && (
-                  <div className="grid grid-cols-2 gap-2 mt-2 p-3 border border-white/10 bg-white/5 rounded-2xl backdrop-blur-md">
+                  <div className="grid grid-cols-2 gap-2 mt-2 p-3 border border-gray-200 bg-white rounded-2xl shadow-glass-sm">
                     {allCategories.map((c) => (
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         key={c}
                         onClick={() => { setCategoryName(c); setShowCategoryPicker(false); }}
-                        className={`px-3 py-3 rounded-xl text-xs font-bold uppercase border transition-all ${categoryName === c ? 'border-primary/50 bg-primary/20 text-white shadow-lg shadow-primary/10' : 'border-white/5 bg-white/5 text-white/70 hover:bg-white/10'}`}
+                        className={`px-3 py-3 rounded-xl text-xs font-bold uppercase border transition-all ${categoryName === c ? 'border-primary/50 bg-primary/10 text-primary shadow-lg shadow-primary/10' : 'border-gray-100 bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                       >
                         {c}
                       </motion.button>
@@ -259,7 +259,7 @@ const AddTransaction: React.FC = () => {
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onClick={() => { setNewCategoryError(null); setNewCategoryName(''); setShowNewCategoryModal(true); }}
-                      className="px-3 py-3 rounded-xl text-xs font-bold uppercase border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      className="px-3 py-3 rounded-xl text-xs font-bold uppercase border border-gray-200 bg-white text-gray-900 hover:bg-gray-50"
                       aria-label="Criar nova categoria"
                     >
                       + Nova
@@ -267,24 +267,24 @@ const AddTransaction: React.FC = () => {
                   </div>
                 )}
                 {showNewCategoryModal && (
-                  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowNewCategoryModal(false)}>
-                    <div className="w-80 rounded-3xl bg-[#1E1E1E] border border-white/10 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                      <h2 className="text-white font-bold text-lg mb-4">Nova Categoria</h2>
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowNewCategoryModal(false)}>
+                    <div className="w-80 rounded-3xl bg-white border border-white/40 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                      <h2 className="text-gray-900 font-bold text-lg mb-4">Nova Categoria</h2>
                       <input
                         type="text"
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
                         placeholder="Nome da categoria"
-                        className="w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 mb-2"
+                        className="w-full h-12 rounded-xl bg-gray-50 border border-gray-200 px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 mb-2"
                       />
                       {newCategoryError && (
-                        <div className="text-danger-light font-bold text-xs mb-4">{newCategoryError}</div>
+                        <div className="text-danger font-bold text-xs mb-4">{newCategoryError}</div>
                       )}
                       <div className="flex gap-3 mt-4">
                         <motion.button
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setShowNewCategoryModal(false)}
-                          className="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-white/5 text-white hover:bg-white/10 transition-all"
+                          className="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
                         >
                           Cancelar
                         </motion.button>
@@ -337,31 +337,31 @@ const AddTransaction: React.FC = () => {
                     <motion.button 
                       whileTap={{ scale: 0.98 }} 
                       onClick={() => setShowDatePicker(v => !v)} 
-                      className="col-span-2 h-14 w-full rounded-2xl bg-white/5 border border-white/10 px-4 flex flex-col justify-center items-start group hover:bg-white/10 transition-all"
+                      className="col-span-2 h-14 w-full rounded-2xl bg-gray-50 border border-gray-200 px-4 flex flex-col justify-center items-start group hover:bg-gray-100 transition-all"
                     >
-                        <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Data</span>
-                        <span className="text-white font-bold truncate w-full">{displayDateLabel}</span>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Data</span>
+                        <span className="text-gray-900 font-bold truncate w-full">{displayDateLabel}</span>
                     </motion.button>
 
                     {/* Paid Toggle */}
-                    <div className="h-14 w-full rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center justify-between">
-                        <span className="text-white font-medium text-sm">{type === 'income' ? 'Recebido' : 'Pago'}</span>
+                    <div className="h-14 w-full rounded-2xl bg-gray-50 border border-gray-200 px-4 flex items-center justify-between">
+                        <span className="text-gray-900 font-bold text-sm">{type === 'income' ? 'Recebido' : 'Pago'}</span>
                         <motion.button 
                           whileTap={{ scale: 0.95 }}
                             onClick={() => setIsPaid(!isPaid)}
-                            className={`w-12 h-7 rounded-full relative transition-colors ${isPaid ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-white/10'}`}
+                            className={`w-12 h-7 rounded-full relative transition-colors ${isPaid ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-gray-300'}`}
                         >
                             <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-5' : 'translate-x-0'}`} />
                         </motion.button>
                     </div>
 
                     {/* Recurring Toggle */}
-                    <div className="h-14 w-full rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center justify-between">
-                        <span className="text-white font-medium text-sm">Recorrente</span>
+                    <div className="h-14 w-full rounded-2xl bg-gray-50 border border-gray-200 px-4 flex items-center justify-between">
+                        <span className="text-gray-900 font-bold text-sm">Recorrente</span>
                         <motion.button 
                           whileTap={{ scale: 0.95 }}
                             onClick={() => setIsRecurring(!isRecurring)}
-                            className={`w-12 h-7 rounded-full relative transition-colors ${isRecurring ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-white/10'}`}
+                            className={`w-12 h-7 rounded-full relative transition-colors ${isRecurring ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-gray-300'}`}
                         >
                             <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-5' : 'translate-x-0'}`} />
                         </motion.button>
@@ -373,7 +373,7 @@ const AddTransaction: React.FC = () => {
         </div>
 
         {/* Footer Button */}
-        <div className="p-6 pt-4 bg-[#1A1A1A] border-t border-white/5 pb-8">
+        <div className="p-6 pt-4 bg-white border-t border-gray-100 pb-8">
             <motion.button 
                 whileTap={{ scale: 0.98 }}
                 onClick={async () => {

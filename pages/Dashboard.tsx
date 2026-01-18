@@ -405,9 +405,9 @@ const Dashboard: React.FC = () => {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="flex flex-col p-4 pt-6 gap-6 min-h-screen text-text-primary dark:text-white pb-32"
+      className="flex flex-col p-4 pt-6 gap-6 min-h-screen text-gray-900 pb-32"
     >
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white/80 dark:bg-black/60 backdrop-blur-xl p-4 -mx-4 border-b border-white/20 dark:border-white/10 shadow-glass-sm transition-all duration-300">
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-white/80 backdrop-blur-xl p-4 -mx-4 border-b border-white/40 shadow-glass-sm transition-all duration-300">
         <div className="flex items-center gap-4">
             {avatarUrl && (
               <img 
@@ -418,43 +418,28 @@ const Dashboard: React.FC = () => {
               />
             )}
             <div>
-                <p className="text-sm font-medium text-text-secondary dark:text-gray-400">Bem-vindo(a),</p>
-                <h1 className="text-xl font-bold text-text-primary dark:text-white tracking-tight">{displayName}</h1>
+                <p className="text-sm font-medium text-gray-500">Bem-vindo(a),</p>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h1>
             </div>
         </div>
         <div className="flex items-center gap-3">
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 transition-all border border-white/20 shadow-sm backdrop-blur-md">
-                <span className="material-symbols-outlined text-text-secondary dark:text-white text-[22px]">notifications</span>
-                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white dark:ring-black"></span>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
+                <span className="material-symbols-outlined text-gray-600 text-[22px]">notifications</span>
+                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white"></span>
             </motion.button>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 transition-all border border-white/20 shadow-sm backdrop-blur-md">
-                <span className="material-symbols-outlined text-text-secondary dark:text-white text-[22px]">settings</span>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
+                <span className="material-symbols-outlined text-gray-600 text-[22px]">settings</span>
             </motion.button>
         </div>
       </header>
 
-      <div className="flex items-center justify-between px-1">
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setHideValues(v => { const next = !v; localStorage.setItem('hideValues', next ? 'true' : 'false'); return next; })}
-          aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md shadow-glass-sm hover:bg-white/80 dark:hover:bg-white/20 transition-all"
-        >
-          <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
-        </motion.button>
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowMonthPicker(s => !s)}
-          className="text-primary-green font-bold text-sm bg-primary-green/10 px-4 py-2 rounded-full border border-primary-green/20 backdrop-blur-sm"
-        >{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</motion.button>
-      </div>
       {showMonthPicker && (
-        <div className="flex justify-center relative z-40">
-          <div className="absolute top-0 w-full max-w-[340px] rounded-3xl bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl p-5 border border-white/20 shadow-glass-lg">
+        <div className="flex justify-center relative z-40 mb-4">
+          <div className="w-full max-w-[340px] rounded-3xl bg-white/90 backdrop-blur-xl p-5 border border-white/40 shadow-glass-lg">
             <div className="flex items-center justify-between mb-4">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_left</span></motion.button>
-              <span className="text-lg font-bold text-dark dark:text-white">{selectedYear}</span>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_right</span></motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-black/5 text-gray-900"><span className="material-symbols-outlined">chevron_left</span></motion.button>
+              <span className="text-lg font-bold text-gray-900">{selectedYear}</span>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-black/5 text-gray-900"><span className="material-symbols-outlined">chevron_right</span></motion.button>
             </div>
             <div className="grid grid-cols-3 gap-2 mb-4">
               {[selectedYear - 2, selectedYear - 1, selectedYear].map((y) => (
@@ -462,7 +447,7 @@ const Dashboard: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   key={y}
                   onClick={() => setSelectedYear(y)}
-                  className={y === selectedYear ? 'px-3 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 text-xs font-medium hover:bg-black/10 text-text-secondary dark:text-gray-300'}
+                  className={y === selectedYear ? 'px-3 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-3 py-2 rounded-xl bg-black/5 text-xs font-medium hover:bg-black/10 text-gray-500'}
                 >{y}</motion.button>
               ))}
             </div>
@@ -472,7 +457,7 @@ const Dashboard: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   key={m}
                   onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
-                  className={idx === selectedMonth ? 'px-2 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-2 py-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-xs font-medium hover:bg-black/10 text-text-secondary dark:text-gray-300'}
+                  className={idx === selectedMonth ? 'px-2 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-2 py-2.5 rounded-xl bg-black/5 text-xs font-medium hover:bg-black/10 text-gray-500'}
                 >{m}</motion.button>
               ))}
             </div>
@@ -482,12 +467,32 @@ const Dashboard: React.FC = () => {
 
       <motion.section 
         variants={itemVariants}
-        className="rounded-3xl bg-white/60 dark:bg-black/40 backdrop-blur-xl p-6 border border-white/40 dark:border-white/10 shadow-glass relative overflow-hidden"
+        className="rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
         data-onboarding="saldo-total"
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
-        <p className="text-xs font-bold text-text-secondary dark:text-gray-400 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
-        <h2 className={`text-5xl font-black tracking-tighter text-text-primary dark:text-white text-center ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+        
+        {/* Hide Values Button - Top Left */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setHideValues(v => { const next = !v; localStorage.setItem('hideValues', next ? 'true' : 'false'); return next; })}
+          aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+          className="absolute top-6 left-6 p-0 border-0 bg-transparent cursor-pointer hover:opacity-70 transition-opacity"
+        >
+          <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
+        </motion.button>
+
+        {/* 'Este Mês' Button - Top Right */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowMonthPicker(s => !s)}
+          className="absolute top-6 right-6 p-0 border-0 bg-transparent text-gray-500 hover:text-gray-900 font-bold text-sm transition-colors"
+        >
+          {selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}
+        </motion.button>
+
+        <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
+        <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
@@ -694,7 +699,7 @@ const Dashboard: React.FC = () => {
                   );
                 })}
               </div>
-              <div className="mt-4 grid w-full border-t border-white/20 dark:border-white/10 pt-3 text-[10px] text-text-secondary dark:text-gray-400 font-bold uppercase tracking-wider" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+              <div className="mt-4 grid w-full border-t border-white/20 pt-3 text-[10px] text-gray-500 font-bold uppercase tracking-wider" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
                   {current.labels.map((l, idx) => (
                     <span key={idx} className={`text-center ${period === 'month' && idx === selectedMonth && chartYear === selectedYear ? 'text-primary' : ''}`}>{l}</span>
                   ))}
@@ -713,14 +718,14 @@ const Dashboard: React.FC = () => {
           className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isReportOpen}
         >
-          <h3 className="text-lg font-black uppercase text-text-primary dark:text-white flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+          <h3 className="text-lg font-black uppercase text-gray-900 flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-white/50 backdrop-blur-sm border border-white/20">
               <img src="https://cdn-icons-png.flaticon.com/512/6811/6811275.png" alt="Ícone relatório" className="w-5 h-5" />
             </div>
             RELATÓRIO
           </h3>
           <span 
-            className={`material-symbols-outlined text-text-secondary dark:text-gray-400 transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
+            className={`material-symbols-outlined text-gray-500 transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
           >
             expand_more
           </span>
@@ -734,31 +739,31 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden flex flex-col gap-4"
             >
-              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass backdrop-blur-xl" ref={entriesRef}>
+              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 p-6 border border-white/40 shadow-glass backdrop-blur-xl" ref={entriesRef}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3 text-text-primary dark:text-white">
+                  <div className="flex items-center gap-3 text-gray-900">
                     <span className="material-symbols-outlined text-xl rounded-full p-2 bg-success/20 text-success">arrow_downward</span>
-                    <p className="text-lg font-black text-text-primary dark:text-white cursor-pointer uppercase tracking-tight" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
+                    <p className="text-lg font-black text-gray-900 cursor-pointer uppercase tracking-tight" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-text-secondary dark:text-white/80 bg-white/50 dark:bg-white/10 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                    <span className="text-[10px] font-bold text-gray-600 bg-white/50 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
                     {entriesCollapsed && (
-                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEntriesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80">
-                        <span className="material-symbols-outlined text-sm text-text-primary dark:text-white">expand_more</span>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEntriesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 hover:bg-white/80">
+                        <span className="material-symbols-outlined text-sm text-gray-900">expand_more</span>
                       </motion.button>
                     )}
                   </div>
                 </div>
                 {!entriesCollapsed && (
-                  <div className="divide-y divide-gray-200/50 dark:divide-white/10 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+                  <div className="divide-y divide-gray-200/50 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {incomeItems.length === 0 && (
-                      <p className="text-sm text-text-secondary dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma entrada registrada</p>
+                      <p className="text-sm text-gray-500 font-medium py-8 text-center italic">Nenhuma entrada registrada</p>
                     )}
                     {incomeItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 dark:hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
+                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 px-2 -mx-2 rounded-lg transition-colors">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-bold text-text-secondary dark:text-gray-400 uppercase tracking-wider">{labelForDate(it.date)}</span>
-                          <span className={`text-sm font-bold text-text-primary dark:text-white ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-gray-900 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
                         <span className={`text-sm font-black text-success bg-success/10 px-3 py-1 rounded-lg border border-success/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>
@@ -767,31 +772,31 @@ const Dashboard: React.FC = () => {
                 )}
               </motion.section>
 
-              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass backdrop-blur-xl" ref={expensesRef}>
+              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 p-6 border border-white/40 shadow-glass backdrop-blur-xl" ref={expensesRef}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3 text-text-primary dark:text-white">
+                  <div className="flex items-center gap-3 text-gray-900">
                     <span className="material-symbols-outlined text-xl rounded-full p-2 bg-danger/20 text-danger">arrow_upward</span>
-                    <p className="text-lg font-black text-text-primary dark:text-white cursor-pointer uppercase tracking-tight" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
+                    <p className="text-lg font-black text-gray-900 cursor-pointer uppercase tracking-tight" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-text-secondary dark:text-white/80 bg-white/50 dark:bg-white/10 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                    <span className="text-[10px] font-bold text-gray-600 bg-white/50 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
                     {expensesCollapsed && (
-                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setExpensesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80">
-                        <span className="material-symbols-outlined text-sm text-text-primary dark:text-white">expand_more</span>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setExpensesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 hover:bg-white/80">
+                        <span className="material-symbols-outlined text-sm text-gray-900">expand_more</span>
                       </motion.button>
                     )}
                   </div>
                 </div>
                 {!expensesCollapsed && (
-                  <div className="divide-y divide-gray-200/50 dark:divide-white/10 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+                  <div className="divide-y divide-gray-200/50 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {expenseItems.length === 0 && (
-                      <p className="text-sm text-text-secondary dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma saída registrada</p>
+                      <p className="text-sm text-gray-500 font-medium py-8 text-center italic">Nenhuma saída registrada</p>
                     )}
                     {expenseItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 dark:hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
+                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 px-2 -mx-2 rounded-lg transition-colors">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-bold text-text-secondary dark:text-gray-400 uppercase tracking-wider">{labelForDate(it.date)}</span>
-                          <span className={`text-sm font-bold text-text-primary dark:text-white ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-gray-900 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
                         <span className={`text-sm font-black text-danger bg-danger/10 px-3 py-1 rounded-lg border border-danger/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>

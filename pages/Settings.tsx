@@ -11,7 +11,6 @@ const Settings: React.FC = () => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [supabaseUrlState, setSupabaseUrl] = useState<string>('');
   const [supabaseAnonState, setSupabaseAnon] = useState<string>('');
-  const [isDark, setIsDark] = useState(true);
   
   // Biometric States
   const [hasBiometrics, setHasBiometrics] = useState(false);
@@ -22,13 +21,9 @@ const Settings: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      // Load Theme
-      const savedTheme = localStorage.getItem('theme');
-      // Default is light unless explicitly set to 'dark'
-      const isDarkTheme = savedTheme === 'dark';
-      setIsDark(isDarkTheme);
-      if (isDarkTheme) document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
+      // Force Light Mode
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
 
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
@@ -192,11 +187,11 @@ const Settings: React.FC = () => {
       <div className="px-4 pt-4">
         <SectionHeader title="Conta" />
         <div className="flex flex-col gap-3">
-             <div className="flex items-center gap-4 p-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-3xl backdrop-blur-md shadow-glass-sm mb-2 transition-colors duration-300">
+             <div className="flex items-center gap-4 p-4 bg-white/60 border border-white/20 rounded-3xl backdrop-blur-md shadow-glass-sm mb-2 transition-colors duration-300">
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => fileRef.current?.click()}
-                  className="h-16 w-16 rounded-full border-2 border-white/50 dark:border-white/20 overflow-hidden shadow-lg relative group"
+                  className="h-16 w-16 rounded-full border-2 border-white/50 overflow-hidden shadow-lg relative group"
                   title="Alterar foto"
                 >
                   <img src={profile?.avatarUrl || 'https://picsum.photos/100/100'} alt="Avatar" className="h-full w-full object-cover" />
@@ -229,8 +224,8 @@ const Settings: React.FC = () => {
                   }}
                 />
                 <div className="flex-1">
-                  <p className="font-bold text-lg text-text-primary dark:text-white">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'USUÁRIO'}</p>
-                  <p className="text-xs font-medium text-text-secondary dark:text-gray-400 bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md w-fit mt-1">{profile?.email || ''}</p>
+                  <p className="font-bold text-lg text-gray-900">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'USUÁRIO'}</p>
+                  <p className="text-xs font-medium text-gray-500 bg-black/5 px-2 py-1 rounded-md w-fit mt-1">{profile?.email || ''}</p>
                 </div>
              </div>
              <SettingItem icon="person" label="Dados Pessoais" color="bg-secondary text-white" />
@@ -242,14 +237,14 @@ const Settings: React.FC = () => {
             <motion.div 
                 whileTap={{ scale: 0.98 }}
                 onClick={handleBiometricToggle}
-                className="w-full flex items-center justify-between px-4 py-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all mb-3 group rounded-2xl shadow-sm cursor-pointer"
+                className="w-full flex items-center justify-between px-4 py-4 bg-white/60 border border-white/20 backdrop-blur-md hover:bg-white/80 transition-all mb-3 group rounded-2xl shadow-sm cursor-pointer"
             >
                 <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-full flex items-center justify-center bg-primary text-white shadow-lg">
                         <span className="material-symbols-outlined font-bold text-[20px]">fingerprint</span>
                     </div>
                     <div>
-                        <p className="font-bold text-text-primary dark:text-white text-sm">Biometria</p>
+                        <p className="font-bold text-gray-900 text-sm">Biometria</p>
                         {biometricError && <p className="text-xs text-danger font-bold">{biometricError}</p>}
                         {isBiometricProcessing && <p className="text-xs text-primary font-bold animate-pulse">Processando...</p>}
                     </div>
@@ -261,32 +256,16 @@ const Settings: React.FC = () => {
                         checked={hasBiometrics} 
                         readOnly 
                     />
-                    <div className="w-11 h-6 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </div>
             </motion.div>
-            <SettingItem icon="shield_lock" label="Privacidade" color="bg-dark text-white dark:bg-white dark:text-dark" />
+            <SettingItem icon="shield_lock" label="Privacidade" color="bg-gray-900 text-white" />
         </div>
 
         <SectionHeader title="Geral" />
         <div className="flex flex-col">
             <SettingItem icon="notifications" label="Notificações" color="bg-secondary text-white" />
-            <div className="w-full flex items-center justify-between px-4 py-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all mb-3 group rounded-2xl shadow-sm cursor-pointer" onClick={toggleTheme}>
-                <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full flex items-center justify-center bg-accent text-dark shadow-lg">
-                        <span className="material-symbols-outlined font-bold text-[20px]">{isDark ? 'dark_mode' : 'light_mode'}</span>
-                    </div>
-                    <div className="text-left">
-                        <p className="font-bold text-text-primary dark:text-white text-sm">Aparência</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-text-secondary dark:text-gray-400 bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md">{isDark ? 'Escuro' : 'Claro'}</span>
-                    <div className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none border border-transparent ${isDark ? 'bg-primary' : 'bg-gray-200 dark:bg-white/10'}`}>
-                        <span className={`inline-block w-5 h-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${isDark ? 'translate-x-[22px]' : 'translate-x-[2px]'}`} />
-                    </div>
-                </div>
-            </div>
-            <SettingItem icon="paid" label="Moeda" trailing={<span className="text-xs font-bold text-text-primary dark:text-white bg-accent/20 border border-accent/30 rounded-md px-2 py-1 uppercase">BRL</span>} color="bg-primary text-white" />
+            <SettingItem icon="paid" label="Moeda" trailing={<span className="text-xs font-bold text-gray-900 bg-accent/20 border border-accent/30 rounded-md px-2 py-1 uppercase">BRL</span>} color="bg-primary text-white" />
         </div>
 
       <div className="mt-8 px-4">
@@ -298,7 +277,7 @@ const Settings: React.FC = () => {
               <span className="material-symbols-outlined">logout</span>
               Sair
           </motion.button>
-          <p className="text-center text-xs font-medium text-text-secondary dark:text-gray-500 mt-6 opacity-60">Versão 1.0.0</p>
+          <p className="text-center text-xs font-medium text-gray-500 mt-6 opacity-60">Versão 1.0.0</p>
       </div>
       </div>
     </motion.div>

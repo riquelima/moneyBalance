@@ -214,7 +214,7 @@ const PastSelfWidget: React.FC = () => {
                       className="min-w-[85%] sm:min-w-[320px] snap-center flex-shrink-0 p-5 rounded-2xl border border-white/20 dark:border-white/10 bg-white/60 dark:bg-black/40 backdrop-blur-xl shadow-glass-sm hover:shadow-glass transition-all duration-300 relative overflow-hidden"
                     >
                       <div className="absolute top-0 right-0 p-2 opacity-10">
-                        <span className="material-symbols-outlined text-6xl">history</span>
+                        {/* <span className="material-symbols-outlined text-6xl">history</span> */}
                       </div>
                       
                       <div className="flex items-center justify-between mb-2 relative z-10">
