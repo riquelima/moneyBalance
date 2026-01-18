@@ -241,7 +241,7 @@ const Dashboard: React.FC = () => {
       if (!mounted) return;
       
       if (!user) {
-        if (period === 'month') setChart({ labels: last12MonthsLabels(), values: Array(12).fill(6) });
+        if (period === 'month') setChart({ labels: last12MonthsLabels(), values: Array(12).fill(0) });
         else if (period === 'week') setChart(getWeeksOfMonth(selectedYear, selectedMonth));
         else setChart(dataMap.day);
         return;
@@ -665,7 +665,7 @@ const Dashboard: React.FC = () => {
                   const labelText = formatBRL(rawVal);
                   const charCount = labelText.replace(/\s/g, '').length;
                   const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
-                  const showLabel = rawVal > 0 && (period === 'month' || h >= 12);
+                  const showLabel = rawVal > 0;
                   const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
 
                   return (

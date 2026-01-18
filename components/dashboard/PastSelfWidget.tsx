@@ -153,10 +153,10 @@ const PastSelfWidget: React.FC = () => {
   if (comparisons.length === 0) return null; // Hide if no data
 
   return (
-    <div className="space-y-4">
+    <div>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between group focus:outline-none"
+        className="w-full flex items-center justify-between group focus:outline-none mb-4"
         aria-expanded={isOpen}
         aria-controls="past-self-content"
       >
