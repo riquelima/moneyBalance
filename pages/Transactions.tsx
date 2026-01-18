@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, toLocalISO, labelForDate } from '../utils/date';
+import { usePrivacy } from '../src/context/PrivacyContext';
 import { categories } from '../categories';
 
 const Transactions: React.FC = () => {
@@ -530,7 +531,7 @@ const Transactions: React.FC = () => {
                             <span className="text-[10px] text-gray-500">{parseLocalISODate(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</span>
                           </div>
                       </div>
-                      <p className={`font-bold text-base ${t.type === 'income' ? 'text-secondary' : 'text-danger'} self-center ${t.is_paid ? 'line-through opacity-50' : ''}`}>
+                      <p className={`font-bold text-base ${t.type === 'income' ? 'text-secondary' : 'text-danger'} self-center ${t.is_paid ? 'line-through opacity-50' : ''} ${isPrivacyEnabled ? 'filter blur-sm select-none' : ''}`}>
                         {formatBRL(Number(t.amount))}
                       </p>
                     </motion.div>

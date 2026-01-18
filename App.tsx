@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PrivacyProvider } from './src/context/PrivacyContext';
 
 // Pages
 import Login from './pages/Login';
@@ -199,9 +200,11 @@ const AnimatedRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
-      <AnimatedRoutes />
-    </HashRouter>
+    <PrivacyProvider>
+      <HashRouter>
+        <AnimatedRoutes />
+      </HashRouter>
+    </PrivacyProvider>
   );
 };
 
