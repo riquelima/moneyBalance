@@ -9,6 +9,7 @@ import { categories } from '../categories';
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isPrivacyEnabled } = usePrivacy();
   const [items, setItems] = useState<Array<{ id: string; description: string | null; amount: number; type: 'income' | 'expense'; date: string; is_paid: boolean; category_id: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
