@@ -1,0 +1,22 @@
+[33mcommit bd8c2d284438a57e5fa9cdf76345cbcc8ede8bcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: riquelima <riquelima@users.noreply.github.com>
+Date:   Sat Jan 17 13:20:33 2026 -0300
+
+    feat: update dashboard layout and transaction filters
+    
+    - Reorder dashboard cards: move 'Hoje' and 'Ontem' to the bottom
+    - Implement exact date filtering in Transactions page
+    - Add navigation from 'Hoje'/'Ontem' cards to filtered transactions
+    - Fix alignment of 'Eu do Passado' and 'Gráficos' icons
+    - Make 'Gráficos' section collapsible
+[33mcommit bd8c2d284438a57e5fa9cdf76345cbcc8ede8bcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: riquelima <riquelima@users.noreply.github.com>
+Date:   Sat Jan 17 13:20:33 2026 -0300
+
+    feat: update dashboard layout and transaction filters
+    
+    - Reorder dashboard cards: move 'Hoje' and 'Ontem' to the bottom
+    - Implement exact date filtering in Transactions page
+    - Add navigation from 'Hoje'/'Ontem' cards to filtered transactions
+    - Fix alignment of 'Eu do Passado' and 'Gráficos' icons
+    - Make 'Gráficos' section collapsible

@@ -583,7 +583,7 @@ const Dashboard: React.FC = () => {
       <motion.section variants={itemVariants}>
         <button 
           onClick={() => setIsChartsOpen(!isChartsOpen)}
-          className="w-full flex items-center justify-between group focus:outline-none px-4 mb-4"
+          className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isChartsOpen}
         >
           <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
@@ -614,11 +614,6 @@ const Dashboard: React.FC = () => {
                   onClick={() => setPeriod('day')}
                   className={period === 'day' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
                 >DIA</motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
-                  onClick={() => setPeriod('week')}
-                  className={period === 'week' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
-                >SEM</motion.button>
                 <motion.button
                   whileTap={{ scale: 0.95, y: 2 }}
                   onClick={() => setPeriod('month')}
