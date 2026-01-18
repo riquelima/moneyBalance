@@ -15,37 +15,52 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t-3 border-dark dark:border-white bg-white dark:bg-surface-dark transition-colors duration-300">
-      <div className="mx-auto grid w-full grid-cols-5 items-end justify-items-center px-4 py-2 pb-4 h-20">
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Glassmorphism Background */}
+      <div className="absolute inset-0 rounded-t-2xl bg-white/80 dark:bg-black/80 backdrop-blur-xl border-t border-white/20 dark:border-white/10 shadow-[0_-4px_20px_0_rgba(31,38,135,0.15)]" />
+      
+      <div className="relative flex items-center justify-between px-2 py-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           
           if (item.isFab) {
              return (
-                <motion.button
-                  key={item.path + 'fab'}
-                  whileTap={{ scale: 0.95, y: 0 }}
-                  onClick={() => navigate(item.path)}
-                  className="flex h-14 w-14 -translate-y-4 transform items-center justify-center rounded-full border-3 border-dark dark:border-white bg-primary text-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                  data-onboarding="add-fab"
-                  aria-label="Adicionar transação"
-                >
-                  <span className="material-symbols-outlined !text-3xl">add</span>
-                </motion.button>
+                <div key={item.path + 'fab'} className="relative -top-8 mx-2">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate(item.path)}
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white shadow-xl border-4 border-white/10 dark:border-black/10 backdrop-blur-md"
+                    style={{
+                        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                    }}
+                    data-onboarding="add-fab"
+                    aria-label="Adicionar transação"
+                  >
+                    <span className="material-symbols-outlined !text-4xl">add</span>
+                  </motion.button>
+                </div>
              )
           }
 
           return (
             <motion.button
               key={item.label}
-              whileTap={{ scale: 0.95, y: 1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 transition-colors ${isActive ? 'text-primary font-bold' : 'text-dark dark:text-white hover:text-primary dark:hover:text-primary'}`}
+              className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all duration-300 relative ${isActive ? 'text-primary' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
             >
-              <span className={`material-symbols-outlined ${isActive ? '!fill-1' : ''} border-2 border-transparent`}>
+              {isActive && (
+                <motion.div
+                  layoutId="nav-pill"
+                  className="absolute inset-0 bg-primary/10 dark:bg-white/10 rounded-xl"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              )}
+              <span className={`material-symbols-outlined text-2xl relative z-10 ${isActive ? 'fill-1' : ''}`}>
                 {item.icon}
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider">{item.label}</span>
+              {isActive && <span className="text-[9px] font-bold mt-0.5 relative z-10">{item.label}</span>}
             </motion.button>
           );
         })}
