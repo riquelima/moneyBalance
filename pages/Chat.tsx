@@ -505,22 +505,27 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-background-dark relative font-display">
+    <div className="flex flex-col h-screen relative font-display overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-background-dark z-0"></div>
+      <div className="absolute top-0 left-0 w-full h-full z-0 opacity-20 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 50% 30%, rgba(0,214,143,0.1), transparent 70%)' }}></div>
+
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo"
+        className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-glass"
       >
-        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="h-10 w-10 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark hover:bg-surface-light dark:hover:bg-gray-800">
-          <span className="material-symbols-outlined text-dark dark:text-white">arrow_back_ios_new</span>
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all">
+          <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
         </motion.button>
-        <h1 className="text-dark dark:text-white font-black text-lg uppercase">Chat com IA</h1>
-        <motion.button whileTap={{ scale: 0.95, y: 2 }} className="h-10 w-10 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark hover:bg-surface-light dark:hover:bg-gray-800">
-          <span className="material-symbols-outlined text-dark dark:text-white">more_vert</span>
+        <h1 className="text-white font-bold text-lg tracking-wide">Chat com IA</h1>
+        <motion.button whileTap={{ scale: 0.95 }} className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all">
+          <span className="material-symbols-outlined text-white">more_vert</span>
         </motion.button>
       </motion.header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-surface-dark">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
         {messages.map((msg) => (
           <motion.div 
             key={msg.id}
@@ -529,30 +534,30 @@ const Chat: React.FC = () => {
             className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
           >
             {msg.sender === 'ai' && (
-                <div className="h-8 w-8 rounded-sm shrink-0 overflow-hidden bg-white dark:bg-surface-dark border-2 border-dark dark:border-white">
+                <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-white/10 border border-white/20 shadow-sm">
                     <img src="https://cdn-icons-png.flaticon.com/512/10881/10881863.png" alt="IA" className="h-full w-full object-cover" />
                 </div>
             )}
             
-            <div className={`flex flex-col gap-1 max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <span className="text-xs text-text-secondary ml-1">{msg.sender === 'ai' ? 'Good Money - Assitente IA' : 'Você'}</span>
+            <div className={`flex flex-col gap-1 max-w-[85%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                <span className="text-[10px] font-bold text-white/40 ml-1 uppercase tracking-wider">{msg.sender === 'ai' ? 'Good Money AI' : 'Você'}</span>
                 {msg.sender === 'ai' ? (
-                  <motion.div className="px-4 py-3 rounded-sm text-sm font-bold bg-white dark:bg-surface-dark border-2 border-dark dark:border-white text-dark dark:text-white shadow-neo-sm">
+                  <motion.div className="px-4 py-3 rounded-2xl rounded-tl-none text-sm font-medium bg-white/10 backdrop-blur-md border border-white/10 text-white shadow-sm">
                     <ReactMarkdown>{msg.text}</ReactMarkdown>
                   </motion.div>
                 ) : (
-                  <motion.div className="px-4 py-3 rounded-sm text-sm font-bold bg-white dark:bg-surface-dark border-2 border-dark dark:border-white text-dark dark:text-white shadow-neo-sm">
+                  <motion.div className="px-4 py-3 rounded-2xl rounded-tr-none text-sm font-medium bg-primary text-white shadow-lg shadow-primary/20">
                     {msg.text}
                   </motion.div>
                 )}
             </div>
 
             {msg.sender === 'user' && (
-                <div className="h-8 w-8 rounded-sm shrink-0 overflow-hidden bg-white dark:bg-surface-dark border-2 border-dark dark:border-white">
+                <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-white/10 border border-white/20 shadow-sm">
                      {avatarUrl ? (
                        <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                      ) : (
-                       <span className="material-symbols-outlined">person</span>
+                       <span className="material-symbols-outlined text-white/70 text-lg flex items-center justify-center h-full">person</span>
                      )}
                 </div>
             )}
@@ -561,36 +566,36 @@ const Chat: React.FC = () => {
 
         {isTyping && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-3">
-                 <div className="h-8 w-8 rounded-sm shrink-0 overflow-hidden bg-white dark:bg-surface-dark border-2 border-dark dark:border-white">
+                 <div className="h-8 w-8 rounded-full shrink-0 overflow-hidden bg-white/10 border border-white/20">
                     <img src="https://cdn-icons-png.flaticon.com/512/10881/10881863.png" alt="IA" className="h-full w-full object-cover" />
                 </div>
-                <div className="bg-white dark:bg-surface-dark px-3 py-2 rounded-sm border-2 border-dark dark:border-white flex gap-1">
-                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
-                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
-                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-text-secondary rounded-full" />
+                <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl rounded-tl-none border border-white/10 flex gap-1 items-center h-10">
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-1.5 h-1.5 bg-white/50 rounded-full" />
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-white/50 rounded-full" />
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-white/50 rounded-full" />
                 </div>
             </motion.div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-        <div className="p-4 bg-white dark:bg-surface-dark border-t-2 border-dark dark:border-white">
+        <div className="p-4 bg-white/5 backdrop-blur-xl border-t border-white/10 relative z-20">
         <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
             {[
               'Maior gasto mês atual',
               'Resumo do mês atual',
               'O que posso te perguntar?',
-              'Estou dentro do meu orçamento para esse mês?',
-              'Qual a soma de todas as entradas futuras recorrentes para 2026?',
-              'Qual a soma de todas as saídas futuras recorrentes para 2026?',
-              'Onde devo economizar?'
+              'Estou dentro do meu orçamento?',
+              'Soma entradas futuras 2026',
+              'Soma saídas futuras 2026',
+              'Onde economizar?'
             ].map((chip) => (
               <div key={chip} className="shrink-0 snap-start">
                 <motion.button 
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setInputValue(chip)}
                   onContextMenu={(e) => e.preventDefault()}
-                  className="no-callout select-none whitespace-nowrap px-4 py-2 rounded-sm bg-white dark:bg-surface-dark text-dark dark:text-white border-2 border-dark dark:border-white shadow-neo-sm hover:bg-surface-light dark:hover:bg-gray-800 text-xs font-bold uppercase"
+                  className="no-callout select-none whitespace-nowrap px-3 py-2 rounded-xl bg-white/5 text-white border border-white/10 hover:bg-white/10 text-xs font-bold transition-all"
                 >
                   {chip}
                 </motion.button>
@@ -598,38 +603,40 @@ const Chat: React.FC = () => {
             ))}
         </div>
         <div className="flex items-center gap-2">
-            <input 
-              type="text" 
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Pergunte algo..."
-              className="flex-1 bg-white dark:bg-surface-dark rounded-sm px-4 py-3 text-sm border-2 border-dark dark:border-white text-dark dark:text-white placeholder:text-text-secondary focus:outline-none"
-            />
+            <div className="flex-1 relative">
+              <input 
+                type="text" 
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Pergunte algo..."
+                className="w-full bg-white/5 rounded-2xl px-4 py-3 pl-4 text-sm border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all"
+              />
+            </div>
             <motion.button 
               whileTap={{ scale: 0.9 }}
               onClick={handleSend}
               disabled={!inputValue}
               onContextMenu={(e) => e.preventDefault()}
-              className="no-callout select-none h-12 w-12 rounded-sm bg-primary flex items-center justify-center text-white border-2 border-dark dark:border-white shadow-neo-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="no-callout select-none h-11 w-11 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-all"
             >
-              <span className="material-symbols-outlined">send</span>
+              <span className="material-symbols-outlined text-xl">send</span>
             </motion.button>
             <motion.button
-              whileTap={{ scale: 0.95, y: 2 }}
+              whileTap={{ scale: 0.95 }}
               onPointerDown={startRecording}
               onPointerUp={stopRecordingAndSend}
               onPointerLeave={stopRecordingAndSend}
               disabled={isTyping}
               onContextMenu={(e) => e.preventDefault()}
-              className={`no-callout select-none h-12 w-12 rounded-sm flex items-center justify-center text-white border-2 border-dark dark:border-white relative ${isRecording ? 'bg-danger ring-4 ring-danger/40 animate-pulse' : 'bg-secondary'} shadow-neo-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`no-callout select-none h-11 w-11 rounded-full flex items-center justify-center text-white border border-white/10 relative ${isRecording ? 'bg-danger ring-4 ring-danger/20 animate-pulse' : 'bg-white/10 hover:bg-white/20'} transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
               aria-label={isRecording ? 'Gravando, solte para enviar' : 'Segure para falar'}
             >
-              <span className="material-symbols-outlined">{isRecording ? 'fiber_manual_record' : 'mic'}</span>
+              <span className="material-symbols-outlined text-xl">{isRecording ? 'stop' : 'mic'}</span>
             </motion.button>
         </div>
         {error && (
-          <p className="mt-2 text-sm text-danger">{error}</p>
+          <p className="mt-2 text-xs text-danger-light text-center bg-danger/10 py-1 rounded-lg border border-danger/20">{error}</p>
         )}
       </div>
     </div>

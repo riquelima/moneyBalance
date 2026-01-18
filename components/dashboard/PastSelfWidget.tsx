@@ -148,7 +148,7 @@ const PastSelfWidget: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl" />;
+  if (loading) return <div className="animate-pulse h-32 bg-white/10 rounded-2xl border border-white/10" />;
   if (error) return null; // Hide on error
   if (comparisons.length === 0) return null; // Hide if no data
 
@@ -160,12 +160,14 @@ const PastSelfWidget: React.FC = () => {
         aria-expanded={isOpen}
         aria-controls="past-self-content"
       >
-        <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
-          <img src="https://cdn-icons-png.flaticon.com/512/3073/3073484.png" alt="Ícone histórico" className="w-6 h-6" />
+        <h3 className="text-lg font-black uppercase text-text-primary dark:text-white flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+              <img src="https://cdn-icons-png.flaticon.com/512/3073/3073484.png" alt="Ícone histórico" className="w-5 h-5" />
+            </div>
           Eu do Passado
         </h3>
         <span 
-          className={`material-symbols-outlined text-dark dark:text-white transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+          className={`material-symbols-outlined text-text-secondary dark:text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
         >
           expand_more
         </span>
@@ -209,25 +211,29 @@ const PastSelfWidget: React.FC = () => {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      className="min-w-[85%] sm:min-w-[320px] snap-center flex-shrink-0 p-4 rounded-xl border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo-sm hover:shadow-neo transition-all duration-300"
+                      className="min-w-[85%] sm:min-w-[320px] snap-center flex-shrink-0 p-5 rounded-2xl border border-white/20 dark:border-white/10 bg-white/60 dark:bg-black/40 backdrop-blur-xl shadow-glass-sm hover:shadow-glass transition-all duration-300 relative overflow-hidden"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-dark dark:text-white truncate max-w-[60%]">{item.categoryName}</span>
-                        <div className={`flex items-center text-sm font-bold ${isHigher ? 'text-danger' : 'text-secondary'}`}>
-                          <span className="material-symbols-outlined text-lg">
+                      <div className="absolute top-0 right-0 p-2 opacity-10">
+                        <span className="material-symbols-outlined text-6xl">history</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mb-2 relative z-10">
+                        <span className="font-bold text-text-primary dark:text-white truncate max-w-[60%]">{item.categoryName}</span>
+                        <div className={`flex items-center text-sm font-bold ${isHigher ? 'text-danger' : 'text-success'} bg-white/50 dark:bg-black/20 px-2 py-1 rounded-lg backdrop-blur-md`}>
+                          <span className="material-symbols-outlined text-lg mr-1">
                             {isHigher ? 'trending_up' : 'trending_down'}
                           </span>
                           {Math.abs(item.percentageChange).toFixed(0)}%
                         </div>
                       </div>
                       
-                      <p className="text-sm text-gray-600 dark:text-gray-300 font-medium mb-3 h-10 line-clamp-2">
+                      <p className="text-sm text-text-secondary dark:text-gray-300 font-medium mb-4 h-10 line-clamp-2 relative z-10 leading-relaxed">
                         {message}
                       </p>
                       
-                      <div className="pt-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-400 flex justify-between">
+                      <div className="pt-3 border-t border-gray-200/50 dark:border-white/10 text-xs text-text-secondary dark:text-gray-400 flex justify-between relative z-10">
                         <span>Anterior: R$ {item.previousAmount.toFixed(2)}</span>
-                        <span className="font-bold">Atual: R$ {item.currentAmount.toFixed(2)}</span>
+                        <span className="font-bold text-text-primary dark:text-white">Atual: R$ {item.currentAmount.toFixed(2)}</span>
                       </div>
                     </motion.div>
                   );
@@ -249,10 +255,10 @@ const PastSelfWidget: React.FC = () => {
                           });
                         }
                       }}
-                      className={`h-2 rounded-full transition-all duration-300 ${
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
                         idx === activeIndex 
                           ? 'w-6 bg-primary' 
-                          : 'w-2 bg-gray-300 dark:bg-gray-600 hover:bg-primary/50'
+                          : 'w-1.5 bg-gray-300 dark:bg-gray-600 hover:bg-primary/50'
                       }`}
                       aria-label={`Ir para insight ${idx + 1}`}
                       aria-current={idx === activeIndex ? 'true' : 'false'}

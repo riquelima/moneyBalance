@@ -253,37 +253,37 @@ const Transactions: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="flex flex-col min-h-screen pb-24 bg-background-light dark:bg-background-dark transition-colors duration-300"
+      className="flex flex-col min-h-screen pb-24 transition-colors duration-300"
     >
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white dark:bg-surface-dark p-4 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
+      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-xl bg-white/5 border-b border-white/10 shadow-glass">
         <motion.button
-          whileTap={{ scale: 0.95, y: 2 }}
+          whileTap={{ scale: 0.95 }}
           type="button"
           onClick={() => setShowFilter(true)}
-          className="flex w-10 items-center justify-center text-dark dark:text-white border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all p-1"
+          className="flex w-10 h-10 items-center justify-center text-white rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-glass hover:bg-white/20 transition-all"
         >
-          <span className="material-symbols-outlined text-2xl">filter_alt</span>
+          <span className="material-symbols-outlined text-xl">filter_alt</span>
         </motion.button>
-        <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">Transações</h1>
+        <h1 className="text-xl font-bold tracking-wide text-white drop-shadow-sm">Transações</h1>
         <motion.button
-          whileTap={{ scale: 0.95, y: 2 }}
+          whileTap={{ scale: 0.95 }}
           type="button"
           onClick={() => navigate('/add-transaction')}
-          className="flex w-10 items-center justify-center text-white bg-primary border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all p-1"
+          className="flex w-10 h-10 items-center justify-center text-white rounded-full bg-primary/80 border border-white/20 backdrop-blur-md shadow-glass hover:bg-primary transition-all"
         >
-          <span className="material-symbols-outlined text-3xl">add_circle</span>
+          <span className="material-symbols-outlined text-2xl">add_circle</span>
         </motion.button>
       </header>
 
-      <div className="p-4 z-10 relative">
-        <div className="flex items-center rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] px-4 py-3">
-          <span className="material-symbols-outlined text-dark dark:text-white mr-2">search</span>
+      <div className="p-4 z-10 relative space-y-4">
+        <div className="flex items-center rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-glass px-4 py-3">
+          <span className="material-symbols-outlined text-white/70 mr-3">search</span>
           <input 
             type="text" 
-            placeholder="BUSCAR TRANSAÇÕES"
+            placeholder="Buscar transações"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-dark dark:text-white placeholder:text-text-secondary dark:placeholder:text-text-secondary/70 outline-none border-none focus:ring-0 p-0 font-bold uppercase"
+            className="w-full bg-transparent text-white placeholder:text-white/50 outline-none border-none focus:ring-0 p-0 font-medium"
           />
         </div>
 
@@ -295,112 +295,120 @@ const Transactions: React.FC = () => {
               exit={{ height: 0, opacity: 0 }} 
               className="overflow-hidden"
             >
-              <div className="mt-4 bg-white dark:bg-surface-dark p-6 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-                <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-2">
-                  <h3 className="text-xl font-black uppercase text-dark dark:text-white">Filtrar transações</h3>
-                  <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
+              <div className="mt-2 bg-white/10 backdrop-blur-xl p-6 rounded-3xl border border-white/20 shadow-glass">
+                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                  <h3 className="text-lg font-bold text-white">Filtrar</h3>
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowFilter(false)} className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all">
                     <span className="material-symbols-outlined">close</span>
                   </motion.button>
                 </div>
-                <div className="mb-4">
-                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Status</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['all','paid','pending'].map((s) => (
+                
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Status</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['all','paid','pending'].map((s) => (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          key={s}
+                          onClick={() => setStatusFilter(s as any)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${statusFilter === s ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        >
+                          {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Tipo</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['all','income','expense'].map((t) => (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          key={t}
+                          onClick={() => setTypeFilter(t as any)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${typeFilter === t ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        >
+                          {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Ano</p>
+                    <div className="flex flex-wrap gap-2">
                       <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
-                        key={s}
-                        onClick={() => setStatusFilter(s as any)}
-                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${statusFilter === s ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setYearFilter('all')}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${yearFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
                       >
-                        {s === 'all' ? 'Todos' : s === 'paid' ? 'Pagos' : 'Pendentes'}
+                        Todos
                       </motion.button>
-                    ))}
+                      {availableYears.map((y) => (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          key={y}
+                          onClick={() => setYearFilter(y)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${yearFilter === y ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        >
+                          {y}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Mês</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setMonthFilter('all')}
+                        className={`px-2 py-2 rounded-xl text-xs font-medium border text-center transition-all ${monthFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                      >
+                        Todos
+                      </motion.button>
+                      {monthNames.map((m, idx) => (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          key={m}
+                          onClick={() => setMonthFilter(idx)}
+                          className={`px-2 py-2 rounded-xl text-xs font-medium border text-center transition-all ${monthFilter === idx ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        >
+                          {m}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold uppercase mb-3 text-white/70 tracking-wider">Categoria</p>
+                    <div className="flex flex-wrap gap-2">
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setCategoryFilter('all')}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${categoryFilter === 'all' ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                      >
+                        Todas
+                      </motion.button>
+                      {categoriesForFilter.map((name) => (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          key={name}
+                          onClick={() => setCategoryFilter(name)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${categoryFilter === name ? 'bg-primary/80 border-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}`}
+                        >
+                          {name}
+                        </motion.button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div className="mb-4">
-                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Tipo</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['all','income','expense'].map((t) => (
-                      <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
-                        key={t}
-                        onClick={() => setTypeFilter(t as any)}
-                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${typeFilter === t ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                      >
-                        {t === 'all' ? 'Todos' : t === 'income' ? 'Entradas' : 'Saídas'}
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Ano</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    <motion.button
-                      whileTap={{ scale: 0.95, y: 2 }}
-                      onClick={() => setYearFilter('all')}
-                      className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                    >
-                      Todos
-                    </motion.button>
-                    {availableYears.map((y) => (
-                      <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
-                        key={y}
-                        onClick={() => setYearFilter(y)}
-                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${yearFilter === y ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                      >
-                        {y}
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Mês</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    <motion.button
-                      whileTap={{ scale: 0.95, y: 2 }}
-                      onClick={() => setMonthFilter('all')}
-                      className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                    >
-                      Todos
-                    </motion.button>
-                    {monthNames.map((m, idx) => (
-                      <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
-                        key={m}
-                        onClick={() => setMonthFilter(idx)}
-                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${monthFilter === idx ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                      >
-                        {m}
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <p className="text-sm font-black uppercase mb-2 text-dark dark:text-white">Categoria</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <motion.button
-                      whileTap={{ scale: 0.95, y: 2 }}
-                      onClick={() => setCategoryFilter('all')}
-                      className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === 'all' ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                    >
-                      Todas
-                    </motion.button>
-                    {categoriesForFilter.map((name) => (
-                      <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
-                        key={name}
-                        onClick={() => setCategoryFilter(name)}
-                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all ${categoryFilter === name ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}`}
-                      >
-                        {name}
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
+
                 <div className="mt-8 flex gap-3">
-                  <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase hover:bg-surface-light dark:hover:bg-white/10 active:translate-y-[2px] active:shadow-none transition-all text-dark dark:text-white">Limpar</motion.button>
-                  <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-sm border-2 border-dark dark:border-white bg-secondary shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] py-3 font-black uppercase text-white active:translate-y-[2px] active:shadow-none transition-all">Aplicar</motion.button>
+                  <motion.button whileTap={{ scale: 0.98 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="flex-1 rounded-xl border border-white/20 bg-white/5 py-3 font-bold hover:bg-white/10 transition-all text-white">Limpar</motion.button>
+                  <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowFilter(false)} className="flex-1 rounded-xl bg-secondary/80 border border-white/20 shadow-lg shadow-secondary/20 py-3 font-bold text-white transition-all hover:bg-secondary">Aplicar</motion.button>
                 </div>
               </div>
             </motion.div>
@@ -410,113 +418,120 @@ const Transactions: React.FC = () => {
         {((statusFilter !== 'all') || (typeFilter !== 'all') || (monthFilter !== 'all') || (yearFilter !== 'all') || (categoryFilter !== 'all') || dateFilter) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {dateFilter && (
-              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">
-                DATA: {parseLocalISODate(dateFilter).toLocaleDateString('pt-BR')}
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/20 border border-primary/30 text-white backdrop-blur-md">
+                Data: {parseLocalISODate(dateFilter).toLocaleDateString('pt-BR')}
               </span>
             )}
             {statusFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{statusFilter === 'paid' ? 'Pagos' : 'Pendentes'}</span>
             )}
             {typeFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{typeFilter === 'income' ? 'Entradas' : 'Saídas'}</span>
             )}
             {yearFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{yearFilter}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{yearFilter}</span>
             )}
             {monthFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{monthNames[monthFilter as number]}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{monthNames[monthFilter as number]}</span>
             )}
             {categoryFilter !== 'all' && (
-              <span className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] text-dark dark:text-white">{categoryFilter}</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white backdrop-blur-md">{categoryFilter}</span>
             )}
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="px-3 py-1 rounded-sm text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[2px] active:shadow-none transition-all">Limpar</motion.button>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setYearFilter('all'); setMonthFilter('all'); setCategoryFilter('all'); setDateFilter(null); navigate(location.pathname); }} className="px-3 py-1 rounded-full text-xs font-bold bg-danger/20 text-white border border-danger/30 backdrop-blur-md hover:bg-danger/30 transition-all">Limpar</motion.button>
           </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
         {loading ? (
-          <p className="px-6 py-4 text-dark dark:text-white font-bold">CARREGANDO...</p>
+          <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
         ) : filteredItems.length === 0 ? (
-          <div className="px-6 py-12 text-center text-dark dark:text-white">
-            <p className="font-bold">NENHUMA TRANSAÇÃO CADASTRADA.</p>
+          <div className="flex flex-col items-center justify-center py-12 text-center text-white/70">
+            <span className="material-symbols-outlined text-4xl mb-2 opacity-50">receipt_long</span>
+            <p className="font-medium">Nenhuma transação encontrada</p>
             <motion.button
-              whileTap={{ scale: 0.95, y: 2 }}
+              whileTap={{ scale: 0.95 }}
               type="button"
               onClick={() => navigate('/add-transaction')}
-              className="mt-2 text-primary font-black hover:underline uppercase"
+              className="mt-4 px-4 py-2 rounded-xl bg-primary/20 border border-primary/30 text-primary-light font-bold hover:bg-primary/30 transition-all"
             >
-              Adicionar transação
+              Adicionar nova
             </motion.button>
           </div>
         ) : (
           Object.entries(grouped).map(([date, groupItems], groupIndex) => (
-            <div key={date} className="mb-4">
-              <h2 className="py-2 text-sm font-black uppercase tracking-widest text-dark dark:text-white border-b-2 border-dark dark:border-white mb-2">{date}</h2>
-              {(groupItems as any[]).map((t: any, i: number) => (
-                <div key={t.id} className="relative mb-3">
-                  <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-0 z-0 h-full">
-                    <motion.button
-                      whileTap={{ scale: 0.95, y: 2 }}
-                      type="button"
-                      onClick={() => navigate(`/add-transaction?edit=${t.id}`)}
-                      className="h-full w-12 rounded-r-sm bg-primary border-y-2 border-r-2 border-dark dark:border-white text-white flex items-center justify-center shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                      style={{ marginLeft: 'auto' }}
-                    >
-                      <img src="https://cdn-icons-png.flaticon.com/512/860/860814.png" alt="Editar" className="h-5 w-5 invert" />
-                    </motion.button>
-                    <motion.button
-                      whileTap={{ scale: 0.95, y: 2 }}
-                      type="button"
-                      onClick={async () => {
-                        const { error } = await supabase
-                          .from('user_transactions')
-                          .delete()
-                          .eq('id', t.id);
-                        if (!error) {
-                          setItems(prev => prev.filter(x => x.id !== t.id));
-                          setOpenId(null);
-                        }
-                      }}
-                      className="h-full w-12 bg-danger border-y-2 border-r-2 border-dark dark:border-white text-white flex items-center justify-center shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] ml-2"
-                    >
-                      <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" alt="Excluir" className="h-5 w-5 invert" />
-                    </motion.button>
-                  </div>
-                  <motion.div 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: openId === t.id ? -100 : 0 }}
-                    transition={{ delay: i * 0.05 + groupIndex * 0.1 }}
-                    drag="x"
-                    dragConstraints={{ left: -100, right: 0 }}
-                    dragElastic={0.05}
-                    dragMomentum={false}
-                    onDragStart={() => setOpenId(null)}
-                    onDragEnd={(e, info) => {
-                      setOpenId(info.offset.x < -50 ? t.id : null);
-                    }}
-                    className="relative z-10 flex items-center gap-4 px-4 py-4 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:translate-y-[1px] active:shadow-none transition-all"
-                  >
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border-2 border-dark dark:border-white ${t.type === 'income' ? 'bg-secondary text-white' : 'bg-danger text-white'} self-center`}>
-                    <span className="material-symbols-outlined font-bold">{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
-                  </div>
-                    <div className="flex flex-1 flex-col">
-                      <p className={`font-black text-dark dark:text-white uppercase line-clamp-1 ${t.is_paid ? 'line-through opacity-60' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
-                      {(() => {
-                        const cat = t.category_id ? catMap[t.category_id as string] : null;
-                        const name = cat?.name || 'Sem Categoria';
-                        return (
-                          <span className="mt-1 inline-flex w-fit self-start items-center px-1 border-2 border-dark dark:border-white text-[10px] font-bold uppercase bg-accent text-dark shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{name}</span>
-                        );
-                      })()}
-                      <p className="mt-1 text-[10px] font-bold text-text-secondary dark:text-text-secondary/70 uppercase">Prazo: {parseLocalISODate(t.date).toLocaleDateString('pt-BR')}</p>
+            <div key={date} className="mb-6">
+              <h2 className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-white/50 mb-2">{date}</h2>
+              <div className="space-y-3">
+                {(groupItems as any[]).map((t: any, i: number) => (
+                  <div key={t.id} className="relative group">
+                    <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-0 z-0 h-full pl-4">
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={() => navigate(`/add-transaction?edit=${t.id}`)}
+                        className="h-full w-12 rounded-xl bg-primary/80 border border-white/10 text-white flex items-center justify-center shadow-lg backdrop-blur-md"
+                        style={{ marginLeft: 'auto' }}
+                      >
+                        <span className="material-symbols-outlined text-xl">edit</span>
+                      </motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={async () => {
+                          const { error } = await supabase
+                            .from('user_transactions')
+                            .delete()
+                            .eq('id', t.id);
+                          if (!error) {
+                            setItems(prev => prev.filter(x => x.id !== t.id));
+                            setOpenId(null);
+                          }
+                        }}
+                        className="h-full w-12 rounded-xl bg-danger/80 border border-white/10 text-white flex items-center justify-center shadow-lg backdrop-blur-md ml-2"
+                      >
+                        <span className="material-symbols-outlined text-xl">delete</span>
+                      </motion.button>
                     </div>
-                    <p className={`font-black text-lg ${t.type === 'income' ? 'text-secondary' : 'text-danger'} self-center ${t.is_paid ? 'line-through opacity-60' : ''}`}>
-                      {formatBRL(Number(t.amount))}
-                    </p>
-                  </motion.div>
-                </div>
-              ))}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0, x: openId === t.id ? -110 : 0 }}
+                      transition={{ delay: i * 0.05 + groupIndex * 0.1 }}
+                      drag="x"
+                      dragConstraints={{ left: -110, right: 0 }}
+                      dragElastic={0.05}
+                      dragMomentum={false}
+                      onDragStart={() => setOpenId(null)}
+                      onDragEnd={(e, info) => {
+                        setOpenId(info.offset.x < -50 ? t.id : null);
+                      }}
+                      className="relative z-10 flex items-center gap-4 px-4 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-glass active:scale-[0.99] transition-all"
+                    >
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 ${t.type === 'income' ? 'bg-secondary/20 text-secondary-light' : 'bg-danger/20 text-danger-light'} self-center shadow-inner`}>
+                      <span className="material-symbols-outlined font-bold text-xl">{t.type === 'income' ? 'arrow_downward' : 'arrow_upward'}</span>
+                    </div>
+                      <div className="flex flex-1 flex-col overflow-hidden">
+                        <p className={`font-bold text-white text-sm truncate ${t.is_paid ? 'line-through opacity-50' : ''}`}>{t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {(() => {
+                            const cat = t.category_id ? catMap[t.category_id as string] : null;
+                            const name = cat?.name || 'Sem Categoria';
+                            return (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-medium text-white/70">{name}</span>
+                            );
+                          })()}
+                          <span className="text-[10px] text-white/40">{parseLocalISODate(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</span>
+                        </div>
+                      </div>
+                      <p className={`font-bold text-base ${t.type === 'income' ? 'text-secondary-light' : 'text-danger-light'} self-center ${t.is_paid ? 'line-through opacity-50' : ''}`}>
+                        {formatBRL(Number(t.amount))}
+                      </p>
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))
         )}

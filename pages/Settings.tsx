@@ -140,29 +140,28 @@ const Settings: React.FC = () => {
   };
 
   const SectionHeader = ({ title }: { title: string }) => (
-    <h2 className="px-1 pt-6 pb-2 text-base font-black text-dark dark:text-white uppercase tracking-wider transform -rotate-1 w-fit bg-white dark:bg-dark border-2 border-dark dark:border-white px-3 py-1 shadow-neo-sm dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mb-3">{title}</h2>
+    <h2 className="px-4 pt-6 pb-2 text-sm font-bold text-text-secondary dark:text-gray-400 uppercase tracking-wider">{title}</h2>
   );
 
   const SettingItem = ({ icon, label, sub, trailing, color = 'bg-primary text-white', onClick }: any) => (
     <motion.button 
-        whileHover={{ translate: "2px 2px", boxShadow: "0px 0px 0px 0px #000" }}
-        whileTap={{ scale: 0.98, translate: "4px 4px", boxShadow: "0px 0px 0px 0px #000" }}
+        whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group"
+        className="w-full flex items-center justify-between px-4 py-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all mb-3 group rounded-2xl shadow-sm"
     >
         <div className="flex items-center gap-4">
-            <div className={`h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center ${color} shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all`}>
-                <span className="material-symbols-outlined font-black">{icon}</span>
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${color} shadow-lg`}>
+                <span className="material-symbols-outlined font-bold text-[20px]">{icon}</span>
             </div>
             <div className="text-left">
-                <p className="font-black text-dark dark:text-white uppercase text-sm">{label}</p>
-                {sub && <p className="text-xs font-bold text-text-secondary uppercase">{sub}</p>}
+                <p className="font-bold text-text-primary dark:text-white text-sm">{label}</p>
+                {sub && <p className="text-xs font-medium text-text-secondary dark:text-gray-400">{sub}</p>}
             </div>
         </div>
         <div className="flex items-center gap-2">
             {trailing}
-            <div className="bg-dark dark:bg-white text-white dark:text-dark p-1 border-2 border-dark dark:border-white group-hover:bg-white dark:group-hover:bg-dark group-hover:text-dark dark:group-hover:text-white transition-colors">
-              <span className="material-symbols-outlined text-lg">arrow_forward</span>
+            <div className="text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">
+              <span className="material-symbols-outlined text-xl">chevron_right</span>
             </div>
         </div>
     </motion.button>
@@ -172,13 +171,13 @@ const Settings: React.FC = () => {
     <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col min-h-screen pb-24 bg-background-light dark:bg-background-dark text-dark dark:text-white font-display transition-colors duration-300"
+        className="flex flex-col min-h-screen pb-24 text-text-primary dark:text-white font-display transition-colors duration-300"
     >
-      <header className="flex items-center gap-4 p-4 sticky top-0 bg-white dark:bg-dark z-50 border-b-3 border-dark dark:border-white shadow-sm transition-colors duration-300">
-         <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="p-2 border-2 border-dark dark:border-white bg-white dark:bg-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all active:bg-surface-light dark:active:bg-white/10">
-             <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
+      <header className="flex items-center gap-4 p-4 sticky top-0 bg-white/80 dark:bg-black/60 z-50 border-b border-white/20 backdrop-blur-xl shadow-glass-sm transition-colors duration-300">
+         <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="p-2 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 transition-all border border-white/20">
+             <span className="material-symbols-outlined text-text-primary dark:text-white">arrow_back</span>
         </motion.button>
-        <h1 className="text-xl font-black uppercase tracking-widest text-dark dark:text-white">Configurações</h1>
+        <h1 className="text-lg font-bold text-text-primary dark:text-white">Configurações</h1>
       </header>
 
       {showBiometricCapture && (
@@ -193,16 +192,16 @@ const Settings: React.FC = () => {
       <div className="px-4 pt-4">
         <SectionHeader title="Conta" />
         <div className="flex flex-col gap-3">
-             <div className="flex items-center gap-4 p-4 bg-white dark:bg-dark border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] mb-2 transition-colors duration-300">
+             <div className="flex items-center gap-4 p-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-3xl backdrop-blur-md shadow-glass-sm mb-2 transition-colors duration-300">
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => fileRef.current?.click()}
-                  className="h-16 w-16 border-3 border-dark dark:border-white bg-surface-light dark:bg-white/10 overflow-hidden shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all relative group"
+                  className="h-16 w-16 rounded-full border-2 border-white/50 dark:border-white/20 overflow-hidden shadow-lg relative group"
                   title="Alterar foto"
                 >
                   <img src={profile?.avatarUrl || 'https://picsum.photos/100/100'} alt="Avatar" className="h-full w-full object-cover" />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-white">edit</span>
+                    <span className="material-symbols-outlined text-white text-sm">edit</span>
                   </div>
                 </motion.button>
                 <input 
@@ -230,8 +229,8 @@ const Settings: React.FC = () => {
                   }}
                 />
                 <div className="flex-1">
-                  <p className="font-black text-lg text-dark dark:text-white uppercase">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'USUÁRIO'}</p>
-                  <p className="text-xs font-bold text-text-secondary bg-surface-light dark:bg-white/10 px-2 py-1 border border-dark dark:border-white w-fit mt-1">{profile?.email || ''}</p>
+                  <p className="font-bold text-lg text-text-primary dark:text-white">{[profile?.name, profile?.lastName].filter(Boolean).join(' ') || 'USUÁRIO'}</p>
+                  <p className="text-xs font-medium text-text-secondary dark:text-gray-400 bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md w-fit mt-1">{profile?.email || ''}</p>
                 </div>
              </div>
              <SettingItem icon="person" label="Dados Pessoais" color="bg-secondary text-white" />
@@ -243,14 +242,14 @@ const Settings: React.FC = () => {
             <motion.div 
                 whileTap={{ scale: 0.98 }}
                 onClick={handleBiometricToggle}
-                className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group cursor-pointer"
+                className="w-full flex items-center justify-between px-4 py-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all mb-3 group rounded-2xl shadow-sm cursor-pointer"
             >
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center bg-primary text-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
-                        <span className="material-symbols-outlined font-black">fingerprint</span>
+                    <div className="h-10 w-10 rounded-full flex items-center justify-center bg-primary text-white shadow-lg">
+                        <span className="material-symbols-outlined font-bold text-[20px]">fingerprint</span>
                     </div>
                     <div>
-                        <p className="font-black text-dark dark:text-white uppercase text-sm">Biometria</p>
+                        <p className="font-bold text-text-primary dark:text-white text-sm">Biometria</p>
                         {biometricError && <p className="text-xs text-danger font-bold">{biometricError}</p>}
                         {isBiometricProcessing && <p className="text-xs text-primary font-bold animate-pulse">Processando...</p>}
                     </div>
@@ -262,7 +261,7 @@ const Settings: React.FC = () => {
                         checked={hasBiometrics} 
                         readOnly 
                     />
-                    <div className="w-12 h-7 bg-surface-light dark:bg-white/10 peer-focus:outline-none border-2 border-dark dark:border-white peer peer-checked:after:translate-x-full peer-checked:after:border-dark dark:peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-dark dark:after:bg-white after:border-dark dark:after:border-white after:border-2 after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
+                    <div className="w-11 h-6 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </div>
             </motion.div>
             <SettingItem icon="shield_lock" label="Privacidade" color="bg-dark text-white dark:bg-white dark:text-dark" />
@@ -271,35 +270,35 @@ const Settings: React.FC = () => {
         <SectionHeader title="Geral" />
         <div className="flex flex-col">
             <SettingItem icon="notifications" label="Notificações" color="bg-secondary text-white" />
-            <div className="w-full flex items-center justify-between px-4 py-4 bg-white dark:bg-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none transition-all mb-3 group cursor-pointer" onClick={toggleTheme}>
+            <div className="w-full flex items-center justify-between px-4 py-4 bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/80 dark:hover:bg-white/10 transition-all mb-3 group rounded-2xl shadow-sm cursor-pointer" onClick={toggleTheme}>
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 border-2 border-dark dark:border-white flex items-center justify-center bg-accent text-dark shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
-                        <span className="material-symbols-outlined font-black">{isDark ? 'dark_mode' : 'light_mode'}</span>
+                    <div className="h-10 w-10 rounded-full flex items-center justify-center bg-accent text-dark shadow-lg">
+                        <span className="material-symbols-outlined font-bold text-[20px]">{isDark ? 'dark_mode' : 'light_mode'}</span>
                     </div>
                     <div className="text-left">
-                        <p className="font-black text-dark dark:text-white uppercase text-sm">Aparência</p>
+                        <p className="font-bold text-text-primary dark:text-white text-sm">Aparência</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 border-2 border-dark dark:border-white px-2 py-1 uppercase">{isDark ? 'Escuro' : 'Claro'}</span>
-                    <div className={`relative inline-flex items-center h-7 w-12 transition-colors duration-200 focus:outline-none border-2 border-dark dark:border-white ${isDark ? 'bg-primary' : 'bg-surface-light dark:bg-white/10'}`}>
-                        <span className={`inline-block w-4 h-4 transform bg-dark dark:bg-white border-2 border-transparent transition duration-200 ease-in-out ${isDark ? 'translate-x-[22px] bg-white dark:bg-dark' : 'translate-x-[2px]'}`} />
+                    <span className="text-xs font-bold text-text-secondary dark:text-gray-400 bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md">{isDark ? 'Escuro' : 'Claro'}</span>
+                    <div className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none border border-transparent ${isDark ? 'bg-primary' : 'bg-gray-200 dark:bg-white/10'}`}>
+                        <span className={`inline-block w-5 h-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${isDark ? 'translate-x-[22px]' : 'translate-x-[2px]'}`} />
                     </div>
                 </div>
             </div>
-            <SettingItem icon="paid" label="Moeda" trailing={<span className="text-xs font-bold text-dark dark:text-white bg-accent border-2 border-dark dark:border-white px-2 py-1 uppercase">BRL</span>} color="bg-primary text-white" />
+            <SettingItem icon="paid" label="Moeda" trailing={<span className="text-xs font-bold text-text-primary dark:text-white bg-accent/20 border border-accent/30 rounded-md px-2 py-1 uppercase">BRL</span>} color="bg-primary text-white" />
         </div>
 
       <div className="mt-8 px-4">
           <motion.button 
-              whileTap={{ scale: 0.95, y: 2 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/login')}
-              className="w-full py-4 bg-danger text-white font-black uppercase border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-y-[4px] transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-danger/10 text-danger font-bold rounded-2xl border border-danger/20 hover:bg-danger/20 transition-all flex items-center justify-center gap-2"
           >
               <span className="material-symbols-outlined">logout</span>
               Sair
           </motion.button>
-          <p className="text-center text-xs font-bold text-dark dark:text-white uppercase mt-4 bg-white dark:bg-dark border-2 border-dark dark:border-white w-fit mx-auto px-2 py-1 shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] transform rotate-2">Versão 1.0.0</p>
+          <p className="text-center text-xs font-medium text-text-secondary dark:text-gray-500 mt-6 opacity-60">Versão 1.0.0</p>
       </div>
       </div>
     </motion.div>

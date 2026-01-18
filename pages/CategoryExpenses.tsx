@@ -41,18 +41,18 @@ const CategoryExpenses: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark p-4 gap-4 font-display">
-      <header className="flex items-center gap-4 py-2 border-b-3 border-dark dark:border-white pb-4 bg-white dark:bg-surface-dark -mx-4 px-4 sticky top-0 z-50 shadow-sm">
-        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
-             <span className="material-symbols-outlined text-dark dark:text-white">arrow_back_ios_new</span>
+    <div className="flex flex-col min-h-screen p-4 gap-4 font-display">
+      <header className="flex items-center gap-4 py-2 border-b border-white/10 pb-4 backdrop-blur-xl bg-white/5 -mx-4 px-4 sticky top-0 z-50 shadow-glass">
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="rounded-full p-2 bg-white/5 hover:bg-white/10 transition-all text-white">
+             <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
         </motion.button>
-        <h1 className="text-xl font-black flex-1 text-center pr-10 uppercase text-dark dark:text-white">Gastos por Categoria</h1>
+        <h1 className="text-xl font-bold flex-1 text-center pr-10 text-white tracking-wide">Gastos por Categoria</h1>
       </header>
       
       <div className="flex justify-end mb-2">
-         <select className="bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm px-3 py-2 text-sm font-bold uppercase outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] text-dark dark:text-white transition-all">
-            <option>Este Mês</option>
-            <option>Mês Passado</option>
+         <select className="bg-white/10 border border-white/20 backdrop-blur-md rounded-xl px-4 py-2 text-sm font-bold uppercase outline-none focus:bg-white/20 text-white transition-all cursor-pointer">
+            <option className="bg-[#1A1A1A]">Este Mês</option>
+            <option className="bg-[#1A1A1A]">Mês Passado</option>
          </select>
       </div>
 
@@ -61,35 +61,35 @@ const CategoryExpenses: React.FC = () => {
             <motion.div 
                 key={cat.id}
                 initial={false}
-                className="bg-white dark:bg-surface-dark rounded-lg border-3 border-dark dark:border-white overflow-hidden shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]"
+                className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 overflow-hidden shadow-glass"
             >
                 <motion.button 
-                    whileTap={{ scale: 0.95, y: 2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
-                    className="w-full p-4 flex flex-col gap-3"
+                    className="w-full p-5 flex flex-col gap-4"
                 >
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-sm bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white flex items-center justify-center shadow-neo-sm dark:shadow-none">
+                            <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
                                 <span className={`material-symbols-outlined ${cat.color}`}>{cat.icon}</span>
                             </div>
                             <div className="text-left">
-                                <p className="font-black uppercase text-dark dark:text-white">{cat.id}</p>
-                                <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">{cat.percent} do total</p>
+                                <p className="font-bold text-white text-lg">{cat.id}</p>
+                                <p className="text-xs font-medium text-white/50 uppercase tracking-wider">{cat.percent} do total</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-black text-dark dark:text-white">{cat.amount}</span>
+                            <span className="font-bold text-white text-lg">{cat.amount}</span>
                             <motion.span 
                                 animate={{ rotate: expanded === cat.id ? 180 : 0 }}
-                                className="material-symbols-outlined text-dark dark:text-white"
+                                className="material-symbols-outlined text-white/70"
                             >
                                 expand_more
                             </motion.span>
                         </div>
                     </div>
-                    <div className="w-full bg-surface-light dark:bg-background-dark h-3 rounded-none border-2 border-dark dark:border-white overflow-hidden">
-                        <div className={`h-full ${cat.barColor} border-r-2 border-dark dark:border-white`} style={{ width: cat.percent }}></div>
+                    <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                        <div className={`h-full ${cat.barColor} rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)]`} style={{ width: cat.percent }}></div>
                     </div>
                 </motion.button>
 
@@ -99,48 +99,50 @@ const CategoryExpenses: React.FC = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="border-t-3 border-dark dark:border-white"
+                            className="border-t border-white/10"
                         >
-                            <div className="p-4 flex flex-col gap-4 bg-surface-light/30 dark:bg-background-dark/30">
+                            <div className="p-5 flex flex-col gap-6 bg-white/5">
                                 {cat.details.length > 0 ? (
                                     <>
-                                        {/* Chart Placeholder - Neo Brutalist Style */}
+                                        {/* Chart Placeholder - Glass Style */}
                                         <div className="flex items-center justify-center py-4 relative">
-                                            <div className="h-40 w-40 rounded-full border-[4px] border-dark dark:border-white flex items-center justify-center relative bg-white dark:bg-surface-dark shadow-neo dark:shadow-none">
+                                            <div className="h-40 w-40 rounded-full border-[6px] border-white/10 flex items-center justify-center relative bg-white/5 shadow-inner backdrop-blur-sm">
                                                 <div className="text-center z-10">
-                                                    <span className="text-2xl font-black text-dark dark:text-white">80%</span>
-                                                    <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">Delivery</p>
+                                                    <span className="text-3xl font-bold text-white block">80%</span>
+                                                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest">Delivery</p>
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                                        <div className="grid grid-cols-3 gap-3 text-center text-xs">
                                             {cat.details.map((d, i) => (
-                                                <div key={i} className="bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm p-2 shadow-sm">
-                                                    <p className="font-bold text-text-secondary dark:text-gray-400 uppercase">{d.label}</p>
-                                                    <p className="font-black mt-1 text-dark dark:text-white">{d.val}</p>
+                                                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-3 shadow-sm hover:bg-white/10 transition-all">
+                                                    <p className="font-bold text-white/50 uppercase text-[10px] mb-1">{d.label}</p>
+                                                    <p className="font-bold text-white">{d.val}</p>
                                                 </div>
                                             ))}
                                         </div>
 
-                                        <h3 className="font-black uppercase text-dark dark:text-white mt-2 border-b-2 border-dark dark:border-white pb-1 inline-block w-full">Transações Recentes</h3>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm shadow-sm hover:translate-x-1 transition-transform">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-sm bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white flex items-center justify-center">
-                                                        <span className="material-symbols-outlined text-sm text-dark dark:text-white">receipt</span>
+                                        <div>
+                                            <h3 className="font-bold uppercase text-white/70 text-xs tracking-widest mb-3 pl-1">Transações Recentes</h3>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl shadow-sm hover:bg-white/10 transition-all cursor-pointer">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                                                            <span className="material-symbols-outlined text-sm text-white">receipt</span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-white">iFood</p>
+                                                            <p className="text-[10px] font-bold text-white/40 uppercase">Ontem</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold uppercase text-dark dark:text-white">iFood</p>
-                                                        <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">Ontem</p>
-                                                    </div>
+                                                    <span className="text-danger-light text-sm font-bold">- R$ 45,90</span>
                                                 </div>
-                                                <span className="text-danger text-sm font-black">- R$ 45,90</span>
                                             </div>
                                         </div>
                                     </>
                                 ) : (
-                                    <p className="text-center text-text-secondary dark:text-gray-400 text-sm font-bold uppercase py-4">Sem detalhes adicionais.</p>
+                                    <p className="text-center text-white/40 text-sm font-bold uppercase py-4">Sem detalhes adicionais.</p>
                                 )}
                             </div>
                         </motion.div>

@@ -91,12 +91,12 @@ const OnboardingOverlay: React.FC = () => {
         variants={overlayVariants}
         className="fixed inset-0 z-[60] pointer-events-none"
       >
-        <div className="absolute inset-0 bg-black/30 dark:bg-black/40 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
         {rect && (
           <>
             <div
-              className="absolute border-2 border-accent shadow-neo-sm bg-transparent rounded-lg pointer-events-none"
+              className="absolute border-2 border-primary shadow-[0_0_15px_rgba(0,214,143,0.5)] bg-transparent rounded-2xl pointer-events-none"
               style={{ top: rect.top - 8, left: rect.left - 8, width: rect.width + 16, height: rect.height + 16 }}
             />
 
@@ -108,7 +108,7 @@ const OnboardingOverlay: React.FC = () => {
                 left: rect.left + rect.width / 2 - 16
               }}
             >
-              <span className="material-symbols-outlined text-3xl text-white drop-shadow-md">arrow_downward</span>
+              <span className="material-symbols-outlined text-3xl text-primary drop-shadow-md">arrow_downward</span>
             </motion.div>
 
             <motion.div
@@ -119,31 +119,31 @@ const OnboardingOverlay: React.FC = () => {
                 left: rect.left + rect.width / 2 - 16
               }}
             >
-              <span className="material-symbols-outlined text-3xl text-white drop-shadow-md">arrow_upward</span>
+              <span className="material-symbols-outlined text-3xl text-primary drop-shadow-md">arrow_upward</span>
             </motion.div>
 
             <motion.div
               variants={arrowVariants}
-              className="absolute max-w-[80vw] bg-white dark:bg-surface-dark text-dark dark:text-white border-2 border-dark dark:border-white rounded-lg p-3 shadow-neo pointer-events-auto"
+              className="absolute max-w-[80vw] bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-3xl p-6 shadow-glass pointer-events-auto"
               role="dialog"
               aria-live="polite"
               style={{
-                top: rect.top - 96 > 16 ? rect.top - 96 : rect.top + rect.height + 16,
+                top: rect.top - 96 > 16 ? rect.top - 110 : rect.top + rect.height + 24,
                 left: Math.min(Math.max(16, rect.left), window.innerWidth - 320)
               }}
             >
-              <p className="text-sm font-bold">{tooltipText}</p>
-              <div className="mt-3 flex items-center gap-2">
+              <p className="text-sm font-bold leading-relaxed">{tooltipText}</p>
+              <div className="mt-4 flex items-center gap-3">
                 {step > 0 && (
-                  <button onClick={prev} className="px-3 py-1 text-xs font-bold rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark text-dark dark:text-white shadow-neo-sm pointer-events-auto">Anterior</button>
+                  <button onClick={prev} className="px-4 py-2 text-xs font-bold rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 pointer-events-auto transition-all">Anterior</button>
                 )}
                 {!isLast && (
-                  <button onClick={next} className="px-3 py-1 text-xs font-bold rounded-sm border-2 border-dark dark:border-white bg-primary text-white shadow-neo-sm pointer-events-auto">Próximo</button>
+                  <button onClick={next} className="px-4 py-2 text-xs font-bold rounded-xl bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 pointer-events-auto transition-all">Próximo</button>
                 )}
                 {isLast && (
-                  <button onClick={finish} className="px-3 py-1 text-xs font-bold rounded-sm border-2 border-dark dark:border-white bg-secondary text-white shadow-neo-sm pointer-events-auto">Finalizar</button>
+                  <button onClick={finish} className="px-4 py-2 text-xs font-bold rounded-xl bg-secondary text-white shadow-lg shadow-secondary/20 hover:bg-secondary/90 pointer-events-auto transition-all">Finalizar</button>
                 )}
-                <button onClick={skip} className="ml-auto px-3 py-1 text-xs font-bold rounded-sm border-2 border-dark dark:border-white bg-accent text-dark shadow-neo-sm pointer-events-auto">Pular</button>
+                <button onClick={skip} className="ml-auto px-4 py-2 text-xs font-bold rounded-xl text-white/50 hover:text-white pointer-events-auto transition-all">Pular</button>
               </div>
             </motion.div>
           </>
@@ -156,7 +156,7 @@ const OnboardingOverlay: React.FC = () => {
 // Layout for authenticated pages
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="relative flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-dark dark:text-white pb-32 transition-colors duration-300">
+    <div className="relative flex flex-col min-h-screen pb-32">
       {children}
       <BottomNav />
       <OnboardingOverlay />

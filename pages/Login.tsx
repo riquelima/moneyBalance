@@ -117,11 +117,18 @@ const Login: React.FC = () => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="flex min-h-screen w-full flex-col items-center justify-center bg-background-dark p-4 font-display"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex min-h-screen w-full flex-col items-center justify-center p-4 font-display relative overflow-hidden"
     >
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-background-dark z-0"></div>
+      <div className="absolute top-0 left-0 w-full h-full z-0 opacity-30 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 50% 30%, rgba(0,214,143,0.15), transparent 70%)' }}></div>
+      <div className="absolute bottom-0 right-0 w-full h-full z-0 opacity-20 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 80% 80%, rgba(255,69,95,0.15), transparent 70%)' }}></div>
+
       {showBiometric && (
         <BiometricCapture 
           mode="login"
@@ -131,100 +138,118 @@ const Login: React.FC = () => {
         />
       )}
 
-      <div className="flex w-full max-w-sm flex-col items-center rounded-sm bg-white p-8 shadow-neo border-3 border-dark">
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="mb-8 flex h-20 w-20 items-center justify-center rounded-sm bg-white shadow-neo border-2 border-dark"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="w-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-8 shadow-2xl"
         >
-          <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-16 w-16 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }} />
-        </motion.div>
-        
-        <h1 
-          className="text-dark mb-8 text-center text-4xl leading-tight tracking-wide font-black uppercase"
-          style={{ fontFamily: '"Poetsen One", cursive' }}
-        >
-          Money Balance
-        </h1>
-        <p className="-mt-6 mb-8 text-center text-dark text-sm font-bold uppercase tracking-wider bg-accent px-2 border-2 border-dark shadow-neo-sm">
-          Gestão Financeira Inteligente
-        </p>
-
-        <form onSubmit={handleLogin} className="w-full space-y-6">
-          <div className="space-y-2">
-            <label className="text-dark text-sm font-black uppercase ml-1">E-mail</label>
-            <input 
-              type="email" 
-              placeholder="SEU E-MAIL SEGURO"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
-            />
+          <div className="flex flex-col items-center mb-8">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+              className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 border border-white/20 shadow-glass backdrop-blur-md"
+            >
+              <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-12 w-12 object-contain drop-shadow-lg" onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }} />
+            </motion.div>
+            
+            <h1 
+              className="text-white text-3xl font-bold tracking-tight mb-2 text-center"
+              style={{ fontFamily: '"Poetsen One", cursive' }}
+            >
+              Money Balance
+            </h1>
+            <p className="text-white/50 text-xs font-bold uppercase tracking-widest text-center">
+              Gestão Financeira Inteligente
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-dark text-sm font-black uppercase ml-1">Senha</label>
-            <div className="relative">
+          <form onSubmit={handleLogin} className="w-full space-y-5">
+            <div className="space-y-2">
+              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">E-mail</label>
               <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="SUA SENHA SECRETA"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-none bg-white border-2 border-dark p-4 pr-12 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
+                type="email" 
+                placeholder="Seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl bg-white/5 border border-white/10 p-4 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Senha</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Sua senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl bg-white/5 border border-white/10 p-4 pr-12 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all"
+                />
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </motion.button>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <motion.button whileTap={{ scale: 0.95 }} type="button" onClick={handleReset} className="text-xs font-medium text-white/50 hover:text-white transition-colors">
+                Esqueci minha senha
+              </motion.button>
+            </div>
+
+            <div className="space-y-3 pt-2">
               <motion.button
-                whileTap={{ scale: 0.95, y: 2 }}
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-dark hover:text-primary transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full rounded-xl bg-primary text-white py-4 text-sm font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:bg-primary/90 transition-all uppercase tracking-wider"
               >
-                <span className="material-symbols-outlined text-xl">
-                  {showPassword ? 'visibility' : 'visibility_off'}
-                </span>
+                Acessar Conta
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={() => setShowBiometric(true)}
+                className="w-full rounded-xl bg-white/5 border border-white/10 py-4 text-sm font-bold text-white shadow-glass hover:bg-white/10 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-lg">face</span>
+                Login Facial
               </motion.button>
             </div>
-          </div>
 
-          <div className="flex justify-end">
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} type="button" onClick={handleReset} className="text-xs font-black text-dark hover:bg-accent px-1 border-2 border-transparent hover:border-dark hover:shadow-neo-sm transition-all uppercase">
-              Esqueci minha senha
-            </motion.button>
-          </div>
-
-          <motion.button
-            whileTap={{ scale: 0.95, y: 2 }}
-            type="button"
-            onClick={() => setShowBiometric(true)}
-            className="w-full rounded-sm bg-white border-2 border-dark py-4 text-lg font-black text-dark shadow-neo hover:bg-gray-50 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined">face</span>
-            Login Facial
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95, y: 2 }}
-            type="submit"
-            className="w-full rounded-sm bg-primary border-2 border-dark py-4 text-lg font-black text-white shadow-neo hover:bg-primary/90 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
-          >
-            Acessar Conta
-          </motion.button>
-          {error && (
-            <div className="mt-2 space-y-2">
-              <p className="text-danger font-bold text-sm bg-danger/10 p-2 border-2 border-danger">{error}</p>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/settings')} className="text-xs font-bold text-dark hover:underline uppercase">
-                Configurar conexão Supabase
-              </motion.button>
-            </div>
-          )}
-        </form>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger-light text-xs font-medium text-center"
+              >
+                {error}
+                <div className="mt-2 pt-2 border-t border-danger/10">
+                  <button onClick={() => navigate('/settings')} className="underline hover:text-white transition-colors">
+                    Configurar conexão
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </form>
+        </motion.div>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-dark font-bold">
-            AINDA NÃO TEM UMA CONTA?{' '}
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/signup')} className="font-black text-primary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all uppercase">
-              CRIAR NOVA CONTA
+          <p className="text-sm text-white/50 font-medium">
+            Ainda não tem conta?{' '}
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/signup')} className="font-bold text-white hover:text-primary transition-colors ml-1">
+              Criar agora
             </motion.button>
           </p>
         </div>

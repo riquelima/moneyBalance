@@ -333,14 +333,14 @@ const Reports: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="flex flex-col min-h-screen p-4 pb-28 gap-8 bg-background-light dark:bg-background-dark font-display"
+      className="flex flex-col min-h-screen p-4 pb-28 gap-8 bg-background-light dark:bg-background-dark font-display text-text-primary dark:text-white"
     >
-      <header className="flex items-center justify-between sticky top-0 bg-white dark:bg-surface-dark z-50 py-3 px-4 border-b-3 border-dark dark:border-white shadow-sm -mx-4">
-        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
-            <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
+      <header className="flex items-center justify-between sticky top-0 bg-white/80 dark:bg-black/60 z-50 py-3 px-4 border-b border-white/20 dark:border-white/10 backdrop-blur-xl shadow-glass-sm -mx-4 transition-all duration-300">
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/20 transition-all">
+            <span className="material-symbols-outlined text-text-primary dark:text-white">arrow_back</span>
         </motion.button>
-        <h1 className="text-xl font-black uppercase text-dark dark:text-white">Relatórios</h1>
-        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowMonthPicker(true)} className="text-dark font-bold text-xs bg-accent border-2 border-dark dark:border-white px-3 py-2 rounded-sm shadow-neo-sm dark:shadow-none uppercase active:shadow-none active:translate-y-[2px] transition-all">
+        <h1 className="text-lg font-bold text-text-primary dark:text-white">Relatórios</h1>
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-text-primary dark:text-white font-bold text-xs bg-white/50 dark:bg-white/10 border border-white/20 px-4 py-2 rounded-full backdrop-blur-md uppercase">
           {(() => {
             const d = new Date();
             return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
@@ -351,72 +351,72 @@ const Reports: React.FC = () => {
       </header>
 
       {showMonthPicker && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
-          <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]">
-            <div className="flex items-center justify-between mb-6 border-b-2 border-dark dark:border-white pb-4">
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-sm p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
-                <span className="material-symbols-outlined text-dark dark:text-white">chevron_left</span>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-md">
+          <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/20 shadow-glass-lg">
+            <div className="flex items-center justify-between mb-6 border-b border-gray-200/50 dark:border-white/10 pb-4">
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10 transition-all">
+                <span className="material-symbols-outlined text-text-primary dark:text-white">chevron_left</span>
               </motion.button>
-              <div className="bg-surface-light dark:bg-gray-800 px-6 py-2 border-2 border-dark dark:border-white rounded-sm shadow-inner">
-                <p className="text-2xl font-black text-dark dark:text-white">{selectedYear}</p>
+              <div className="px-6 py-2">
+                <p className="text-2xl font-bold text-text-primary dark:text-white">{selectedYear}</p>
               </div>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-sm p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
-                <span className="material-symbols-outlined text-dark dark:text-white">chevron_right</span>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10 transition-all">
+                <span className="material-symbols-outlined text-text-primary dark:text-white">chevron_right</span>
               </motion.button>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-6">
               {monthNames.map((m, i) => (
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   key={m}
                   onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
-                  className={`px-2 py-3 rounded-sm text-sm font-black uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${i === selectedMonth ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800'}`}
+                  className={`px-2 py-3 rounded-xl text-sm font-bold uppercase transition-all ${i === selectedMonth ? 'bg-primary text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 text-text-secondary dark:text-gray-300 hover:bg-black/10'}`}
                 >
                   {m}
                 </motion.button>
               ))}
             </div>
             <div className="flex gap-3">
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase text-dark dark:text-white shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all">Mês atual</motion.button>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowMonthPicker(false)} className="flex-1 rounded-sm bg-secondary border-2 border-dark dark:border-white py-3 font-black uppercase text-white shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">Fechar</motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }} className="flex-1 rounded-xl bg-black/5 dark:bg-white/5 py-3 font-bold uppercase text-text-primary dark:text-white hover:bg-black/10 transition-all">Mês atual</motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(false)} className="flex-1 rounded-xl bg-secondary py-3 font-bold uppercase text-white shadow-lg shadow-secondary/30 transition-all">Fechar</motion.button>
             </div>
           </motion.div>
         </motion.div>
       )}
 
       <section>
-        <h2 className="text-2xl font-black mb-6 text-center uppercase text-dark dark:text-white bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-2 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] inline-block mx-auto transform -rotate-1">Estatísticas</h2>
+        <h2 className="text-xl font-bold mb-6 text-text-primary dark:text-white px-2">Estatísticas</h2>
         <div className="w-full overflow-hidden">
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-1 no-scrollbar">
             {/* Card Saídas */}
             <div className="min-w-full snap-center">
               <motion.div
-                className="bg-white dark:bg-surface-dark rounded-lg p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]"
+                className="bg-white/60 dark:bg-black/40 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-glass"
                 initial={{ x: 0 }}
-                whileHover={{ translate: "2px 2px", boxShadow: "0px 0px 0px 0px #000" }}
+                whileHover={{ y: -4 }}
               >
                 <div className="flex flex-col gap-4 items-center">
-                    <div className="w-full border-b-3 border-dark dark:border-white pb-2 mb-2">
-                      <p className="text-dark dark:text-white text-sm font-black text-center uppercase tracking-widest">Saídas</p>
-                      <p className="text-danger text-4xl font-black text-center mt-1">{fmtBRL(monthTotal)}</p>
+                    <div className="w-full border-b border-gray-200/50 dark:border-white/10 pb-4 mb-2">
+                      <p className="text-text-secondary dark:text-gray-400 text-xs font-bold text-center uppercase tracking-widest mb-1">Saídas</p>
+                      <p className="text-danger text-4xl font-black text-center tracking-tight">{fmtBRL(monthTotal)}</p>
                     </div>
                     
                     <div className="py-4">
                       <Pie data={categories} colors={expenseColors} denominator={monthTotal} />
                     </div>
                     
-                    <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 border-2 border-dark dark:border-white bg-surface-light dark:bg-background-dark p-2 shadow-inner">
+                    <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                       {categories.length === 0 ? (
                         <div className="h-20 flex items-center justify-center">
-                          <p className="text-center text-dark dark:text-white font-bold uppercase text-xs">Sem despesas.</p>
+                          <p className="text-center text-text-secondary dark:text-gray-400 font-medium text-sm">Sem despesas.</p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-1 gap-2">
+                        <div className="flex flex-col gap-2">
                           {categories.map((d, i) => (
-                            <div key={`${d.name}-${i}`} className="flex items-center justify-between bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-2 shadow-sm">
+                            <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5">
                               <div className="flex items-center gap-3">
-                                  <div className="h-6 w-6 border-2 border-dark dark:border-white" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></div>
-                                  <p className="text-xs text-dark dark:text-white font-bold uppercase truncate max-w-[120px]">{d.name}</p>
+                                  <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></div>
+                                  <p className="text-xs text-text-primary dark:text-white font-bold uppercase truncate max-w-[140px]">{d.name}</p>
                               </div>
                               <p className="text-danger text-xs font-black">- {fmtBRL(d.amount)}</p>
                             </div>
@@ -430,29 +430,29 @@ const Reports: React.FC = () => {
             
             {/* Card Entradas */}
             <div className="min-w-full snap-center">
-              <div className="bg-white dark:bg-surface-dark rounded-lg p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] hover:shadow-none hover:translate-y-[2px] transition-all">
+              <div className="bg-white/60 dark:bg-black/40 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-glass transition-all hover:-translate-y-1">
                 <div className="flex flex-col gap-4 items-center">
-                  <div className="w-full border-b-3 border-dark dark:border-white pb-2 mb-2">
-                    <p className="text-dark dark:text-white text-sm font-black text-center uppercase tracking-widest">Entradas</p>
-                    <p className="text-secondary text-4xl font-black text-center mt-1">{fmtBRL(incomeTotal)}</p>
+                  <div className="w-full border-b border-gray-200/50 dark:border-white/10 pb-4 mb-2">
+                    <p className="text-text-secondary dark:text-gray-400 text-xs font-bold text-center uppercase tracking-widest mb-1">Entradas</p>
+                    <p className="text-secondary text-4xl font-black text-center tracking-tight">{fmtBRL(incomeTotal)}</p>
                   </div>
 
                   <div className="py-4">
                     <Pie data={incomeCategories} colors={incomeColors} />
                   </div>
 
-                  <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 border-2 border-dark dark:border-white bg-surface-light dark:bg-background-dark p-2 shadow-inner">
+                  <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {incomeCategories.length === 0 ? (
                       <div className="h-20 flex items-center justify-center">
-                        <p className="text-center text-dark dark:text-white font-bold uppercase text-xs">Sem receitas.</p>
+                        <p className="text-center text-text-secondary dark:text-gray-400 font-medium text-sm">Sem receitas.</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 gap-2">
+                      <div className="flex flex-col gap-2">
                         {incomeCategories.map((d, i) => (
-                          <div key={`${d.name}-${i}`} className="flex items-center justify-between bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-2 shadow-sm">
+                          <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-3">
-                                <div className="h-6 w-6 border-2 border-dark dark:border-white" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></div>
-                                <p className="text-xs text-dark dark:text-white font-bold uppercase truncate max-w-[120px]">{d.name}</p>
+                                <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></div>
+                                <p className="text-xs text-text-primary dark:text-white font-bold uppercase truncate max-w-[140px]">{d.name}</p>
                             </div>
                             <p className="text-secondary text-xs font-black">+ {fmtBRL(d.amount)}</p>
                           </div>
@@ -469,23 +469,23 @@ const Reports: React.FC = () => {
 
       {/* Budgets */}
       <section>
-        <h2 className="text-2xl font-black mb-6 text-center uppercase text-dark dark:text-white bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-2 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] inline-block mx-auto transform rotate-1">Orçamentos</h2>
-        <div className="flex flex-col gap-4 max-h-[340px] overflow-y-auto pr-1 border-2 border-transparent hover:border-dark/10 dark:hover:border-white/10 transition-colors p-1">
+        <h2 className="text-xl font-bold mb-6 text-text-primary dark:text-white px-2">Orçamentos</h2>
+        <div className="flex flex-col gap-4 max-h-[340px] overflow-y-auto pr-1 p-1 custom-scrollbar">
           {budgetCats.map((c, index) => {
             const limit = Number(budgets[c.name] || 0);
             const spent = Number(c.amount || 0);
             const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
             
-            // Soft pastel colors for budget cards (Neo-Brutalist palette)
+            // Glassy pastel colors
             const cardColors = [
-              'bg-[#E0F2F1] dark:bg-[#1A3332]', // Soft Teal
-              'bg-[#F3E5F5] dark:bg-[#331A33]', // Soft Purple
-              'bg-[#FFF3E0] dark:bg-[#33261A]', // Soft Orange
-              'bg-[#E3F2FD] dark:bg-[#1A2633]', // Soft Blue
-              'bg-[#FFEBEE] dark:bg-[#331A1A]', // Soft Red
-              'bg-[#F1F8E9] dark:bg-[#1B3320]', // Soft Green
+              'bg-teal-500/10 border-teal-500/20',
+              'bg-purple-500/10 border-purple-500/20',
+              'bg-orange-500/10 border-orange-500/20',
+              'bg-blue-500/10 border-blue-500/20',
+              'bg-red-500/10 border-red-500/20',
+              'bg-green-500/10 border-green-500/20',
             ];
-            const cardBg = cardColors[index % cardColors.length];
+            const cardStyle = cardColors[index % cardColors.length];
 
             const barColor = (() => {
               if (limit > 0) {
@@ -493,54 +493,54 @@ const Reports: React.FC = () => {
                 if (spent === limit) return 'bg-secondary';
                 return 'bg-danger';
               }
-              return 'bg-surface-light dark:bg-gray-700';
+              return 'bg-gray-200 dark:bg-gray-700';
             })();
             const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / --`;
             
             return (
               <motion.button
-                whileTap={{ scale: 0.95, y: 2 }}
+                whileTap={{ scale: 0.98 }}
                 key={c.name}
                 onClick={() => { setEditingCat(c.name); setTempLimit(limit ? String(limit) : ''); }}
-                className={`group relative ${cardBg} border-2 border-dark dark:border-white p-4 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] active:shadow-none active:translate-y-[2px] transition-all shrink-0`}
+                className={`group relative ${cardStyle} border rounded-2xl p-4 shadow-sm backdrop-blur-md transition-all shrink-0`}
               >
                 <div className="flex items-center justify-between mb-3 relative z-10">
-                  <p className="font-black text-dark dark:text-white uppercase text-sm">{c.name}</p>
-                  <p className="text-xs text-dark dark:text-white font-bold bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-2 py-1">{right}</p>
+                  <p className="font-bold text-text-primary dark:text-white uppercase text-xs tracking-wider">{c.name}</p>
+                  <p className="text-[10px] text-text-secondary dark:text-white font-bold bg-white/50 dark:bg-black/20 px-2 py-1 rounded-lg backdrop-blur-md">{right}</p>
                 </div>
-                <div className="h-4 w-full border-2 border-dark dark:border-white bg-white dark:bg-surface-dark relative">
-                  <div className={`h-full border-r-2 border-dark dark:border-white ${barColor} transition-all duration-500`} style={{ width: `${pct}%` }}></div>
+                <div className="h-2 w-full bg-white/30 dark:bg-black/20 rounded-full overflow-hidden">
+                  <div className={`h-full ${barColor} transition-all duration-500 rounded-full`} style={{ width: `${pct}%` }}></div>
                 </div>
               </motion.button>
             );
           })}
           {budgetCats.length === 0 && (
-            <div className="bg-white dark:bg-surface-dark p-6 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] text-dark dark:text-white">
-              <p className="text-center font-bold uppercase">Nenhum orçamento.</p>
+            <div className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl border border-white/20 text-text-secondary dark:text-gray-400 text-center backdrop-blur-md">
+              <p className="font-medium">Nenhum orçamento configurado.</p>
             </div>
           )}
         </div>
         {editingCat && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-md">
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/20 shadow-glass-lg">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black uppercase text-dark dark:text-white">Definir Limite</h3>
-                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEditingCat(null)} className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 p-1 border-2 border-transparent hover:border-dark dark:hover:border-white transition-all">
+                <h3 className="text-lg font-bold uppercase text-text-primary dark:text-white">Definir Limite</h3>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="text-text-secondary hover:text-text-primary p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all">
                   <span className="material-symbols-outlined">close</span>
                 </motion.button>
               </div>
-              <p className="text-sm font-bold text-dark uppercase mb-2 bg-accent inline-block px-2 border-2 border-dark dark:border-white">{editingCat}</p>
+              <p className="text-xs font-bold text-text-secondary uppercase mb-2 bg-accent/20 text-accent inline-block px-2 py-1 rounded-md">{editingCat}</p>
               <input
                 type="text"
                 value={tempLimit}
                 onChange={(e) => setTempLimit(e.target.value)}
                 placeholder="EX: 800"
-                className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-4 text-dark dark:text-white font-bold placeholder:text-text-secondary/50 focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] focus:outline-none transition-all"
+                className="w-full rounded-xl bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 p-4 text-text-primary dark:text-white font-bold placeholder:text-gray-400 focus:ring-2 focus:ring-primary/50 focus:outline-none transition-all"
               />
               <div className="mt-8 flex gap-3">
-                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEditingCat(null)} className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase text-dark dark:text-white shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all">Cancelar</motion.button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="flex-1 rounded-xl bg-gray-100 dark:bg-white/5 py-3 font-bold uppercase text-text-secondary dark:text-white hover:bg-gray-200 transition-all">Cancelar</motion.button>
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={async () => {
                     const n = Number(String(tempLimit).replace(/[^0-9.,]/g, '').replace(',', '.'));
                     if (!Number.isNaN(n) && n >= 0 && editingCat) {
@@ -556,7 +556,7 @@ const Reports: React.FC = () => {
                       setTempLimit('');
                     }
                   }}
-                  className="flex-1 rounded-sm bg-primary border-2 border-dark dark:border-white py-3 font-black text-white uppercase shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
+                  className="flex-1 rounded-xl bg-primary py-3 font-bold text-white uppercase shadow-lg shadow-primary/30 transition-all"
                 >
                   Salvar
                 </motion.button>
@@ -571,32 +571,32 @@ const Reports: React.FC = () => {
         whileHover={{ scale: 1.05, rotate: 5 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate('/chat')}
-        className="fixed bottom-24 right-4 h-12 w-12 rounded-sm bg-primary text-white flex items-center justify-center border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] z-40 active:shadow-none active:translate-y-[4px] transition-all"
+        className="fixed bottom-24 right-4 h-14 w-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/40 z-40 border border-white/20 backdrop-blur-md"
       >
         <span className="material-symbols-outlined !text-2xl">auto_awesome</span>
       </motion.button>
 
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black uppercase text-dark dark:text-white bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-2 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] flex-1 text-center mr-4">Projeção</h2>
+        <div className="flex items-center justify-between mb-6 px-2">
+          <h2 className="text-xl font-bold uppercase text-text-primary dark:text-white">Projeção</h2>
           <motion.button 
-            whileTap={{ scale: 0.95, y: 2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/projecao-futura')}
-            className="rounded-sm p-2 bg-white dark:bg-surface-dark border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] active:shadow-none active:translate-y-[2px] transition-all"
+            className="rounded-full p-2 bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 border border-white/20 transition-all"
           >
-            <span className="material-symbols-outlined text-dark dark:text-white">arrow_forward</span>
+            <span className="material-symbols-outlined text-text-primary dark:text-white">arrow_forward</span>
           </motion.button>
         </div>
-        <div className="bg-white dark:bg-surface-dark rounded-lg p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
+        <div className="bg-white/60 dark:bg-black/40 rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-glass backdrop-blur-xl">
           <div className="flex min-w-72 flex-1 flex-col gap-4">
-            <div className="border-b-3 border-dark dark:border-white pb-4">
-                <p className="text-dark dark:text-white text-sm font-black uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
-                <p className="text-primary text-4xl font-black text-center">{fmtBRL(projection.total)}</p>
+            <div className="border-b border-gray-200/50 dark:border-white/10 pb-4">
+                <p className="text-text-secondary dark:text-gray-400 text-xs font-bold uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
+                <p className="text-primary text-4xl font-black text-center tracking-tight">{fmtBRL(projection.total)}</p>
             </div>
             
-            <div className="flex justify-center gap-2 items-center bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white p-2">
-              <p className="text-dark dark:text-white text-xs font-bold uppercase">Próximos 3 meses</p>
-              <p className={`${projection.percent >= 0 ? 'text-secondary' : 'text-danger'} text-sm font-black bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-1`}>{`${projection.percent >= 0 ? '+' : ''}${projection.percent.toFixed(1)}%`}</p>
+            <div className="flex justify-center gap-2 items-center bg-white/40 dark:bg-white/5 border border-white/20 rounded-xl p-2 backdrop-blur-sm">
+              <p className="text-text-secondary dark:text-gray-300 text-[10px] font-bold uppercase">Próximos 3 meses</p>
+              <p className={`${projection.percent >= 0 ? 'text-secondary' : 'text-danger'} text-xs font-black bg-white/80 dark:bg-black/40 px-2 py-0.5 rounded-md`}>{`${projection.percent >= 0 ? '+' : ''}${projection.percent.toFixed(1)}%`}</p>
             </div>
 
             <div className="flex min-h-[180px] flex-1 flex-col gap-4 py-4 relative">
@@ -611,16 +611,16 @@ const Reports: React.FC = () => {
                 onMouseLeave={() => !clickedPoint && setHoveredPoint(null)}
               >
                 <defs>
-                  <pattern id="diagonalHatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-                    <line x1="0" y1="0" x2="0" y2="10" style={{stroke: '#20BF55', strokeWidth: 2}} />
-                  </pattern>
+                  <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#20BF55" stopOpacity="0.2"/>
+                    <stop offset="100%" stopColor="#20BF55" stopOpacity="0"/>
+                  </linearGradient>
                 </defs>
-                {/* Area preenchida com hachura */}
-                <path d={`M0 149 ${linePath.replace(/^M[^ ]+ [^ ]+/, '')} L 475 149 Z`} fill="url(#diagonalHatch)" opacity="0.2" />
+                {/* Area preenchida */}
+                <path d={`M0 149 ${linePath.replace(/^M[^ ]+ [^ ]+/, '')} L 475 149 Z`} fill="url(#chartGradient)" />
                 
-                {/* Linha principal grossa e preta */}
-                <path d={linePath} className="stroke-dark dark:stroke-white" strokeLinecap="square" strokeWidth="6" />
-                <path d={linePath} stroke="#20BF55" strokeLinecap="square" strokeWidth="3" />
+                {/* Linha principal */}
+                <path d={linePath} stroke="#20BF55" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" filter="url(#glow)" />
                 
                 {/* Pontos */}
                 {projection.values.map((v, i) => {
@@ -650,24 +650,22 @@ const Reports: React.FC = () => {
                             {/* Hit area larger than visual point */}
                             <rect x={x-10} y={y-10} width="20" height="20" fill="transparent" />
                             
-                            <rect 
-                              x={isActive ? x-8 : x-6} 
-                              y={isActive ? y-8 : y-6} 
-                              width={isActive ? 16 : 12} 
-                              height={isActive ? 16 : 12} 
-                              className={`${isProj ? 'fill-surface-light dark:fill-gray-700' : 'fill-white dark:fill-surface-dark'} stroke-dark dark:stroke-white transition-all duration-300`} 
-                              strokeWidth={isActive ? 3 : 2} 
-                              strokeDasharray={isProj ? "2 2" : ""}
+                            <circle 
+                              cx={x} 
+                              cy={y} 
+                              r={isActive ? 6 : 4} 
+                              className={`${isProj ? 'fill-gray-200 dark:fill-gray-700' : 'fill-white dark:fill-surface-dark'} stroke-primary transition-all duration-300`} 
+                              strokeWidth={2}
                             />
                             
                             {isActive && (
                               <g pointerEvents="none">
                                 <foreignObject x={x - 60} y={y - 50} width="120" height="40" className="overflow-visible">
                                   <div className="flex flex-col items-center justify-center">
-                                    <div className="bg-dark dark:bg-white text-white dark:text-dark text-[10px] font-black uppercase py-1 px-2 rounded-sm shadow-neo-sm whitespace-nowrap z-50">
+                                    <div className="bg-black/80 text-white text-[10px] font-bold uppercase py-1 px-2 rounded-lg backdrop-blur-md whitespace-nowrap z-50 shadow-lg">
                                       {isProj ? 'Projeção: ' : 'Real: '}{fmtBRL(v)}
                                     </div>
-                                    <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-dark dark:border-t-white"></div>
+                                    <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-black/80"></div>
                                   </div>
                                 </foreignObject>
                               </g>
@@ -676,13 +674,13 @@ const Reports: React.FC = () => {
                     );
                 })}
               </svg>
-              <div className="flex justify-between px-2 border-t-3 border-dark dark:border-white pt-2">
+              <div className="flex justify-between px-2 border-t border-gray-200/50 dark:border-white/10 pt-3">
                 {projection.labels.map((l, i) => {
                   const isActive = hoveredPoint === i || clickedPoint === i;
                   return (
                     <p 
                       key={l} 
-                      className={`text-xs font-black uppercase cursor-pointer transition-colors ${isActive ? 'text-primary scale-110' : 'text-dark dark:text-white'}`}
+                      className={`text-[10px] font-bold uppercase cursor-pointer transition-colors ${isActive ? 'text-primary scale-110' : 'text-text-secondary dark:text-gray-400'}`}
                       onMouseEnter={() => setHoveredPoint(i)}
                       onClick={(e) => {
                         e.stopPropagation();

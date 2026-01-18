@@ -70,11 +70,18 @@ const Signup: React.FC = () => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="flex min-h-screen w-full flex-col bg-white text-dark p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex min-h-screen w-full flex-col items-center justify-center p-4 font-display relative overflow-hidden"
     >
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-background-dark z-0"></div>
+      <div className="absolute top-0 right-0 w-full h-full z-0 opacity-20 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 70% 30%, rgba(0,214,143,0.15), transparent 60%)' }}></div>
+      <div className="absolute bottom-0 left-0 w-full h-full z-0 opacity-20 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 30% 70%, rgba(255,69,95,0.15), transparent 60%)' }}></div>
+
       {showBiometric && (
         <BiometricCapture 
           mode="enroll"
@@ -84,113 +91,148 @@ const Signup: React.FC = () => {
         />
       )}
 
-      <header className="flex items-center mb-6">
-        <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/login')} className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-dark hover:bg-surface-light transition-all active:translate-y-[2px] shadow-neo-sm active:shadow-none">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </motion.button>
-        <h1 className="flex-1 text-center text-2xl font-black uppercase pr-10">Criar Conta</h1>
-      </header>
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="w-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+        >
+          <div className="flex flex-col items-center mb-6">
+             <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/login')}
+                className="absolute left-6 top-6 h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/10"
+             >
+                <span className="material-symbols-outlined text-lg">arrow_back</span>
+             </motion.button>
 
-      <form onSubmit={handleSignup} className="flex flex-1 flex-col gap-5">
-        <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-black uppercase text-dark ml-1">Nome</label>
-              <input 
-                type="text" 
-                placeholder="INSIRA SEU NOME"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
-              />
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+              className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 border border-white/20 shadow-glass backdrop-blur-md"
+            >
+              <img src="https://i.imgur.com/fH0lMQq.png" alt="Money Balance" className="h-10 w-10 object-contain drop-shadow-lg" />
+            </motion.div>
+            
+            <h1 className="text-white text-2xl font-bold tracking-tight text-center">Criar Conta</h1>
+            <p className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Comece sua jornada financeira</p>
+          </div>
+
+          <form onSubmit={handleSignup} className="w-full space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Nome</label>
+                  <input 
+                    type="text" 
+                    placeholder="Seu nome"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Sobrenome</label>
+                  <input 
+                    type="text" 
+                    placeholder="Sobrenome"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all text-sm"
+                  />
+                </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-black uppercase text-dark ml-1">Sobrenome</label>
+
+            <div className="space-y-1">
+              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Nome de Usuário</label>
               <input 
                 type="text" 
-                placeholder="INSIRA SEU SOBRENOME"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-black uppercase text-dark ml-1">Nome de Usuário</label>
-              <input 
-                type="text" 
-                placeholder="ESCOLHA UM NOME DE USUÁRIO"
+                placeholder="Como quer ser chamado"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
+                className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-black uppercase text-dark ml-1">Telefone</label>
+
+            <div className="space-y-1">
+              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Telefone (WhatsApp)</label>
               <input 
                 type="tel" 
                 placeholder="(00) 00000-0000"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
+                className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-black uppercase text-dark ml-1">E-mail</label>
+
+            <div className="space-y-1">
+              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">E-mail</label>
               <input 
                 type="email" 
-                placeholder="SEU E-MAIL"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-none bg-white border-2 border-dark p-4 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
+                className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all text-sm"
               />
             </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-black uppercase text-dark ml-1">Senha</label>
-                <div className="relative">
-                    <input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="CRIE UMA SENHA"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full rounded-none bg-white border-2 border-dark p-4 pr-12 text-dark placeholder:text-text-secondary/50 focus:bg-surface-light focus:outline-none focus:shadow-neo-sm shadow-none font-bold uppercase transition-all"
-                    />
-                    <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-dark hover:text-primary transition-colors"
-                    >
-                        <span className="material-symbols-outlined text-xl">
-                        {showPassword ? 'visibility' : 'visibility_off'}
-                        </span>
-                    </motion.button>
-                </div>
-                <p className="text-xs font-bold text-text-secondary ml-1 uppercase">Mínimo 8 caracteres, 1 letra maiúscula, 1 número.</p>
-            </div>
-        </div>
-
-        <div className="flex-1" />
-
-        <div className="mt-4 flex flex-col items-center gap-4 pb-4">
-            <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95, y: 2 }}
-                type="submit"
-                className="w-full rounded-sm bg-secondary border-2 border-dark py-4 text-lg font-black text-white shadow-neo hover:bg-secondary/90 active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
-            >
-                Cadastrar
-            </motion.button>
-            {error && (
-              <p className="text-danger font-bold text-sm bg-danger/10 p-2 border-2 border-danger w-full text-center">{error}</p>
-            )}
-            <p className="text-sm text-dark font-bold uppercase">
-                Já tem uma conta?{' '}
-                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/login')} className="font-black text-secondary hover:underline bg-white border-2 border-transparent hover:border-dark px-1 transition-all">
-                    ENTRAR
+            <div className="space-y-1">
+              <label className="text-white/70 text-xs font-bold uppercase ml-1 tracking-wider">Senha</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Mín. 8 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl bg-white/5 border border-white/10 p-3 pr-10 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/20 shadow-inner transition-all text-sm"
+                />
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    {showPassword ? 'visibility' : 'visibility_off'}
+                  </span>
                 </motion.button>
-            </p>
+              </div>
+              <p className="text-[10px] font-medium text-white/40 ml-1 uppercase">Mínimo 8 caracteres, 1 maiúscula, 1 número.</p>
+            </div>
+
+            <div className="space-y-3 pt-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full rounded-xl bg-secondary text-white py-4 text-sm font-bold shadow-lg shadow-secondary/25 hover:shadow-secondary/40 hover:bg-secondary/90 transition-all uppercase tracking-wider"
+              >
+                Criar Conta
+              </motion.button>
+            </div>
+
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger-light text-xs font-medium text-center"
+              >
+                {error}
+              </motion.div>
+            )}
+          </form>
+        </motion.div>
+
+        <div className="mt-8 text-center pb-8">
+          <p className="text-sm text-white/50 font-medium">
+            Já tem uma conta?{' '}
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/login')} className="font-bold text-white hover:text-primary transition-colors ml-1">
+              Fazer login
+            </motion.button>
+          </p>
         </div>
-      </form>
+      </div>
     </motion.div>
   );
 };

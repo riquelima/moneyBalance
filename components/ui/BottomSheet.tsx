@@ -36,17 +36,17 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
                 onClose();
               }
             }}
-            className="fixed bottom-0 left-0 right-0 z-50 h-[80vh] rounded-t-3xl border-t-4 border-dark bg-white dark:bg-surface-dark dark:border-white shadow-[0_-4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_-4px_0_0_rgba(255,255,255,1)] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-50 h-[80vh] rounded-t-3xl border-t border-white/20 bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl shadow-glass-lg flex flex-col"
           >
             {/* Handle */}
             <div className="flex justify-center p-4 cursor-grab active:cursor-grabbing">
-              <div className="h-1.5 w-16 rounded-full bg-gray-300 dark:bg-gray-600" />
+              <div className="h-1.5 w-16 rounded-full bg-gray-300/50 dark:bg-white/20" />
             </div>
 
             {/* Header */}
             {title && (
-              <div className="border-b-2 border-dark/10 dark:border-white/10 px-6 pb-4">
-                <h2 className="text-xl font-bold text-dark dark:text-white">{title}</h2>
+              <div className="border-b border-gray-200/50 dark:border-white/10 px-6 pb-4">
+                <h2 className="text-xl font-bold text-text-primary dark:text-white">{title}</h2>
               </div>
             )}
 

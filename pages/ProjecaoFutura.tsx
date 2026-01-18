@@ -423,80 +423,87 @@ const ProjecaoFutura: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-primary dark:text-white font-display pb-28">
+    <div className="flex flex-col min-h-screen font-display pb-28 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-background-dark z-0"></div>
+      <div className="absolute top-0 right-0 w-full h-full z-0 opacity-20 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 80% 20%, rgba(255,69,95,0.15), transparent 60%)' }}></div>
+      <div className="absolute bottom-0 left-0 w-full h-full z-0 opacity-20 pointer-events-none" 
+           style={{ background: 'radial-gradient(circle at 20% 80%, rgba(0,214,143,0.15), transparent 60%)' }}></div>
+
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-surface-dark border-b-3 border-dark dark:border-white shadow-sm">
+      <div className="sticky top-0 z-10 bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-glass">
         <div className="flex items-center p-4 pb-3 justify-between">
           <div className="flex size-10 shrink-0 items-center justify-start">
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+            <motion.button whileTap={{ scale: 0.95 }} 
               onClick={() => navigate(-1)}
-              className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
+              className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all"
             >
-              <span className="material-symbols-outlined text-dark dark:text-white">arrow_back</span>
+              <span className="material-symbols-outlined text-white">arrow_back</span>
             </motion.button>
           </div>
-          <h1 className="text-dark dark:text-white text-xl font-black uppercase leading-tight tracking-wide flex-1 text-center">Projeções</h1>
+          <h1 className="text-white text-xl font-bold tracking-wide flex-1 text-center">Projeções</h1>
           <div className="flex size-10 shrink-0 items-center justify-end">
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} className="rounded-sm p-2 border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all">
-              <span className="material-symbols-outlined text-dark dark:text-white">tune</span>
+            <motion.button whileTap={{ scale: 0.95 }} className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all">
+              <span className="material-symbols-outlined text-white">tune</span>
             </motion.button>
           </div>
         </div>
       </div>
       
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto relative z-10">
         <div className="flex flex-col gap-6 px-4 pt-4">
-          <div className="flex p-1 bg-white dark:bg-surface-dark rounded-sm border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none">
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+          <div className="flex p-1 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+            <motion.button whileTap={{ scale: 0.95 }} 
               onClick={() => setSelectedTimeframe('6meses')}
-              className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
+              className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase transition-all ${
                 selectedTimeframe === '6meses' 
-                  ? 'text-white bg-primary border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-[1px]' 
-                  : 'text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                  : 'text-white/50 hover:bg-white/5 hover:text-white'
               }`}
             >
               6 Meses
             </motion.button>
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+            <motion.button whileTap={{ scale: 0.95 }} 
               onClick={() => setSelectedTimeframe('1ano')}
-              className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
+              className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase transition-all ${
                 selectedTimeframe === '1ano' 
-                  ? 'text-white bg-primary border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-[1px]' 
-                  : 'text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                  : 'text-white/50 hover:bg-white/5 hover:text-white'
               }`}
             >
               1 Ano
             </motion.button>
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+            <motion.button whileTap={{ scale: 0.95 }} 
               onClick={() => setSelectedTimeframe('5anos')}
-              className={`flex-1 py-2 text-xs font-black uppercase transition-all rounded-sm border-2 ${
+              className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase transition-all ${
                 selectedTimeframe === '5anos' 
-                  ? 'text-white bg-primary border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-[1px]' 
-                  : 'text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                  : 'text-white/50 hover:bg-white/5 hover:text-white'
               }`}
             >
               5 Anos
             </motion.button>
           </div>
           
-          <div className="relative overflow-hidden rounded-lg bg-white dark:bg-surface-dark p-5 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
+          <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl p-6 border border-white/20 shadow-glass">
             <div className="relative z-10 flex flex-col gap-3">
               <div className="flex items-center gap-2 text-primary mb-1">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                <span className="text-xs font-black uppercase tracking-wider bg-accent text-dark dark:text-black px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none">Insights</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white px-2 py-1 rounded-lg border border-white/10 backdrop-blur-md">Insights</span>
               </div>
               {(() => {
                 const now = new Date();
                 const res = computeDailyRecommended(monthBalance, now.getFullYear(), now.getMonth());
                 const valueStr = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(res.value || 0);
-                const toneClass = (balanceError || res.error) ? 'text-danger' : 'text-dark dark:text-white';
-                const boxClass = (balanceError || res.error) ? 'border-danger' : 'border-dark dark:border-white';
+                const toneClass = (balanceError || res.error) ? 'text-danger-light' : 'text-white';
+                const boxClass = (balanceError || res.error) ? 'border-danger/20 bg-danger/10' : 'border-white/10 bg-white/5';
                 return (
-                  <div className={`rounded-sm p-3 border-2 ${boxClass}`}>
-                    <p className={`text-lg font-black uppercase ${toneClass}`}>Seu gasto médio diário recomendado é: {valueStr}</p>
+                  <div className={`rounded-2xl p-4 border ${boxClass}`}>
+                    <p className={`text-lg font-bold ${toneClass}`}>Seu gasto médio diário recomendado é: {valueStr}</p>
                     {(balanceError || res.error) && (
-                      <p className="mt-1 text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">Saldo do mês zero ou negativo. Ajuste seus gastos.</p>
+                      <p className="mt-2 text-xs font-medium text-white/50">Saldo do mês zero ou negativo. Ajuste seus gastos.</p>
                     )}
                   </div>
                 );
@@ -505,38 +512,38 @@ const ProjecaoFutura: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between mt-2 px-1">
-            <h2 className="text-xl font-black text-dark dark:text-white uppercase tracking-tight bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-2 py-1 shadow-neo-sm dark:shadow-none transform -rotate-1">Categorias</h2>
+            <h2 className="text-lg font-bold text-white tracking-wide">Categorias</h2>
           </div>
           
           {/* Add Card Form */}
           {showAddCardForm && (
-            <div className="rounded-lg border-3 border-dark dark:border-white bg-white dark:bg-surface-dark p-4 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl p-6 shadow-glass">
+              <div className="flex items-center gap-3 mb-3">
                 <input
                   type="text"
                   value={newCardName}
                   onChange={(e) => setNewCardName(e.target.value)}
-                  placeholder="NOME DA CATEGORIA"
-                  className="flex-1 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all placeholder:text-text-secondary/50 dark:placeholder:text-gray-500"
+                  placeholder="Nome da categoria"
+                  className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-white font-medium text-sm focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all placeholder:text-white/30"
                   autoFocus
                 />
-                <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                <motion.button whileTap={{ scale: 0.95 }}
                   onClick={handleAddNewCard}
                   disabled={!newCardName.trim()}
-                  className={`rounded-sm px-4 py-2 text-xs font-black uppercase border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
+                  className={`h-12 px-6 rounded-xl text-xs font-bold uppercase shadow-lg transition-all ${
                     newCardName.trim() 
-                      ? 'bg-secondary text-white' 
-                      : 'bg-surface-light dark:bg-gray-800 text-text-secondary dark:text-gray-400 cursor-not-allowed'
+                      ? 'bg-secondary text-white shadow-secondary/20 hover:bg-secondary/90' 
+                      : 'bg-white/5 text-white/30 cursor-not-allowed border border-white/5'
                   }`}
                 >
                   Adicionar
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                <motion.button whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     setShowAddCardForm(false);
                     setNewCardName('');
                   }}
-                  className="rounded-sm px-3 py-2 text-dark dark:text-white border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
+                  className="h-12 w-12 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
                 </motion.button>
@@ -558,12 +565,12 @@ const ProjecaoFutura: React.FC = () => {
                 return (
                   <div 
                     key={category.id} 
-                    className="group rounded-lg border-3 border-dark dark:border-white hover:translate-y-[-2px] hover:shadow-neo dark:hover:shadow-[4px_4px_0px_0px_#ffffff] transition-all bg-white dark:bg-surface-dark overflow-visible relative"
+                    className="group rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md overflow-visible relative shadow-glass hover:bg-white/10 transition-all"
                   >
                     <div className="relative h-64">
                     {/* Front of Card */}
                     <motion.div
-                      className="absolute inset-0 p-5 flex flex-col justify-between cursor-pointer bg-white dark:bg-surface-dark rounded-lg z-10"
+                      className="absolute inset-0 p-6 flex flex-col justify-between cursor-pointer rounded-3xl z-10"
                       initial={false}
                       animate={{ 
                         rotateY: isFlipped ? 180 : 0,
@@ -573,47 +580,47 @@ const ProjecaoFutura: React.FC = () => {
                       style={{ backfaceVisibility: 'hidden' }}
                       onClick={() => handleCardClick(category.id)}
                     >
-                      <div className="flex justify-between items-start border-b-2 border-dark dark:border-white pb-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`size-12 rounded-sm ${colorInfo.bg} border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none flex items-center justify-center ${colorInfo.text}`}>
+                      <div className="flex justify-between items-start border-b border-white/10 pb-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`size-12 rounded-2xl ${colorInfo.bg} bg-opacity-20 border border-white/10 flex items-center justify-center ${colorInfo.text} shadow-inner`}>
                             <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>{category.icon}</span>
                           </div>
                           <div>
-                            <h3 className="text-lg font-black text-dark dark:text-white uppercase">{category.name}</h3>
-                            <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase">{category.description || 'SEM DESCRIÇÃO'}</p>
+                            <h3 className="text-lg font-bold text-white tracking-wide">{category.name}</h3>
+                            <p className="text-xs font-medium text-white/50 uppercase tracking-wider">{category.description || 'Sem descrição'}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-black text-dark dark:text-white">{formatCurrency(projectedAmount)}</p>
-                          <p className={`text-[10px] font-black uppercase flex items-center justify-end gap-1 mt-1 ${trendInfo.className}`}>
+                          <p className="text-xl font-bold text-white">{formatCurrency(projectedAmount)}</p>
+                          <p className={`text-[10px] font-bold uppercase flex items-center justify-end gap-1 mt-1 px-2 py-0.5 rounded-lg bg-white/5 border border-white/5 ${trendInfo.className.replace('text-dark', 'text-white').replace('bg-accent', 'bg-yellow-500/20 text-yellow-300').replace('bg-surface-light', 'bg-white/10 text-white/70')}`}>
                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{trendInfo.icon}</span>
                             {trendInfo.text}
                           </p>
                         </div>
                       </div>
                       
-                      <div className="h-24 w-full relative mt-2 bg-surface-light dark:bg-background-dark border-2 border-dark dark:border-white p-2">
+                      <div className="h-28 w-full relative mt-2 bg-black/20 rounded-xl border border-white/5 p-3 overflow-hidden">
                         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 40">
                           <defs>
                             <pattern id={`hatch-${category.id}`} width="4" height="4" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-                              <line x1="0" y1="0" x2="0" y2="4" style={{stroke: colorInfo.stop1, strokeWidth: 1}} />
+                              <line x1="0" y1="0" x2="0" y2="4" style={{stroke: colorInfo.stop1, strokeWidth: 1, opacity: 0.5}} />
                             </pattern>
                           </defs>
                           {category.trend === 'stable' && (
-                            <path d="M0,20 Q25,20 50,20 T100,20" fill="none" opacity="0.5" stroke={colorInfo.stop1} strokeDasharray="4 2" strokeWidth="2"></path>
+                            <path d="M0,20 Q25,20 50,20 T100,20" fill="none" opacity="0.3" stroke={colorInfo.stop1} strokeDasharray="4 2" strokeWidth="2"></path>
                           )}
-                          <path d={chartData.fillPath} fill={`url(#hatch-${category.id})`} opacity="0.3"></path>
+                          <path d={chartData.fillPath} fill={`url(#hatch-${category.id})`} opacity="0.2"></path>
                           <path d={chartData.path} fill="none" stroke={colorInfo.stop1} strokeLinecap="round" strokeWidth="3"></path>
                           {/* Points */}
-                          <rect x="0" y={chartData.path.match(/M0,(\d+)/)?.[1] || 20} width="2" height="2" className="fill-white dark:fill-surface-dark stroke-dark dark:stroke-white" strokeWidth="1" />
-                          <rect x="100" y={chartData.path.match(/.*?(\d+)$/)?.[1] || 20} width="2" height="2" className="fill-white dark:fill-surface-dark stroke-dark dark:stroke-white" strokeWidth="1" />
+                          <circle cx="2" cy={chartData.path.match(/M0,(\d+)/)?.[1] || 20} r="3" className="fill-white stroke-none" />
+                          <circle cx="98" cy={chartData.path.match(/.*?(\d+)$/)?.[1] || 20} r="3" className="fill-white stroke-none" />
                         </svg>
                       </div>
                     </motion.div>
                     
                     {/* Back of Card (Edit Form) */}
                     <motion.div
-                      className="absolute inset-0 p-5 flex flex-col bg-white dark:bg-surface-dark rounded-lg border-3 border-dark dark:border-white"
+                      className="absolute inset-0 p-6 flex flex-col bg-background-dark/90 backdrop-blur-xl rounded-3xl border border-white/20"
                       initial={false}
                       animate={{ 
                         rotateY: isFlipped ? 0 : -180,
@@ -622,50 +629,50 @@ const ProjecaoFutura: React.FC = () => {
                       transition={{ duration: 0.3 }}
                       style={{ backfaceVisibility: 'hidden' }}
                     >
-                      <div className="flex justify-between items-center mb-4 border-b-2 border-dark dark:border-white pb-2">
-                        <h3 className="text-base font-black text-dark dark:text-white uppercase">Editar {category.name}</h3>
-                        <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+                      <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+                        <h3 className="text-base font-bold text-white">Editar {category.name}</h3>
+                        <motion.button whileTap={{ scale: 0.95 }} 
                           onClick={handleCancelEdit}
-                          className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 border-2 border-transparent hover:border-dark dark:hover:border-white p-1 transition-all"
+                          className="h-8 w-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all"
                         >
-                          <span className="material-symbols-outlined">close</span>
+                          <span className="material-symbols-outlined text-sm">close</span>
                         </motion.button>
                       </div>
                       
-                      <div className="flex flex-col gap-3 flex-grow">
+                      <div className="flex flex-col gap-4 flex-grow">
                         <div>
-                          <label className="block text-xs font-bold text-dark dark:text-white uppercase mb-1">Descrição</label>
+                          <label className="block text-xs font-bold text-white/50 uppercase mb-2 ml-1">Descrição</label>
                           <input
                             type="text"
                             value={editingValues.description}
                             onChange={(e) => setEditingValues({...editingValues, description: e.target.value})}
-                            className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all"
-                            placeholder="DESCRIÇÃO"
+                            className="w-full h-10 rounded-xl bg-white/5 border border-white/10 px-3 text-white font-medium text-sm focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all placeholder:text-white/20"
+                            placeholder="Descrição"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-xs font-bold text-dark dark:text-white uppercase mb-1">Valor Mensal</label>
+                          <label className="block text-xs font-bold text-white/50 uppercase mb-2 ml-1">Valor Mensal</label>
                           <input
                             type="number"
                             value={editingValues.amount}
                             onChange={(e) => setEditingValues({...editingValues, amount: e.target.value})}
-                            className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all"
-                            placeholder="VALOR"
+                            className="w-full h-10 rounded-xl bg-white/5 border border-white/10 px-3 text-white font-medium text-sm focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all placeholder:text-white/20"
+                            placeholder="Valor"
                           />
                         </div>
                       </div>
                       
-                      <div className="flex gap-2 mt-3">
-                        <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                      <div className="flex gap-3 mt-4">
+                        <motion.button whileTap={{ scale: 0.95 }}
                           onClick={() => handleDeleteCategory(category.id)}
-                          className="rounded-sm py-2 px-3 text-xs font-black uppercase bg-danger text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
+                          className="px-4 py-3 rounded-xl text-xs font-bold uppercase bg-danger/20 text-danger-light border border-danger/30 hover:bg-danger/30 transition-all"
                         >
                           Excluir
                         </motion.button>
-                        <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                        <motion.button whileTap={{ scale: 0.95 }}
                           onClick={() => handleSaveEdit(category.id)}
-                          className="flex-1 rounded-sm py-2 text-xs font-black uppercase bg-primary text-white border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all"
+                          className="flex-1 rounded-xl py-3 text-xs font-bold uppercase bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
                         >
                           Salvar
                         </motion.button>
@@ -680,9 +687,9 @@ const ProjecaoFutura: React.FC = () => {
             {/* Add Category Button */}
             <div className="flex justify-center pb-8 pt-4">
               {!showAddCardForm ? (
-                <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+                <motion.button whileTap={{ scale: 0.95 }} 
                   onClick={() => setShowAddCardForm(true)}
-                  className="flex items-center gap-2 text-sm font-black uppercase text-dark bg-white border-2 border-dark px-4 py-3 rounded-sm shadow-neo hover:shadow-neo-lg active:shadow-none active:translate-y-[2px] transition-all"
+                  className="flex items-center gap-2 text-sm font-bold uppercase text-white bg-white/5 border border-white/10 px-6 py-4 rounded-2xl shadow-glass hover:bg-white/10 transition-all backdrop-blur-md"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
                   Nova Projeção
@@ -712,24 +719,24 @@ const ProjecaoFutura: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-white dark:bg-surface-dark p-6 border-t-4 border-x-4 border-dark dark:border-white shadow-[0_-4px_0px_0px_#000000] dark:shadow-[0_-4px_0px_0px_#ffffff]"
+              className="w-full max-w-md bg-[#1A1A1A] border-t border-white/10 rounded-t-3xl shadow-2xl p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-4 border-b-2 border-dark dark:border-white pb-2">
-                <h3 className="text-lg font-black uppercase text-dark dark:text-white">Adicionar Categoria</h3>
-                <motion.button whileTap={{ scale: 0.95, y: 2 }} 
+              <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                <h3 className="text-lg font-bold text-white">Adicionar Categoria</h3>
+                <motion.button whileTap={{ scale: 0.95 }} 
                   onClick={() => {
                     setShowCategoryPicker(false);
                     setShowCustomCategoryInput(false);
                     setCustomCategoryName('');
                   }}
-                  className="text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 border-2 border-transparent hover:border-dark dark:hover:border-white p-1 transition-all"
+                  className="h-8 w-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </motion.button>
               </div>
               
-              <p className="text-xs font-bold text-text-secondary dark:text-gray-400 uppercase mb-4 bg-surface-light dark:bg-gray-800 p-2 border-2 border-dark dark:border-white inline-block">Selecione uma categoria</p>
+              <p className="text-xs font-bold text-white/50 uppercase mb-4 px-3 py-1 bg-white/5 rounded-lg inline-block border border-white/5">Selecione uma categoria</p>
               
               {!showCustomCategoryInput ? (
                 <>
@@ -737,14 +744,14 @@ const ProjecaoFutura: React.FC = () => {
                     {categories.map((category) => {
                       const isSelected = projectionCategories.some(cat => cat.name === category);
                       return (
-                        <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                        <motion.button whileTap={{ scale: 0.95 }}
                           key={category}
                           onClick={() => handleCategorySelect(category)}
                           disabled={isSelected}
-                          className={`p-3 rounded-sm text-xs font-black uppercase border-2 text-left truncate shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
+                          className={`p-4 rounded-2xl text-xs font-bold uppercase text-left truncate transition-all border ${
                             isSelected 
-                              ? 'bg-surface-light dark:bg-gray-800 border-dark dark:border-white text-text-secondary dark:text-gray-500 cursor-not-allowed shadow-none translate-y-[2px]' 
-                              : 'bg-white dark:bg-surface-dark border-dark dark:border-white text-dark dark:text-white hover:bg-primary/10 dark:hover:bg-primary/20'
+                              ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed' 
+                              : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20'
                           }`}
                         >
                           {category}
@@ -752,9 +759,9 @@ const ProjecaoFutura: React.FC = () => {
                       );
                     })}
                     {/* Custom Category Button */}
-                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                    <motion.button whileTap={{ scale: 0.95 }}
                       onClick={() => setShowCustomCategoryInput(true)}
-                      className="p-3 rounded-sm text-xs font-black uppercase border-2 border-dashed border-dark dark:border-white text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800 flex flex-col items-center justify-center gap-1"
+                      className="p-4 rounded-2xl text-xs font-bold uppercase border border-dashed border-white/20 text-white hover:bg-white/5 flex flex-col items-center justify-center gap-2 text-white/70"
                     >
                       <span className="material-symbols-outlined">add</span>
                       <span>Personalizada</span>
@@ -762,13 +769,13 @@ const ProjecaoFutura: React.FC = () => {
                   </div>
                   
                   <div className="mt-6 flex gap-3">
-                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                    <motion.button whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         setShowCategoryPicker(false);
                         setShowCustomCategoryInput(false);
                         setCustomCategoryName('');
                       }}
-                      className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all dark:text-white"
+                      className="flex-1 rounded-xl bg-white/5 border border-white/10 py-3 font-bold uppercase hover:bg-white/10 transition-all text-white"
                     >
                       Cancelar
                     </motion.button>
@@ -776,39 +783,39 @@ const ProjecaoFutura: React.FC = () => {
                 </>
               ) : (
                 <div className="mt-4">
-                  <div className="mb-4">
-                    <label className="block text-xs font-bold text-dark dark:text-white uppercase mb-2">Nome da Categoria</label>
+                  <div className="mb-6">
+                    <label className="block text-xs font-bold text-white/50 uppercase mb-2 ml-1">Nome da Categoria</label>
                     <input
                       type="text"
                       value={customCategoryName}
                       onChange={(e) => setCustomCategoryName(e.target.value)}
-                      className="w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 py-2 text-dark dark:text-white font-bold uppercase text-sm focus:outline-none focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] transition-all"
-                      placeholder="DIGITE O NOME"
+                      className="w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-white font-bold text-sm focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all placeholder:text-white/30"
+                      placeholder="Digite o nome"
                       autoFocus
                     />
                   </div>
                   
                   <div className="flex gap-3">
-                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                    <motion.button whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         setShowCustomCategoryInput(false);
                         setCustomCategoryName('');
                       }}
-                      className="flex-1 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white py-3 font-black uppercase shadow-neo dark:shadow-none hover:bg-surface-light dark:hover:bg-gray-800 active:shadow-none active:translate-y-[2px] transition-all dark:text-white"
+                      className="flex-1 rounded-xl bg-white/5 border border-white/10 py-3 font-bold uppercase hover:bg-white/10 transition-all text-white"
                     >
                       Voltar
                     </motion.button>
-                    <motion.button whileTap={{ scale: 0.95, y: 2 }}
+                    <motion.button whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         if (customCategoryName.trim()) {
                           handleCategorySelect(customCategoryName.trim());
                         }
                       }}
                       disabled={!customCategoryName.trim()}
-                      className={`flex-1 rounded-sm py-3 font-black uppercase border-2 border-dark dark:border-white shadow-neo dark:shadow-none active:shadow-none active:translate-y-[2px] transition-all ${
+                      className={`flex-1 rounded-xl py-3 font-bold uppercase shadow-lg transition-all ${
                         customCategoryName.trim() 
-                          ? 'bg-secondary text-white' 
-                          : 'bg-surface-light dark:bg-gray-800 text-text-secondary dark:text-gray-400 cursor-not-allowed'
+                          ? 'bg-secondary text-white shadow-secondary/20 hover:bg-secondary/90' 
+                          : 'bg-white/5 text-white/30 cursor-not-allowed border border-white/5'
                       }`}
                     >
                       Adicionar

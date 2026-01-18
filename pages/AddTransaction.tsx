@@ -112,51 +112,51 @@ const AddTransaction: React.FC = () => {
       {/* Click outside to close simulation */}
       <div className="h-10 w-full" onClick={() => navigate(-1)}></div>
 
-      <div className="flex-1 flex flex-col bg-white dark:bg-surface-dark rounded-t-lg overflow-hidden shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff] border-t-4 border-x-4 border-dark dark:border-white">
+      <div className="flex-1 flex flex-col bg-[#1A1A1A] rounded-t-3xl overflow-hidden shadow-2xl border-t border-white/10">
         {/* Drag Handle */}
         <div className="flex w-full justify-center pt-3 pb-1" onClick={() => navigate(-1)}>
-          <div className="h-1.5 w-12 rounded-full bg-dark dark:bg-white opacity-20"></div>
+          <div className="h-1.5 w-12 rounded-full bg-white/20"></div>
         </div>
 
         {/* Header */}
-        <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-2 bg-white dark:bg-surface-dark border-b-2 border-dark dark:border-white pb-4">
+        <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="w-10"></div> {/* Spacer */}
-            <h1 className="text-xl font-black text-dark dark:text-white uppercase">Adicionar Transação</h1>
+            <h1 className="text-lg font-bold text-white tracking-wide">Nova Transação</h1>
             <motion.button 
-                whileTap={{ scale: 0.95, y: 2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(-1)}
-                className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-transparent hover:border-dark dark:hover:border-white text-dark dark:text-white transition-all"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all"
             >
                 <span className="material-symbols-outlined">close</span>
             </motion.button>
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 bg-white dark:bg-surface-dark">
-          <div className="max-w-md mx-auto">
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="max-w-md mx-auto space-y-8">
             
             {/* Type Segmented Control */}
-            <div className="flex bg-white dark:bg-surface-dark border-2 border-dark dark:border-white rounded-sm p-1 mb-8 shadow-neo-sm dark:shadow-none">
+            <div className="flex bg-white/5 rounded-2xl p-1 shadow-inner">
                 <motion.button 
-                    whileTap={{ scale: 0.95, y: 2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setType('income')}
-                    className={`flex-1 py-2 rounded-sm text-sm font-black uppercase transition-all border-2 ${type === 'income' ? 'bg-secondary text-white border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-1' : 'bg-transparent text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'}`}
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'income' ? 'bg-secondary/20 text-secondary-light shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                 >
                     Receita
                 </motion.button>
                 <motion.button 
-                    whileTap={{ scale: 0.95, y: 2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setType('expense')}
-                    className={`flex-1 py-2 rounded-sm text-sm font-black uppercase transition-all border-2 ${type === 'expense' ? 'bg-danger text-white border-dark dark:border-white shadow-neo-sm dark:shadow-none -translate-y-1' : 'bg-transparent text-dark dark:text-white border-transparent hover:bg-surface-light dark:hover:bg-gray-800'}`}
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'expense' ? 'bg-danger/20 text-danger-light shadow-sm' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                 >
                     Despesa
                 </motion.button>
             </div>
 
             {/* Amount Input */}
-            <div className="flex flex-col items-center justify-center mb-8">
+            <div className="flex flex-col items-center justify-center">
                 <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-dark dark:text-white">R$</span>
+                    <span className="text-3xl font-bold text-white/50">R$</span>
                     <input 
                         type="text" 
                         inputMode="decimal"
@@ -164,51 +164,51 @@ const AddTransaction: React.FC = () => {
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0,00"
                         autoFocus
-                        className={`bg-transparent border-none p-0 text-6xl font-black placeholder-text-secondary/30 focus:ring-0 w-48 text-center ${type === 'expense' ? 'text-danger' : 'text-secondary'}`}
+                        className={`bg-transparent border-none p-0 text-6xl font-bold placeholder-white/10 focus:ring-0 w-64 text-center outline-none ${type === 'expense' ? 'text-danger-light drop-shadow-[0_0_15px_rgba(255,69,95,0.3)]' : 'text-secondary-light drop-shadow-[0_0_15px_rgba(0,214,143,0.3)]'}`}
                     />
                 </div>
                 {showDatePicker && (
-                  <div className="mt-3 w-full max-w-full rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-3 sm:p-4 select-none shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="mt-6 w-full rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 p-4 select-none shadow-glass animate-in fade-in zoom-in duration-200">
+                    <div className="flex items-center justify-between mb-4">
                       <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => {
                           const m = pickerMonth - 1; const y = pickerYear + (m < 0 ? -1 : 0);
                           setPickerYear(y); setPickerMonth((m + 12) % 12);
                         }}
-                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white text-dark dark:text-white flex items-center justify-center hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[1px]"
+                        className="h-8 w-8 rounded-full bg-white/5 text-white flex items-center justify-center hover:bg-white/10 transition-all"
                       >
-                        <span className="material-symbols-outlined">chevron_left</span>
+                        <span className="material-symbols-outlined text-sm">chevron_left</span>
                       </motion.button>
-                      <span className="text-dark dark:text-white font-black text-sm sm:text-base uppercase">{monthNames[pickerMonth]} {pickerYear}</span>
+                      <span className="text-white font-bold text-sm uppercase tracking-wider">{monthNames[pickerMonth]} {pickerYear}</span>
                       <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => {
                           const m = pickerMonth + 1; const y = pickerYear + (m > 11 ? 1 : 0);
                           setPickerYear(y); setPickerMonth(m % 12);
                         }}
-                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white text-dark dark:text-white flex items-center justify-center hover:bg-surface-light dark:hover:bg-gray-800 shadow-neo-sm dark:shadow-none active:shadow-none active:translate-y-[1px]"
+                        className="h-8 w-8 rounded-full bg-white/5 text-white flex items-center justify-center hover:bg-white/10 transition-all"
                       >
-                        <span className="material-symbols-outlined">chevron_right</span>
+                        <span className="material-symbols-outlined text-sm">chevron_right</span>
                       </motion.button>
                     </div>
-                    <div className="grid grid-cols-7 gap-[2px] sm:gap-1 text-[11px] sm:text-xs text-dark dark:text-white font-bold mb-2 uppercase">
+                    <div className="grid grid-cols-7 gap-1 text-[10px] text-white/50 font-bold mb-2 uppercase text-center">
                       {['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d => (
-                        <div key={d} className="text-center">{d}</div>
+                        <div key={d}>{d}</div>
                       ))}
                     </div>
-                    <div className="grid grid-cols-7 gap-[2px] sm:gap-1">
+                    <div className="grid grid-cols-7 gap-1">
                       {monthGrid.map((d, i) => {
-                        if (!d) return <div key={i} className="h-9 sm:h-10 rounded-sm bg-surface-light/40 dark:bg-gray-800/40" />;
+                        if (!d) return <div key={i} className="h-9" />;
                         const curr = new Date(pickerYear, pickerMonth, d);
                         const isSel = isSameDay(curr, selectedDate);
                         const isToday = isSameDay(curr, new Date());
                         return (
                           <motion.button
-                            whileTap={{ scale: 0.95, y: 2 }}
+                            whileTap={{ scale: 0.95 }}
                             key={i}
                             onClick={() => { setSelectedDate(curr); setShowDatePicker(false); }}
-                            className={`h-9 sm:h-10 rounded-sm text-xs sm:text-sm font-bold flex items-center justify-center border-2 ${isSel ? 'bg-primary text-white border-dark dark:border-white shadow-neo-sm dark:shadow-none' : 'bg-white dark:bg-surface-dark text-dark dark:text-white border-transparent hover:border-dark dark:hover:border-white'} ${isToday && !isSel ? 'border-primary text-primary' : ''}`}
+                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center transition-all ${isSel ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-white hover:bg-white/5'} ${isToday && !isSel ? 'text-primary ring-1 ring-primary/50' : ''}`}
                           >
                             {String(d)}
                           </motion.button>
@@ -225,67 +225,71 @@ const AddTransaction: React.FC = () => {
                 <div className="space-y-2">
                     <input 
                         type="text"
-                        placeholder="DESCRIÇÃO"
+                        placeholder="Descrição"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full h-14 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-4 text-dark dark:text-white font-bold uppercase placeholder:text-text-secondary/70 dark:placeholder:text-gray-500 focus:shadow-neo-sm dark:focus:shadow-[2px_2px_0px_0px_#ffffff] focus:outline-none transition-all"
+                        className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 px-4 text-white font-medium placeholder:text-white/30 focus:bg-white/10 focus:border-white/20 focus:outline-none transition-all"
                     />
                 </div>
 
                 {/* Category */}
-                <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowCategoryPicker(v => !v)} className="w-full h-14 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-4 flex items-center justify-between group active:translate-y-[2px] shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
-                    <span className="text-dark dark:text-white font-bold uppercase group-hover:text-primary transition-colors">Categoria</span>
+                <motion.button 
+                  whileTap={{ scale: 0.98 }} 
+                  onClick={() => setShowCategoryPicker(v => !v)} 
+                  className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center justify-between group hover:bg-white/10 transition-all"
+                >
+                    <span className="text-white/70 font-medium group-hover:text-white transition-colors">Categoria</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-dark dark:text-white font-black uppercase">{categoryName || 'SELECIONE'}</span>
-                        <span className="material-symbols-outlined text-dark dark:text-white">chevron_right</span>
+                        <span className="text-white font-bold">{categoryName || 'Selecionar'}</span>
+                        <span className="material-symbols-outlined text-white/50">chevron_right</span>
                     </div>
                 </motion.button>
                 {showCategoryPicker && (
-                  <div className="grid grid-cols-2 gap-2 mt-2 p-2 border-2 border-dark dark:border-white bg-surface-light dark:bg-background-dark shadow-neo-sm dark:shadow-none">
+                  <div className="grid grid-cols-2 gap-2 mt-2 p-3 border border-white/10 bg-white/5 rounded-2xl backdrop-blur-md">
                     {allCategories.map((c) => (
                       <motion.button
-                        whileTap={{ scale: 0.95, y: 2 }}
+                        whileTap={{ scale: 0.95 }}
                         key={c}
                         onClick={() => { setCategoryName(c); setShowCategoryPicker(false); }}
-                        className={`px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 ${categoryName === c ? 'border-dark dark:border-white bg-primary text-white shadow-neo-sm dark:shadow-none' : 'border-dark dark:border-white bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800'}`}
+                        className={`px-3 py-3 rounded-xl text-xs font-bold uppercase border transition-all ${categoryName === c ? 'border-primary/50 bg-primary/20 text-white shadow-lg shadow-primary/10' : 'border-white/5 bg-white/5 text-white/70 hover:bg-white/10'}`}
                       >
                         {c}
                       </motion.button>
                     ))}
                     <motion.button
-                      whileTap={{ scale: 0.95, y: 2 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => { setNewCategoryError(null); setNewCategoryName(''); setShowNewCategoryModal(true); }}
-                      className="px-3 py-2 rounded-sm text-sm font-black uppercase border-2 border-dark dark:border-white bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800"
+                      className="px-3 py-3 rounded-xl text-xs font-bold uppercase border border-white/10 bg-white/5 text-white hover:bg-white/10"
                       aria-label="Criar nova categoria"
                     >
-                      +
+                      + Nova
                     </motion.button>
                   </div>
                 )}
                 {showNewCategoryModal && (
-                  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60" onClick={() => setShowNewCategoryModal(false)}>
-                    <div className="w-80 rounded-sm bg-white dark:bg-surface-dark border-2 border-dark dark:border-white p-4 shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]" onClick={(e) => e.stopPropagation()}>
-                      <h2 className="text-dark dark:text-white font-black text-base uppercase mb-3">Nova Categoria</h2>
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowNewCategoryModal(false)}>
+                    <div className="w-80 rounded-3xl bg-[#1E1E1E] border border-white/10 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                      <h2 className="text-white font-bold text-lg mb-4">Nova Categoria</h2>
                       <input
                         type="text"
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
-                        placeholder="NOME DA CATEGORIA"
-                        className="w-full h-12 rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 text-dark dark:text-white font-bold uppercase placeholder:text-text-secondary/70 dark:placeholder:text-gray-500 focus:outline-none mb-2"
+                        placeholder="Nome da categoria"
+                        className="w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 mb-2"
                       />
                       {newCategoryError && (
-                        <div className="text-primary font-bold text-xs uppercase mb-2">{newCategoryError}</div>
+                        <div className="text-danger-light font-bold text-xs mb-4">{newCategoryError}</div>
                       )}
-                      <div className="flex gap-2">
+                      <div className="flex gap-3 mt-4">
                         <motion.button
-                          whileTap={{ scale: 0.95, y: 2 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => setShowNewCategoryModal(false)}
-                          className="flex-1 px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white bg-white dark:bg-surface-dark text-dark dark:text-white hover:bg-surface-light dark:hover:bg-gray-800"
+                          className="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-white/5 text-white hover:bg-white/10 transition-all"
                         >
                           Cancelar
                         </motion.button>
                         <motion.button
-                          whileTap={{ scale: 0.95, y: 2 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={async () => {
                             if (creatingCategory) return;
                             setNewCategoryError(null);
@@ -319,7 +323,7 @@ const AddTransaction: React.FC = () => {
                             setCategoryName(name);
                             setShowNewCategoryModal(false);
                           }}
-                          className="flex-1 px-3 py-2 rounded-sm text-sm font-bold uppercase border-2 border-dark dark:border-white bg-primary text-white hover:opacity-90"
+                          className="flex-1 px-4 py-3 rounded-xl text-sm font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
                         >
                           Criar
                         </motion.button>
@@ -330,32 +334,36 @@ const AddTransaction: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3 items-center">
                     {/* Date */}
-                    <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setShowDatePicker(v => !v)} className="col-span-2 h-12 w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-4 flex flex-col justify-center items-start group active:translate-y-[2px] shadow-neo-sm dark:shadow-none active:shadow-none transition-all">
-                        <span className="text-[10px] font-bold text-text-secondary dark:text-gray-400 uppercase">Data</span>
-                        <span className="text-dark dark:text-white font-black truncate w-full uppercase">{displayDateLabel}</span>
+                    <motion.button 
+                      whileTap={{ scale: 0.98 }} 
+                      onClick={() => setShowDatePicker(v => !v)} 
+                      className="col-span-2 h-14 w-full rounded-2xl bg-white/5 border border-white/10 px-4 flex flex-col justify-center items-start group hover:bg-white/10 transition-all"
+                    >
+                        <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Data</span>
+                        <span className="text-white font-bold truncate w-full">{displayDateLabel}</span>
                     </motion.button>
 
                     {/* Paid Toggle */}
-                    <div className="h-12 w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 flex items-center justify-between shadow-neo-sm dark:shadow-none">
-                        <span className="text-dark dark:text-white text-sm font-bold uppercase">{type === 'income' ? 'Recebido' : 'Pago'}</span>
+                    <div className="h-14 w-full rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center justify-between">
+                        <span className="text-white font-medium text-sm">{type === 'income' ? 'Recebido' : 'Pago'}</span>
                         <motion.button 
-                          whileTap={{ scale: 0.95, y: 2 }}
+                          whileTap={{ scale: 0.95 }}
                             onClick={() => setIsPaid(!isPaid)}
-                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark dark:border-white ${isPaid ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-surface-light dark:bg-gray-700'}`}
+                            className={`w-12 h-7 rounded-full relative transition-colors ${isPaid ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-white/10'}`}
                         >
-                            <div className={`absolute -top-1 -left-1 bg-white dark:bg-surface-dark h-4 w-4 rounded-sm border-2 border-dark dark:border-white shadow-sm transition-transform ${isPaid ? 'translate-x-4' : 'translate-x-0'}`} />
+                            <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-5' : 'translate-x-0'}`} />
                         </motion.button>
                     </div>
 
                     {/* Recurring Toggle */}
-                    <div className="h-12 w-full rounded-none bg-white dark:bg-surface-dark border-2 border-dark dark:border-white px-3 flex items-center justify-between shadow-neo-sm dark:shadow-none">
-                        <span className="text-dark dark:text-white text-sm font-bold uppercase">Recorrente</span>
+                    <div className="h-14 w-full rounded-2xl bg-white/5 border border-white/10 px-4 flex items-center justify-between">
+                        <span className="text-white font-medium text-sm">Recorrente</span>
                         <motion.button 
-                          whileTap={{ scale: 0.95, y: 2 }}
+                          whileTap={{ scale: 0.95 }}
                             onClick={() => setIsRecurring(!isRecurring)}
-                            className={`w-10 h-6 rounded-sm relative overflow-visible transition-colors border-2 border-dark dark:border-white ${isRecurring ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-surface-light dark:bg-gray-700'}`}
+                            className={`w-12 h-7 rounded-full relative transition-colors ${isRecurring ? (type === 'expense' ? 'bg-danger' : 'bg-secondary') : 'bg-white/10'}`}
                         >
-                            <div className={`absolute -top-1 -left-1 bg-white dark:bg-surface-dark h-4 w-4 rounded-sm border-2 border-dark dark:border-white shadow-sm transition-transform ${isRecurring ? 'translate-x-4' : 'translate-x-0'}`} />
+                            <div className={`absolute top-1 left-1 bg-white h-5 w-5 rounded-full shadow-sm transition-transform ${isRecurring ? 'translate-x-5' : 'translate-x-0'}`} />
                         </motion.button>
                     </div>
                 </div>
@@ -365,7 +373,7 @@ const AddTransaction: React.FC = () => {
         </div>
 
         {/* Footer Button */}
-        <div className="p-6 pt-2 bg-white dark:bg-surface-dark border-t-2 border-dark dark:border-white pb-8">
+        <div className="p-6 pt-4 bg-[#1A1A1A] border-t border-white/5 pb-8">
             <motion.button 
                 whileTap={{ scale: 0.98 }}
                 onClick={async () => {
@@ -472,14 +480,14 @@ const AddTransaction: React.FC = () => {
                   }
                   navigate(-1);
                 }}
-                className={`w-full h-14 rounded-xl font-bold text-lg shadow-lg text-white transition-colors ${activeClass}`}
+                className={`w-full h-14 rounded-2xl font-bold text-lg shadow-lg text-white transition-all ${type === 'expense' ? 'bg-danger shadow-danger/30 hover:bg-danger/90' : 'bg-secondary shadow-secondary/30 hover:bg-secondary/90'}`}
                 disabled={saving}
             >
-                {editId ? 'Atualizar Transação' : 'Salvar Transação'}
+                {editId ? 'Atualizar' : 'Salvar'}
             </motion.button>
             {editId && (
               <motion.button
-                whileTap={{ scale: 0.95, y: 2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={async () => {
                   if (!editId) return;
                   const { error: delError } = await supabase
@@ -489,11 +497,11 @@ const AddTransaction: React.FC = () => {
                   if (delError) { setError(delError.message); return; }
                   navigate(-1);
                 }}
-                className="mt-3 w-full h-12 rounded-xl font-bold text-sm bg-danger text-white"
+                className="mt-3 w-full h-12 rounded-2xl font-bold text-sm bg-white/5 text-danger-light hover:bg-danger/10 transition-colors"
               >Excluir</motion.button>
             )}
             {error && (
-              <p className="mt-2 text-danger text-sm">{error}</p>
+              <p className="mt-4 text-danger-light text-sm text-center font-medium bg-danger/10 p-2 rounded-lg border border-danger/20">{error}</p>
             )}
         </div>
       </div>

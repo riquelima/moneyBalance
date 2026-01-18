@@ -405,74 +405,74 @@ const Dashboard: React.FC = () => {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="flex flex-col p-4 pt-6 gap-4 bg-background-light dark:bg-background-dark text-dark dark:text-white transition-colors duration-300"
+      className="flex flex-col p-4 pt-6 gap-6 min-h-screen text-text-primary dark:text-white pb-32"
     >
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white dark:bg-surface-dark p-4 -mx-4 border-b-3 border-dark dark:border-white shadow-sm">
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-white/80 dark:bg-black/60 backdrop-blur-xl p-4 -mx-4 border-b border-white/20 dark:border-white/10 shadow-glass-sm transition-all duration-300">
         <div className="flex items-center gap-4">
             {avatarUrl && (
               <img 
                 src={avatarUrl}
                 alt="Profile" 
-                className="h-12 w-12 rounded-full border-2 border-primary object-cover"
+                className="h-12 w-12 rounded-full border-2 border-white/50 shadow-sm object-cover"
                 onClick={() => navigate('/settings')}
               />
             )}
             <div>
-                <p className="text-sm font-medium text-text-secondary dark:text-text-secondary/80">Bem-vindo(a),</p>
-                <h1 className="text-xl font-bold text-text-primary dark:text-white">{displayName}</h1>
+                <p className="text-sm font-medium text-text-secondary dark:text-gray-400">Bem-vindo(a),</p>
+                <h1 className="text-xl font-bold text-text-primary dark:text-white tracking-tight">{displayName}</h1>
             </div>
         </div>
-        <div className="flex items-center gap-4">
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/notifications')} className="relative p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 transition-colors">
-                <span className="material-symbols-outlined text-text-secondary dark:text-white">notifications</span>
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-background-dark"></span>
+        <div className="flex items-center gap-3">
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 transition-all border border-white/20 shadow-sm backdrop-blur-md">
+                <span className="material-symbols-outlined text-text-secondary dark:text-white text-[22px]">notifications</span>
+                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white dark:ring-black"></span>
             </motion.button>
-            <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => navigate('/settings')} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 transition-colors">
-                <span className="material-symbols-outlined text-text-secondary dark:text-white">settings</span>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 transition-all border border-white/20 shadow-sm backdrop-blur-md">
+                <span className="material-symbols-outlined text-text-secondary dark:text-white text-[22px]">settings</span>
             </motion.button>
         </div>
       </header>
 
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between px-1">
         <motion.button
-          whileTap={{ scale: 0.95, y: 2 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setHideValues(v => { const next = !v; localStorage.setItem('hideValues', next ? 'true' : 'false'); return next; })}
           aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
-          className="h-8 w-8 flex items-center justify-center rounded-sm border-2 border-dark dark:border-white bg-white dark:bg-surface-dark shadow-neo-sm dark:shadow-none"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-white/20 bg-white/60 dark:bg-white/10 backdrop-blur-md shadow-glass-sm hover:bg-white/80 dark:hover:bg-white/20 transition-all"
         >
-          <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-4 w-4" />
+          <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
         </motion.button>
         <motion.button
-          whileTap={{ scale: 0.95, y: 2 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowMonthPicker(s => !s)}
-          className="text-primary-green font-bold text-sm bg-primary-green/10 px-3 py-1 rounded-full border border-transparent dark:border-primary-green"
+          className="text-primary-green font-bold text-sm bg-primary-green/10 px-4 py-2 rounded-full border border-primary-green/20 backdrop-blur-sm"
         >{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</motion.button>
       </div>
       {showMonthPicker && (
-        <div className="flex justify-center">
-          <div className="mt-2 w-full max-w-[680px] mx-2 rounded-xl bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_#ffffff]">
-            <div className="flex items-center justify-between mb-3">
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_left</span></motion.button>
-              <span className="text-sm font-bold text-dark dark:text-white">{selectedYear}</span>
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-surface-light dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_right</span></motion.button>
+        <div className="flex justify-center relative z-40">
+          <div className="absolute top-0 w-full max-w-[340px] rounded-3xl bg-white/90 dark:bg-surface-dark/90 backdrop-blur-xl p-5 border border-white/20 shadow-glass-lg">
+            <div className="flex items-center justify-between mb-4">
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_left</span></motion.button>
+              <span className="text-lg font-bold text-dark dark:text-white">{selectedYear}</span>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-dark dark:text-white"><span className="material-symbols-outlined">chevron_right</span></motion.button>
             </div>
-            <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="grid grid-cols-3 gap-2 mb-4">
               {[selectedYear - 2, selectedYear - 1, selectedYear].map((y) => (
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   key={y}
                   onClick={() => setSelectedYear(y)}
-                  className={y === selectedYear ? 'px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold' : 'px-3 py-2 rounded-lg bg-surface-light dark:bg:white/10 text-xs font-medium hover:bg-surface-light/80 text-dark dark:text-white'}
+                  className={y === selectedYear ? 'px-3 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 text-xs font-medium hover:bg-black/10 text-text-secondary dark:text-gray-300'}
                 >{y}</motion.button>
               ))}
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {monthNames.map((m, idx) => (
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   key={m}
                   onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
-                  className={idx === selectedMonth ? 'px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold' : 'px-3 py-2 rounded-lg bg-surface-light dark:bg:white/10 text-xs font-medium hover:bg-surface-light/80 text-dark dark:text-white'}
+                  className={idx === selectedMonth ? 'px-2 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-2 py-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-xs font-medium hover:bg-black/10 text-text-secondary dark:text-gray-300'}
                 >{m}</motion.button>
               ))}
             </div>
@@ -482,24 +482,25 @@ const Dashboard: React.FC = () => {
 
       <motion.section 
         variants={itemVariants}
-        className="rounded-lg bg-white dark:bg-surface-dark p-6 border-3 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
+        className="rounded-3xl bg-white/60 dark:bg-black/40 backdrop-blur-xl p-6 border border-white/40 dark:border-white/10 shadow-glass relative overflow-hidden"
         data-onboarding="saldo-total"
       >
-        <p className="text-sm font-bold text-dark dark:text-white mb-1 text-center uppercase tracking-widest">Total de Saldo</p>
-        <h2 className={`text-4xl font-black tracking-tight text-dark dark:text-white text-center ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
+        <p className="text-xs font-bold text-text-secondary dark:text-gray-400 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
+        <h2 className={`text-5xl font-black tracking-tighter text-text-primary dark:text-white text-center ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-secondary', bg: 'bg-[#F1F8E9] dark:bg-[#1B3320]' },
-          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger', bg: 'bg-[#FFEBEE] dark:bg-[#3D1A1A]' },
-          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'check_circle', color: 'text-secondary', bg: 'bg-[#F1F8E9] dark:bg-[#1B3320]' },
-          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-danger', bg: 'bg-[#FFEBEE] dark:bg-[#3D1A1A]' },
+          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-secondary', bg: 'bg-secondary/10 dark:bg-secondary/20' },
+          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger', bg: 'bg-danger/10 dark:bg-danger/20' },
+          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'check_circle', color: 'text-secondary', bg: 'bg-secondary/10 dark:bg-secondary/20' },
+          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-danger', bg: 'bg-danger/10 dark:bg-danger/20' },
         ].map((item, idx) => (
           <motion.div
             key={idx}
-            className={`rounded-lg ${item.bg} p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer`}
-            whileHover={{ y: -2 }}
+            className={`rounded-2xl ${item.bg} p-4 border border-white/20 dark:border-white/10 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:-translate-y-1 transition-all cursor-pointer`}
+            whileHover={{ y: -4 }}
             data-onboarding={item.label === 'Entradas' ? 'card-entradas' : (item.label === 'Já pagos' ? 'card-ja-pagos' : (item.label === 'Não Pagos' ? 'card-nao-pagos' : undefined))}
             onClick={() => {
               if (item.label === 'Entradas') navigate('/transactions?type=income');
@@ -510,16 +511,16 @@ const Dashboard: React.FC = () => {
           >
             <div className={`flex items-center gap-2 ${item.color} mb-2`}>
               <span className="material-symbols-outlined text-xl">{item.icon}</span>
-              <p className="text-xs font-black uppercase tracking-wider text-dark dark:text-white">{item.label}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">{item.label}</p>
             </div>
-            <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{item.value}</p>
+            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
           </motion.div>
         ))}
 
         {/* Card Hoje */}
         <motion.div
-          className="rounded-lg bg-[#E3F2FD] dark:bg-[#0D47A1] p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer relative group"
-          whileHover={{ y: -2 }}
+          className="rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 p-4 border border-blue-500/20 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:-translate-y-1 transition-all cursor-pointer relative group"
+          whileHover={{ y: -4 }}
           onClick={() => {
             const now = new Date();
             const todayISO = getSPDateISO(now);
@@ -527,51 +528,51 @@ const Dashboard: React.FC = () => {
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-primary">
+            <div className="flex items-center gap-2 text-primary-blue">
               <span className="material-symbols-outlined text-xl">today</span>
-              <p className="text-xs font-black uppercase tracking-wider text-dark dark:text-white">Hoje</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Hoje</p>
             </div>
-             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-dark text-white text-[10px] p-1 rounded pointer-events-none z-10">
+             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
                 Comparação com ontem
              </div>
           </div>
-          <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'blur-sm' : ''}`}>
+          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${hideValues ? 'blur-sm' : ''}`}>
              {formatBRL(todayExpense)}
           </p>
           
           <div className="flex items-center gap-1 mt-1">
              {(() => {
                 const diff = todayExpense - yesterdayExpense;
-                if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-sm text-gray-500 font-bold">drag_handle</span>;
+                if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
                 if (yesterdayExpense === 0 && todayExpense > 0) return (
                     <>
-                        <span className="material-symbols-outlined text-sm text-[#4CAF50] font-bold">arrow_upward</span>
-                        <span className="text-xs font-bold text-[#4CAF50]">100%</span>
+                        <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
+                        <span className="text-xs font-bold text-success">100%</span>
                     </>
                 );
                 
                 const pct = (diff / yesterdayExpense) * 100;
                 if (diff > 0) return (
                      <>
-                        <span className="material-symbols-outlined text-sm text-[#4CAF50] font-bold">arrow_upward</span>
-                        <span className="text-xs font-bold text-[#4CAF50]">{pct.toFixed(1)}%</span>
+                        <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
+                        <span className="text-xs font-bold text-success">{pct.toFixed(1)}%</span>
                      </>
                 );
                 if (diff < 0) return (
                      <>
-                        <span className="material-symbols-outlined text-sm text-[#F44336] font-bold">arrow_downward</span>
-                        <span className="text-xs font-bold text-[#F44336]">{Math.abs(pct).toFixed(1)}%</span>
+                        <span className="material-symbols-outlined text-sm text-danger font-bold">arrow_downward</span>
+                        <span className="text-xs font-bold text-danger">{Math.abs(pct).toFixed(1)}%</span>
                      </>
                 );
-                return <span className="material-symbols-outlined text-sm text-gray-500 font-bold">drag_handle</span>;
+                return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
              })()}
           </div>
         </motion.div>
 
         {/* Card Ontem */}
         <motion.div
-          className="rounded-lg bg-[#F3E5F5] dark:bg-[#4A148C] p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-y-[2px] transition-all cursor-pointer group relative"
-          whileHover={{ y: -2 }}
+          className="rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 p-4 border border-purple-500/20 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:-translate-y-1 transition-all cursor-pointer group relative"
+          whileHover={{ y: -4 }}
           onClick={() => {
             const now = new Date();
             const yesterday = new Date(now);
@@ -580,14 +581,14 @@ const Dashboard: React.FC = () => {
             navigate(`/transactions?type=expense&date=${yesterdayISO}`);
           }}
         >
-            <div className="flex items-center gap-2 text-secondary mb-2">
+            <div className="flex items-center gap-2 text-primary">
               <span className="material-symbols-outlined text-xl">calendar_today</span>
-              <p className="text-xs font-black uppercase tracking-wider text-dark dark:text-white">Ontem</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Ontem</p>
             </div>
-             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-dark text-white text-[10px] p-1 rounded pointer-events-none z-10">
+             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
                 Total de saídas de ontem
              </div>
-          <p className={`text-lg font-black text-dark dark:text-white ${hideValues ? 'blur-sm' : ''}`}>
+          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${hideValues ? 'blur-sm' : ''}`}>
              {formatBRL(yesterdayExpense)}
           </p>
         </motion.div>
@@ -601,12 +602,14 @@ const Dashboard: React.FC = () => {
           className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isChartsOpen}
         >
-          <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
-            <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-6 h-6" />
+          <h3 className="text-lg font-black uppercase text-text-primary dark:text-white flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+              <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-5 h-5" />
+            </div>
             Gráficos
           </h3>
           <span 
-            className={`material-symbols-outlined text-dark dark:text-white transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
+            className={`material-symbols-outlined text-text-secondary dark:text-gray-400 transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
           >
             expand_more
           </span>
@@ -621,29 +624,29 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-            <div className="mb-4 px-4">
+            <div className="mb-4">
             <div className="mt-2 flex items-center gap-2 w-full justify-between">
-              <div className="flex items-center gap-1 rounded-lg bg-white dark:bg-surface-dark p-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+              <div className="flex items-center gap-1 rounded-xl bg-white/50 dark:bg-black/20 p-1 border border-white/20 backdrop-blur-md">
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setPeriod('day')}
-                  className={period === 'day' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
+                  className={period === 'day' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
                 >DIA</motion.button>
                 <motion.button
-                  whileTap={{ scale: 0.95, y: 2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setPeriod('month')}
-                  className={period === 'month' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-none' : 'rounded-sm px-3 py-1 text-xs font-bold text-dark dark:text-white hover:bg-surface-light dark:hover:bg-white/10'}
+                  className={period === 'month' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
                 >MÊS</motion.button>
               </div>
               <motion.button
-                whileTap={{ scale: 0.95, y: 2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
-                className={chartType === 'expense' ? 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-danger shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all' : 'rounded-sm border-2 border-dark dark:border-white px-3 py-1 text-xs font-bold text-white bg-secondary shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-y-[2px] transition-all'}
+                className={chartType === 'expense' ? 'rounded-xl border border-danger/20 px-4 py-2 text-xs font-bold text-white bg-danger shadow-lg shadow-danger/30' : 'rounded-xl border border-success/20 px-4 py-2 text-xs font-bold text-white bg-success shadow-lg shadow-success/30'}
               >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</motion.button>
             </div>
         </div>
         
-        <div className="flex h-56 w-full flex-col justify-end rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] relative overflow-hidden">
+        <div className="flex h-64 w-full flex-col justify-end rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass relative overflow-hidden backdrop-blur-xl">
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
               key={`${period}-${chartYear}-${chartType}`}
@@ -659,7 +662,7 @@ const Dashboard: React.FC = () => {
               dragElastic={0.2}
               onDragEnd={handleChartSwipe}
             >
-              <div className="grid h-full w-full items-end gap-1" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+              <div className="grid h-full w-full items-end gap-2" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
                 {current.values.map((h, i) => {
                   const rawVal = (chart.raw || current.raw || [])[i] || 0;
                   const labelText = formatBRL(rawVal);
@@ -669,21 +672,21 @@ const Dashboard: React.FC = () => {
                   const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
 
                   return (
-                    <div key={i} className="relative flex flex-col justify-end items-center h-full">
+                    <div key={i} className="relative flex flex-col justify-end items-center h-full group">
                       <motion.div
                         initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
                         transition={{ duration: 1, delay: i * 0.05 }}
-                        className={`${chartType === 'expense' ? 'bg-danger' : 'bg-secondary'} border-2 border-dark dark:border-white relative flex items-center justify-center ${period === 'month' ? 'w-[14px] sm:w-[16px]' : 'w-full'}`}
+                        className={`${chartType === 'expense' ? 'bg-danger' : 'bg-success'} rounded-t-lg relative flex items-center justify-center ${period === 'month' ? 'w-2 sm:w-3' : 'w-full max-w-[40px]'}`}
                         style={{ 
-                          backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#20BF55', 
-                          opacity: (period === 'month' && !isHighlighted && chartYear === selectedYear) ? 0.6 : 1, 
+                          backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#34C759', 
+                          opacity: (period === 'month' && !isHighlighted && chartYear === selectedYear) ? 0.3 : 0.9, 
                           minHeight: showLabel ? `${minPx}px` : undefined 
                         }}
                       >
                         {showLabel && (
                           <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
-                            <span className={`${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{labelText}</span>
+                            <span className={`${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{labelText}</span>
                           </span>
                         )}
                       </motion.div>
@@ -691,7 +694,7 @@ const Dashboard: React.FC = () => {
                   );
                 })}
               </div>
-              <div className="mt-3 grid w-full border-t-2 border-dark dark:border-white pt-2 text-xs text-dark dark:text-white font-bold uppercase" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+              <div className="mt-4 grid w-full border-t border-white/20 dark:border-white/10 pt-3 text-[10px] text-text-secondary dark:text-gray-400 font-bold uppercase tracking-wider" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
                   {current.labels.map((l, idx) => (
                     <span key={idx} className={`text-center ${period === 'month' && idx === selectedMonth && chartYear === selectedYear ? 'text-primary' : ''}`}>{l}</span>
                   ))}
@@ -710,12 +713,14 @@ const Dashboard: React.FC = () => {
           className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isReportOpen}
         >
-          <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
-            <img src="https://cdn-icons-png.flaticon.com/512/6811/6811275.png" alt="Ícone relatório" className="w-6 h-6" />
+          <h3 className="text-lg font-black uppercase text-text-primary dark:text-white flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+              <img src="https://cdn-icons-png.flaticon.com/512/6811/6811275.png" alt="Ícone relatório" className="w-5 h-5" />
+            </div>
             RELATÓRIO
           </h3>
           <span 
-            className={`material-symbols-outlined text-dark dark:text-white transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
+            className={`material-symbols-outlined text-text-secondary dark:text-gray-400 transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
           >
             expand_more
           </span>
@@ -729,66 +734,66 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden flex flex-col gap-4"
             >
-              <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={entriesRef}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-dark dark:text-white">
-                    <span className="material-symbols-outlined text-xl border-2 border-dark dark:border-white rounded-full p-1 bg-secondary text-white">arrow_downward</span>
-                    <p className="text-lg font-black text-dark dark:text-white cursor-pointer uppercase" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
+              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass backdrop-blur-xl" ref={entriesRef}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3 text-text-primary dark:text-white">
+                    <span className="material-symbols-outlined text-xl rounded-full p-2 bg-success/20 text-success">arrow_downward</span>
+                    <p className="text-lg font-black text-text-primary dark:text-white cursor-pointer uppercase tracking-tight" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-text-secondary dark:text-white/80 bg-white/50 dark:bg-white/10 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
                     {entriesCollapsed && (
-                      <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
-                        <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEntriesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80">
+                        <span className="material-symbols-outlined text-sm text-text-primary dark:text-white">expand_more</span>
                       </motion.button>
                     )}
                   </div>
                 </div>
                 {!entriesCollapsed && (
-                  <div className="divide-y-2 divide-dark dark:divide-white max-h-64 overflow-y-auto overscroll-contain pr-1">
+                  <div className="divide-y divide-gray-200/50 dark:divide-white/10 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {incomeItems.length === 0 && (
-                      <p className="text-sm text-dark dark:text-white font-bold py-4 text-center">NENHUMA ENTRADA</p>
+                      <p className="text-sm text-text-secondary dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma entrada registrada</p>
                     )}
                     {incomeItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-3">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
-                          <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
+                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 dark:hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-text-secondary dark:text-gray-400 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-text-primary dark:text-white ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
-                        <span className={`text-sm font-black text-dark dark:text-white bg-secondary/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                        <span className={`text-sm font-black text-success bg-success/10 px-3 py-1 rounded-lg border border-success/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </motion.section>
 
-              <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={expensesRef}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-dark dark:text-white">
-                    <span className="material-symbols-outlined text-xl border-2 border-dark dark:border-white rounded-full p-1 bg-danger text-white">arrow_upward</span>
-                    <p className="text-lg font-black text-dark dark:text-white cursor-pointer uppercase" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
+              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass backdrop-blur-xl" ref={expensesRef}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3 text-text-primary dark:text-white">
+                    <span className="material-symbols-outlined text-xl rounded-full p-2 bg-danger/20 text-danger">arrow_upward</span>
+                    <p className="text-lg font-black text-text-primary dark:text-white cursor-pointer uppercase tracking-tight" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-text-secondary dark:text-white/80 bg-white/50 dark:bg-white/10 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
                     {expensesCollapsed && (
-                      <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
-                        <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setExpensesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80">
+                        <span className="material-symbols-outlined text-sm text-text-primary dark:text-white">expand_more</span>
                       </motion.button>
                     )}
                   </div>
                 </div>
                 {!expensesCollapsed && (
-                  <div className="divide-y-2 divide-dark dark:divide-white max-h-64 overflow-y-auto overscroll-contain pr-1">
+                  <div className="divide-y divide-gray-200/50 dark:divide-white/10 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {expenseItems.length === 0 && (
-                      <p className="text-sm text-dark dark:text-white font-bold py-4 text-center">NENHUMA SAÍDA</p>
+                      <p className="text-sm text-text-secondary dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma saída registrada</p>
                     )}
                     {expenseItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-3">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
-                          <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
+                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 dark:hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-text-secondary dark:text-gray-400 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-text-primary dark:text-white ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
-                        <span className={`text-sm font-black text-dark dark:text-white bg-danger/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                        <span className={`text-sm font-black text-danger bg-danger/10 px-3 py-1 rounded-lg border border-danger/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>
                     ))}
                   </div>
