@@ -26,6 +26,7 @@ const Dashboard: React.FC = () => {
   const [entriesCollapsed, setEntriesCollapsed] = useState<boolean>(false);
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
   const [isChartsOpen, setIsChartsOpen] = useState<boolean>(true);
+  const [isReportOpen, setIsReportOpen] = useState<boolean>(true);
   const [hideValues, setHideValues] = useState<boolean>(false);
   
   const [todayExpense, setTodayExpense] = useState(0);
@@ -706,7 +707,7 @@ const Dashboard: React.FC = () => {
       <motion.section variants={itemVariants}>
         <button 
           onClick={() => setIsReportOpen(!isReportOpen)}
-          className="w-full flex items-center justify-between group focus:outline-none mb-4 mt-6"
+          className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isReportOpen}
         >
           <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
