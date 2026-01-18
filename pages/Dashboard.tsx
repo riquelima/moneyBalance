@@ -703,70 +703,99 @@ const Dashboard: React.FC = () => {
         </AnimatePresence>
       </motion.section>
 
-      <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={entriesRef}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-dark dark:text-white">
-            <span className="material-symbols-outlined text-xl border-2 border-dark dark:border-white rounded-full p-1 bg-secondary text-white">arrow_downward</span>
-            <p className="text-lg font-black text-dark dark:text-white cursor-pointer uppercase" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
-            {entriesCollapsed && (
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
-                <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
-              </motion.button>
-            )}
-          </div>
-        </div>
-        {!entriesCollapsed && (
-          <div className="divide-y-2 divide-dark dark:divide-white max-h-64 overflow-y-auto overscroll-contain pr-1">
-            {incomeItems.length === 0 && (
-              <p className="text-sm text-dark dark:text-white font-bold py-4 text-center">NENHUMA ENTRADA</p>
-            )}
-            {incomeItems.map((it) => (
-              <div key={it.id} className="flex items-center justify-between py-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
-                  <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
+      <motion.section variants={itemVariants}>
+        <button 
+          onClick={() => setIsReportOpen(!isReportOpen)}
+          className="w-full flex items-center justify-between group focus:outline-none mb-4 mt-6"
+          aria-expanded={isReportOpen}
+        >
+          <h3 className="text-lg font-black uppercase text-dark dark:text-white flex items-center gap-2">
+            <img src="https://cdn-icons-png.flaticon.com/512/6811/6811275.png" alt="Ícone relatório" className="w-6 h-6" />
+            RELATÓRIO
+          </h3>
+          <span 
+            className={`material-symbols-outlined text-dark dark:text-white transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
+          >
+            expand_more
+          </span>
+        </button>
+        <AnimatePresence>
+          {isReportOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden flex flex-col gap-4"
+            >
+              <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={entriesRef}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-dark dark:text-white">
+                    <span className="material-symbols-outlined text-xl border-2 border-dark dark:border-white rounded-full p-1 bg-secondary text-white">arrow_downward</span>
+                    <p className="text-lg font-black text-dark dark:text-white cursor-pointer uppercase" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                    {entriesCollapsed && (
+                      <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setEntriesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
+                        <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
-                <span className={`text-sm font-black text-dark dark:text-white bg-secondary/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </motion.section>
+                {!entriesCollapsed && (
+                  <div className="divide-y-2 divide-dark dark:divide-white max-h-64 overflow-y-auto overscroll-contain pr-1">
+                    {incomeItems.length === 0 && (
+                      <p className="text-sm text-dark dark:text-white font-bold py-4 text-center">NENHUMA ENTRADA</p>
+                    )}
+                    {incomeItems.map((it) => (
+                      <div key={it.id} className="flex items-center justify-between py-3">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
+                        </div>
+                        <span className={`text-sm font-black text-dark dark:text-white bg-secondary/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.section>
 
-      <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={expensesRef}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-dark dark:text-white">
-            <span className="material-symbols-outlined text-xl border-2 border-dark dark:border-white rounded-full p-1 bg-danger text-white">arrow_upward</span>
-            <p className="text-lg font-black text-dark dark:text-white cursor-pointer uppercase" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
-            {expensesCollapsed && (
-              <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
-                <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
-              </motion.button>
-            )}
-          </div>
-        </div>
-        {!expensesCollapsed && (
-          <div className="divide-y-2 divide-dark dark:divide-white max-h-64 overflow-y-auto overscroll-contain pr-1">
-            {expenseItems.length === 0 && (
-              <p className="text-sm text-dark dark:text-white font-bold py-4 text-center">NENHUMA SAÍDA</p>
-            )}
-            {expenseItems.map((it) => (
-              <div key={it.id} className="flex items-center justify-between py-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
-                  <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
+              <motion.section variants={itemVariants} className="rounded-lg bg-white dark:bg-surface-dark p-4 border-2 border-dark dark:border-white shadow-neo dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]" ref={expensesRef}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-dark dark:text-white">
+                    <span className="material-symbols-outlined text-xl border-2 border-dark dark:border-white rounded-full p-1 bg-danger text-white">arrow_upward</span>
+                    <p className="text-lg font-black text-dark dark:text-white cursor-pointer uppercase" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-bold text-dark dark:text-white bg-accent px-2 py-1 border-2 border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                    {expensesCollapsed && (
+                      <motion.button whileTap={{ scale: 0.95, y: 2 }} onClick={() => setExpensesCollapsed(false)} className="p-1 rounded-sm border-2 border-dark dark:border-white hover:bg-surface-light dark:hover:bg-white/10">
+                        <span className="material-symbols-outlined text-sm text-dark dark:text-white">expand_more</span>
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
-                <span className={`text-sm font-black text-dark dark:text-white bg-danger/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
-              </div>
-            ))}
-          </div>
-        )}
+                {!expensesCollapsed && (
+                  <div className="divide-y-2 divide-dark dark:divide-white max-h-64 overflow-y-auto overscroll-contain pr-1">
+                    {expenseItems.length === 0 && (
+                      <p className="text-sm text-dark dark:text-white font-bold py-4 text-center">NENHUMA SAÍDA</p>
+                    )}
+                    {expenseItems.map((it) => (
+                      <div key={it.id} className="flex items-center justify-between py-3">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-dark dark:text-white bg-surface-light dark:bg-white/10 px-1 border border-dark dark:border-white w-fit mb-1">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-dark dark:text-white uppercase ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'SEM DESCRIÇÃO'}</span>
+                        </div>
+                        <span className={`text-sm font-black text-dark dark:text-white bg-danger/20 px-2 py-1 border border-dark dark:border-white shadow-neo-sm dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] ${it.is_paid ? 'line-through opacity-60' : ''} ${hideValues ? 'filter blur-[12px] opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.section>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.section>
 
     </motion.div>
