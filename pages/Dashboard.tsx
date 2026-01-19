@@ -1,15 +1,19 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, labelForDate } from '../utils/date';
 import { usePrivacy } from '../src/context/PrivacyContext';
+import Skeleton from '../components/ui/Skeleton';
 
 import PastSelfWidget from '../components/dashboard/PastSelfWidget';
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
   const [chartType, setChartType] = useState<'income' | 'expense'>('expense');
   const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -28,6 +32,7 @@ const Dashboard: React.FC = () => {
   const [expensesCollapsed, setExpensesCollapsed] = useState<boolean>(false);
   const [isChartsOpen, setIsChartsOpen] = useState<boolean>(true);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(true);
+  const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
   const { isPrivacyEnabled, togglePrivacy } = usePrivacy();
   
   const [todayExpense, setTodayExpense] = useState(0);
@@ -42,14 +47,53 @@ const Dashboard: React.FC = () => {
     }).format(date).split('/').reverse().join('-');
   };
 
-  useEffect(() => {
-    const fetchDailyData = async () => {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData?.user) return;
+  const getCacheKey = (key: string) => `dashboard_cache_${key}`;
+  
+  const saveToCache = (key: string, data: any) => {
+    try {
+      localStorage.setItem(getCacheKey(key), JSON.stringify({
+        timestamp: Date.now(),
+        data
+      }));
+    } catch (e) {
+      console.warn('Failed to save to cache', e);
+    }
+  };
 
+  const getFromCache = (key: string) => {
+    try {
+      const cached = localStorage.getItem(getCacheKey(key));
+      if (!cached) return null;
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.timestamp < CACHE_DURATION) {
+        return parsed.data;
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  };
+
+  const fetchAllData = useCallback(async () => {
+    // Only set loading on initial fetch or full refresh, not on period change if we want smoother transition
+    // But for now, simple approach:
+    // Check if we have cached data for "initial load" parts (profile, today/yesterday)
+    
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) return;
+    const user = userData.user;
+
+    const promises = [];
+
+    // 1. Daily Data (Today/Yesterday)
+    const dailyCache = getFromCache(`daily_${user.id}`);
+    if (dailyCache) {
+      setTodayExpense(dailyCache.today);
+      setYesterdayExpense(dailyCache.yesterday);
+    } else {
+      promises.push((async () => {
         const now = new Date();
         const todayISO = getSPDateISO(now);
-        
         const [y, m, d] = todayISO.split('-').map(Number);
         const todayDateObj = new Date(y, m-1, d);
         const yesterdayDateObj = new Date(todayDateObj);
@@ -60,28 +104,64 @@ const Dashboard: React.FC = () => {
         const dStr = String(yesterdayDateObj.getDate()).padStart(2, '0');
         const yesterdayISO = `${yStr}-${mStr}-${dStr}`;
 
-        const { data: todayData } = await supabase
-            .from('user_transactions')
-            .select('amount')
-            .eq('user_id', userData.user.id)
-            .eq('type', 'expense')
-            .eq('date', todayISO);
+        const [todayRes, yesterdayRes] = await Promise.all([
+           supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', todayISO),
+           supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', yesterdayISO)
+        ]);
 
-        const { data: yesterdayData } = await supabase
-            .from('user_transactions')
-            .select('amount')
-            .eq('user_id', userData.user.id)
-            .eq('type', 'expense')
-            .eq('date', yesterdayISO);
-
-        const tTotal = todayData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-        const yTotal = yesterdayData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-
+        const tTotal = todayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+        const yTotal = yesterdayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+        
         setTodayExpense(tTotal);
         setYesterdayExpense(yTotal);
-    };
-    fetchDailyData();
-  }, [location.key]);
+        saveToCache(`daily_${user.id}`, { today: tTotal, yesterday: yTotal });
+      })());
+    }
+
+    // 2. Profile
+    const profileCache = getFromCache(`profile_${user.id}`);
+    if (profileCache) {
+      setDisplayName(profileCache.displayName);
+      setAvatarUrl(profileCache.avatarUrl);
+    } else {
+      promises.push((async () => {
+        const metaName = (user.user_metadata?.name as string) || '';
+        const metaLast = (user.user_metadata?.lastName as string) || '';
+        const metaUsername = (user.user_metadata?.username as string) || '';
+        const candidate = metaName || metaUsername || user.email || 'Usuário';
+        
+        const { data: prof } = await supabase.from('user_profiles').select('display_name, avatar_url').eq('id', user.id).maybeSingle();
+        
+        const dName = (prof?.display_name as string) || (metaName && metaLast ? `${metaName} ${metaLast}` : candidate);
+        const aUrl = (prof?.avatar_url as string) || '';
+        
+        setDisplayName(dName);
+        setAvatarUrl(aUrl);
+        saveToCache(`profile_${user.id}`, { displayName: dName, avatarUrl: aUrl });
+      })());
+    }
+
+    // 3. Summary & Chart (Dependent on selected filters, so we cache based on filters)
+    // For simplicity, we just fetch them here as part of the "load" but they might need their own effect if they change often.
+    // However, merging them into one big initial load is good, and then having a separate effect for filter changes.
+    // But since `useEffect` dependencies trigger the effect, let's keep the logic for Summary/Chart separate or handle it here if filters match default.
+    
+    // Actually, to avoid complexity, let's keep the initial data fetch here (Profile, Daily) and let the other effects handle Summary/Chart, 
+    // BUT we will wrap them in Promise.all inside their own effects or optimize them.
+    
+    // Let's execute the static parts first.
+    if (promises.length > 0) {
+        await Promise.all(promises);
+    }
+    
+    setLoading(false);
+
+  }, []);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
 
 
   const dataMap: Record<'day' | 'month', { values: number[]; labels: string[]; raw?: number[] }> = {
@@ -154,220 +234,187 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    const loadSummary = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (!mounted) return;
-      if (!user) return;
-      const fmt = (d: Date) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dd}`;
-      };
-      const startCur = new Date(selectedYear, selectedMonth, 1);
-      const endCur = new Date(selectedYear, selectedMonth + 1, 0);
-      const { data: tx, error } = await supabase
-        .from('user_transactions')
-        .select('amount, type, is_paid, date')
-        .eq('user_id', user.id)
-        .gte('date', fmt(startCur))
-        .lte('date', fmt(endCur));
-        
-      if (!mounted) return;
-      
-      if (!error && tx) {
-        const income = (tx || []).filter((t: any) => t.type === 'income').reduce((a: number, t: any) => a + Number(t.amount), 0);
-        const expense = (tx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
-        const pending = (tx || []).filter((t: any) => t.type === 'expense' && !t.is_paid).reduce((a: number, t: any) => a + Number(t.amount), 0);
-        const paid = (tx || []).filter((t: any) => t.type === 'expense' && t.is_paid).reduce((a: number, t: any) => a + Number(t.amount), 0);
-        const balance = income - expense;
-        setSummary({ income, expense, pending, balance, paid });
-      }
-    };
 
-    const loadProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (!mounted) return;
-      if (user) {
-        const metaName = (user.user_metadata?.name as string) || '';
-        const metaLast = (user.user_metadata?.lastName as string) || '';
-        const metaUsername = (user.user_metadata?.username as string) || '';
-        const candidate = metaName || metaUsername || user.email || 'Usuário';
-        // Try user_profiles if available
-        const { data: prof } = await supabase
-          .from('user_profiles')
-          .select('display_name, avatar_url')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (!mounted) return;
-        
-        setDisplayName((prof?.display_name as string) || (metaName && metaLast ? `${metaName} ${metaLast}` : candidate));
-        if (prof?.avatar_url) setAvatarUrl(prof.avatar_url as string);
-      }
-    };
-
-    loadSummary();
-    loadProfile();
-    
-    return () => { mounted = false; };
-  }, [location.key, selectedYear, selectedMonth]);
-
-  useEffect(() => {
-    let mounted = true;
-    const fmt = (d: Date) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${dd}`;
-    };
     const normalize = (vals: number[]) => {
       const max = Math.max(0, ...vals);
       if (max === 0) return vals.map(() => 0);
       return vals.map(v => (v === 0 ? 0 : Math.max(6, Math.round((v / max) * 100))));
     };
-    const buildChart = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      
-      if (!mounted) return;
-      
-      if (!user) {
-        if (period === 'month') setChart({ labels: last12MonthsLabels(), values: Array(12).fill(0) });
-        else if (period === 'week') setChart(getWeeksOfMonth(selectedYear, selectedMonth));
-        else setChart(dataMap.day);
-        return;
-      }
-      if (period === 'day') {
-        const now = new Date();
-        // Use SP timezone to ensure consistency with "Hoje" card
-        const todayISO = new Intl.DateTimeFormat('pt-BR', {
-            timeZone: 'America/Sao_Paulo',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }).format(now).split('/').reverse().join('-');
-        
-        const today = parseLocalISODate(todayISO);
-        const mondayOffset = (today.getDay() + 6) % 7;
-        const start = new Date(today);
-        start.setDate(today.getDate() - mondayOffset);
-        const end = new Date(start);
-        end.setDate(start.getDate() + 6);
-        const { data, error } = await supabase
-          .from('user_transactions')
-          .select('amount, date, type')
-          .eq('user_id', user.id)
-          .eq('type', chartType)
-          .gte('date', fmt(start))
-          .lte('date', fmt(end));
-          
-        if (!mounted) return;
-        if (!error && data) {
-            const vals = Array(7).fill(0);
-            (data || []).forEach((t: any) => {
-              const d = parseLocalISODate(t.date);
-              const idx = (d.getDay() + 6) % 7; // Mon=0
-              vals[idx] += Number(t.amount || 0);
-            });
-            setChart({ labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals), raw: vals });
-        }
-      } else if (period === 'week') {
+
+    const processMonthData = (data: any[]) => {
+      // Summary
+      const income = data.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0);
+      const expense = data.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0);
+      const pending = data.filter(t => t.type === 'expense' && !t.is_paid).reduce((a, t) => a + Number(t.amount), 0);
+      const paid = data.filter(t => t.type === 'expense' && t.is_paid).reduce((a, t) => a + Number(t.amount), 0);
+      setSummary({ income, expense, pending, balance: income - expense, paid });
+
+      // Lists
+      setIncomeItems(data.filter(t => t.type === 'income'));
+      setExpenseItems(data.filter(t => t.type === 'expense'));
+
+      // Week Chart
+      if (period === 'week') {
         const first = new Date(selectedYear, selectedMonth, 1);
         const last = new Date(selectedYear, selectedMonth + 1, 0);
         const startDowMonday = (first.getDay() + 6) % 7;
         const daysInMonth = last.getDate();
         const weeks = Math.ceil((startDowMonday + daysInMonth) / 7);
         const labels = Array.from({ length: weeks }, (_, i) => `Sem${i + 1}`);
-        const { data, error } = await supabase
-          .from('user_transactions')
-          .select('amount, date, type')
-          .eq('user_id', user.id)
-          .eq('type', chartType)
-          .gte('date', fmt(first))
-          .lte('date', fmt(last));
-          
-        if (!mounted) return;
-        if (!error && data) {
-            const vals = Array(weeks).fill(0);
-            (data || []).forEach((t: any) => {
-              const d = parseLocalISODate(t.date);
-              // week index within month
-              const dayIndex = d.getDate();
-              const totalOffset = startDowMonday + dayIndex - 1;
-              const w = Math.floor(totalOffset / 7);
-              if (w >= 0 && w < weeks) vals[w] += Number(t.amount || 0);
-            });
-            setChart({ labels, values: normalize(vals), raw: vals });
-        }
-      } else {
-        // Month view: show all months for chartYear
-        const from = new Date(chartYear, 0, 1);
-        const to = new Date(chartYear, 11, 31);
-        const { data, error } = await supabase
-          .from('user_transactions')
-          .select('amount, date, type')
-          .eq('user_id', user.id)
-          .eq('type', chartType)
-          .gte('date', fmt(from))
-          .lte('date', fmt(to));
-          
-        if (!mounted) return;
-        if (!error && data) {
-            const labels = last12MonthsLabels();
-            const vals = Array(12).fill(0);
-            (data || []).forEach((t: any) => {
-              const d = parseLocalISODate(t.date);
-              const idx = d.getMonth();
-              vals[idx] += Number(t.amount || 0);
-            });
-            setChart({ labels, values: normalize(vals), raw: vals });
-        }
+        const vals = Array(weeks).fill(0);
+        
+        data.filter(t => t.type === chartType).forEach((t: any) => {
+           const d = parseLocalISODate(t.date);
+           const dayIndex = d.getDate();
+           const totalOffset = startDowMonday + dayIndex - 1;
+           const w = Math.floor(totalOffset / 7);
+           if (w >= 0 && w < weeks) vals[w] += Number(t.amount || 0);
+        });
+        setChart({ labels, values: normalize(vals), raw: vals });
       }
     };
-    buildChart();
-    return () => { mounted = false; };
-  }, [period, selectedYear, selectedMonth, chartType, chartYear]);
 
-  useEffect(() => {
-    let mounted = true;
-    const fmt = (d: Date) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${dd}`;
-    };
-    const loadMonthLists = async () => {
+    const fetchDashboardData = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
+      if (!user || !mounted) return;
       
-      if (!mounted) return;
-      if (!user) { setIncomeItems([]); setExpenseItems([]); return; }
+      setSummaryLoading(true);
+
+      const promises = [];
+
+      // 1. Month Data (Summary + Lists + Week Chart)
+      // This covers the most common view
+      const monthKey = `month_data_${user.id}_${selectedYear}_${selectedMonth}`;
+      const monthCache = getFromCache(monthKey);
       
-      const startCur = new Date(selectedYear, selectedMonth, 1);
-      const endCur = new Date(selectedYear, selectedMonth + 1, 0);
-      const { data, error } = await supabase
-        .from('user_transactions')
-        .select('id, description, amount, type, date, is_paid')
-        .eq('user_id', user.id)
-        .gte('date', fmt(startCur))
-        .lte('date', fmt(endCur))
-        .order('date', { ascending: true })
-        .order('created_at', { ascending: true });
-        
-      if (!mounted) return;
+      let monthTransactions: any[] = [];
       
-      if (!error && data) {
-        const arr = (data || []) as any[];
-        setIncomeItems(arr.filter(t => t.type === 'income'));
-        setExpenseItems(arr.filter(t => t.type === 'expense'));
+      if (monthCache) {
+         monthTransactions = monthCache;
+         if (mounted) {
+            processMonthData(monthTransactions);
+            setSummaryLoading(false);
+         }
+      } else {
+         promises.push((async () => {
+            try {
+              const y = selectedYear;
+              const m = String(selectedMonth + 1).padStart(2, '0');
+              const endDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+              const dStart = `${y}-${m}-01`;
+              const dEnd = `${y}-${m}-${endDay}`;
+              
+              const { data, error } = await supabase
+                 .from('user_transactions')
+                 .select('id, description, amount, type, date, is_paid')
+                 .eq('user_id', user.id)
+                 .gte('date', dStart)
+                 .lte('date', dEnd)
+                 .order('date', { ascending: true })
+                 .order('created_at', { ascending: true });
+
+              if (error) throw error;
+
+              if (data && mounted) {
+                  processMonthData(data);
+                  saveToCache(monthKey, data);
+              }
+            } catch (err) {
+              console.error('Error fetching month data:', err);
+            } finally {
+              if (mounted) setSummaryLoading(false);
+            }
+         })());
       }
+
+      // 2. Day Chart (Current Week)
+      if (period === 'day') {
+         const dayKey = `chart_day_${user.id}_${chartType}_${new Date().toDateString()}`; // Cache daily
+         const dayCache = getFromCache(dayKey);
+         if (dayCache) {
+             setChart(dayCache);
+         } else {
+             promises.push((async () => {
+                 const now = new Date();
+                 const todayISO = getSPDateISO(now); // Use helper if available, or manual
+                 // Fallback manual to match existing logic
+                 const today = parseLocalISODate(todayISO);
+                 const mondayOffset = (today.getDay() + 6) % 7;
+                 const start = new Date(today);
+                 start.setDate(today.getDate() - mondayOffset);
+                 const end = new Date(start);
+                 end.setDate(start.getDate() + 6);
+                 
+                 const fmt = (d: Date) => {
+                    const Y = d.getFullYear();
+                    const M = String(d.getMonth() + 1).padStart(2, '0');
+                    const D = String(d.getDate()).padStart(2, '0');
+                    return `${Y}-${M}-${D}`;
+                 };
+
+                 const { data } = await supabase
+                   .from('user_transactions')
+                   .select('amount, date')
+                   .eq('user_id', user.id)
+                   .eq('type', chartType)
+                   .gte('date', fmt(start))
+                   .lte('date', fmt(end));
+                 
+                 if (data && mounted) {
+                     const vals = Array(7).fill(0);
+                     data.forEach((t: any) => {
+                         const d = parseLocalISODate(t.date);
+                         const idx = (d.getDay() + 6) % 7;
+                         vals[idx] += Number(t.amount || 0);
+                     });
+                     const c = { labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals), raw: vals };
+                     setChart(c);
+                     saveToCache(dayKey, c);
+                 }
+             })());
+         }
+      }
+
+      // 3. Month Chart (Year View)
+      if (period === 'month') {
+          const yearKey = `chart_year_${user.id}_${chartYear}_${chartType}`;
+          const yearCache = getFromCache(yearKey);
+          if (yearCache) {
+              setChart(yearCache);
+          } else {
+              promises.push((async () => {
+                  const start = `${chartYear}-01-01`;
+                  const end = `${chartYear}-12-31`;
+                  const { data } = await supabase
+                    .from('user_transactions')
+                    .select('amount, date')
+                    .eq('user_id', user.id)
+                    .eq('type', chartType)
+                    .gte('date', start)
+                    .lte('date', end);
+                    
+                  if (data && mounted) {
+                      const vals = Array(12).fill(0);
+                      data.forEach((t: any) => {
+                          const d = parseLocalISODate(t.date);
+                          const idx = d.getMonth();
+                          vals[idx] += Number(t.amount || 0);
+                      });
+                      const c = { labels: last12MonthsLabels(), values: normalize(vals), raw: vals };
+                      setChart(c);
+                      saveToCache(yearKey, c);
+                  }
+              })());
+          }
+      }
+      
+      if (promises.length > 0) await Promise.all(promises);
     };
-    loadMonthLists();
+
+    fetchDashboardData();
     return () => { mounted = false; };
-  }, [location.key, selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, period, chartType, chartYear]);
 
 
   
@@ -486,7 +533,13 @@ const Dashboard: React.FC = () => {
         </motion.button>
 
         <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
-        <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+        {summaryLoading ? (
+          <div className="flex justify-center">
+            <Skeleton width={200} height={48} />
+          </div>
+        ) : (
+          <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+        )}
       </motion.section>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
@@ -512,7 +565,11 @@ const Dashboard: React.FC = () => {
               <span className="material-symbols-outlined text-xl">{item.icon}</span>
               <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">{item.label}</p>
             </div>
-            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
+            {summaryLoading ? (
+              <Skeleton width={100} height={28} />
+            ) : (
+              <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
+            )}
           </motion.div>
         ))}
 
@@ -535,12 +592,19 @@ const Dashboard: React.FC = () => {
                 Comparação com ontem
              </div>
           </div>
-          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
-             {formatBRL(todayExpense)}
-          </p>
+          {loading ? (
+            <Skeleton width={120} height={28} />
+          ) : (
+            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+               {formatBRL(todayExpense)}
+            </p>
+          )}
           
           <div className="flex items-center gap-1 mt-1">
-             {(() => {
+             {loading ? (
+               <Skeleton width={60} height={20} />
+             ) : (
+               (() => {
                 const diff = todayExpense - yesterdayExpense;
                 if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
                 if (yesterdayExpense === 0 && todayExpense > 0) return (
@@ -564,7 +628,8 @@ const Dashboard: React.FC = () => {
                      </>
                 );
                 return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
-             })()}
+             })()
+             )}
           </div>
         </motion.div>
 
@@ -587,9 +652,13 @@ const Dashboard: React.FC = () => {
              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
                 Total de saídas de ontem
              </div>
-          <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
-             {formatBRL(yesterdayExpense)}
-          </p>
+          {loading ? (
+            <Skeleton width={120} height={28} />
+          ) : (
+            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+               {formatBRL(yesterdayExpense)}
+            </p>
+          )}
         </motion.div>
       </motion.section>
 

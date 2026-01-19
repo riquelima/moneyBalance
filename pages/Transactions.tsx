@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, toLocalISO, labelForDate } from '../utils/date';
 import { usePrivacy } from '../src/context/PrivacyContext';
 import { categories } from '../categories';
+import Skeleton from '../components/ui/Skeleton';
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
@@ -12,8 +13,12 @@ const Transactions: React.FC = () => {
   const { isPrivacyEnabled } = usePrivacy();
   const [items, setItems] = useState<Array<{ id: string; description: string | null; amount: number; type: 'income' | 'expense'; date: string; is_paid: boolean; category_id: string | null }>>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [catMap, setCatMap] = useState<Record<string, { name: string; type: 'income' | 'expense' }>>({});
+  const [allCategories, setAllCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [showFilter, setShowFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -72,14 +77,13 @@ const Transactions: React.FC = () => {
   };
 
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      setLoading(true);
+  const fetchTransactions = useCallback(async (pageToLoad: number, shouldReset: boolean = false) => {
+    if (pageToLoad === 0) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
-      
-      if (!mounted) return;
       
       if (!user) { 
         setItems([]); 
@@ -87,17 +91,66 @@ const Transactions: React.FC = () => {
         return; 
       }
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_transactions')
         .select('id, description, amount, type, date, is_paid, category_id')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false });
-        
-      if (!mounted) return;
+        .eq('user_id', user.id);
 
+      // Backend Filtering
+      if (statusFilter === 'paid') query = query.eq('is_paid', true);
+      if (statusFilter === 'pending') query = query.eq('is_paid', false);
+      if (typeFilter !== 'all') query = query.eq('type', typeFilter);
+
+      if (dateFilter) {
+        query = query.eq('date', dateFilter);
+      } else {
+        if (yearFilter !== 'all') {
+          const y = Number(yearFilter);
+          const start = `${y}-01-01`;
+          const end = `${y}-12-31`;
+          
+          if (monthFilter !== 'all') {
+             const m = Number(monthFilter);
+             const dStart = new Date(y, m, 1);
+             const dEnd = new Date(y, m + 1, 0);
+             query = query.gte('date', toLocalISO(dStart)).lte('date', toLocalISO(dEnd));
+          } else {
+             query = query.gte('date', start).lte('date', end);
+          }
+        }
+      }
+
+      if (categoryFilter !== 'all') {
+         if (categoryFilter === 'Sem Categoria') {
+            query = query.is('category_id', null);
+         } else {
+            if (allCategories.length === 0) {
+                // If categories not loaded yet, wait.
+                setLoading(false);
+                return;
+            }
+            const cat = allCategories.find(c => c.name === categoryFilter);
+            if (cat) query = query.eq('category_id', cat.id);
+         }
+      }
+
+      if (searchQuery) {
+         query = query.ilike('description', `%${searchQuery}%`);
+      }
+
+      query = query
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .range(pageToLoad * 20, (pageToLoad + 1) * 20 - 1);
+
+      const { data, error } = await query;
+        
       if (!error && data) {
-        setItems(data as any);
+        setItems(prev => shouldReset ? (data as any) : [...prev, ...data as any]);
+        setHasMore(data.length === 20);
+        setPage(pageToLoad);
+
+        // Fetch categories for mapped items
         const ids = Array.from(new Set((data as any[]).map((x: any) => x.category_id).filter(Boolean)));
         if (ids.length) {
           const { data: cats } = await supabase
@@ -105,53 +158,73 @@ const Transactions: React.FC = () => {
             .select('id, name, type')
             .in('id', ids);
             
-          if (mounted) {
-            const m: Record<string, { name: string; type: 'income' | 'expense' }> = {};
-            (cats || []).forEach((c: any) => { if (c?.id) m[c.id as string] = { name: String(c.name || 'Categoria'), type: (c.type as any) || 'expense' }; });
-            setCatMap(m);
+          if (cats) {
+            setCatMap(prev => {
+                const next = { ...prev };
+                cats.forEach((c: any) => { if (c?.id) next[c.id as string] = { name: String(c.name || 'Categoria'), type: (c.type as any) || 'expense' }; });
+                return next;
+            });
           }
-        } else {
-          if (mounted) setCatMap({});
         }
       } else {
-        if (mounted) setItems([]);
+        if (shouldReset) setItems([]);
       }
-      if (mounted) setLoading(false);
-    };
-    
-    load();
-    
-    return () => {
-      mounted = false;
-    };
-  }, [location.key]); // Removed location.key dependency to prevent re-fetch on every location change unless necessary, but keeping for now as per original logic, just adding cleanup. Actually, better to just run once on mount or when key changes.
+    } catch (e) {
+        console.error(e);
+    } finally {
+        setLoading(false);
+        setLoadingMore(false);
+    }
+  }, [statusFilter, typeFilter, yearFilter, monthFilter, dateFilter, categoryFilter, searchQuery, allCategories]);
+
+  useEffect(() => {
+    fetchTransactions(0, true);
+  }, [fetchTransactions]);
 
   
 
 
   useEffect(() => {
     let mounted = true;
-    const fetchCategories = async () => {
+    const fetchMeta = async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
 
-      const { data } = await supabase
+      // Fetch Categories
+      const { data: cats } = await supabase
         .from('user_categories')
-        .select('name')
+        .select('id, name')
         .eq('user_id', userData.user.id)
         .order('name');
 
-      if (mounted && data) {
-        setUserCategoryList(data.map((c: any) => c.name));
+      if (mounted && cats) {
+        setUserCategoryList(cats.map((c: any) => c.name));
+        setAllCategories(cats.map((c: any) => ({ id: c.id, name: c.name })));
+      }
+
+      // Fetch Years (from dates)
+      const { data: dates } = await supabase
+        .from('user_transactions')
+        .select('date')
+        .eq('user_id', userData.user.id);
+
+      if (mounted && dates) {
+        const years = new Set<number>();
+        years.add(new Date().getFullYear());
+        dates.forEach((d: any) => {
+            const y = parseLocalISODate(d.date).getFullYear();
+            if (!Number.isNaN(y)) years.add(y);
+        });
+        setAvailableYears(Array.from(years).sort((a, b) => b - a));
       }
     };
 
-    fetchCategories();
+    fetchMeta();
 
     const channel = supabase
       .channel('public:user_categories')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_categories' }, () => {
-        fetchCategories();
+        fetchMeta();
       })
       .subscribe();
 
@@ -168,15 +241,7 @@ const Transactions: React.FC = () => {
     return Array.from(new Set(names)).sort();
   }, [items, userCategoryList]);
 
-  const availableYears = useMemo(() => {
-    const years = new Set<number>();
-    years.add(new Date().getFullYear()); // Always include current year
-    items.forEach(item => {
-      const y = parseLocalISODate(item.date).getFullYear();
-      if (!Number.isNaN(y)) years.add(y);
-    });
-    return Array.from(years).sort((a, b) => b - a);
-  }, [items]);
+  const [availableYears, setAvailableYears] = useState<number[]>([new Date().getFullYear()]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -213,30 +278,7 @@ const Transactions: React.FC = () => {
     setCategoryFilter('all');
   }, [location.search]);
 
-  const filteredItems = useMemo(() => {
-    let arr = items.slice();
-    if (statusFilter === 'paid') arr = arr.filter(t => t.is_paid);
-    if (statusFilter === 'pending') arr = arr.filter(t => !t.is_paid);
-    if (typeFilter !== 'all') arr = arr.filter(t => t.type === typeFilter);
-
-    if (dateFilter) {
-      arr = arr.filter(t => t.date === dateFilter);
-    } else {
-      if (yearFilter !== 'all') arr = arr.filter(t => parseLocalISODate(t.date).getFullYear() === yearFilter);
-      if (monthFilter !== 'all') arr = arr.filter(t => parseLocalISODate(t.date).getMonth() === monthFilter);
-    }
-
-    if (categoryFilter !== 'all') {
-      if (categoryFilter === 'Sem Categoria') arr = arr.filter(t => !t.category_id);
-      else arr = arr.filter(t => {
-        const nm = t.category_id ? catMap[t.category_id]?.name : null;
-        return nm === categoryFilter;
-      });
-    }
-    // Sort ascending by date (oldest first)
-    arr.sort((a, b) => parseLocalISODate(a.date).getTime() - parseLocalISODate(b.date).getTime());
-    return arr;
-  }, [items, statusFilter, typeFilter, monthFilter, categoryFilter, searchQuery]);
+  const filteredItems = items;
 
   const grouped = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -446,8 +488,17 @@ const Transactions: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {loading ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex flex-col gap-4 mt-4">
+             {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="flex items-center gap-4 px-4 py-4 bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl shadow-glass">
+                    <Skeleton variant="circular" width={40} height={40} />
+                    <div className="flex-1">
+                        <Skeleton variant="text" width="60%" height={20} className="mb-2" />
+                        <Skeleton variant="text" width="40%" height={16} />
+                    </div>
+                    <Skeleton variant="text" width={80} height={24} />
+                </div>
+             ))}
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
@@ -463,7 +514,8 @@ const Transactions: React.FC = () => {
             </motion.button>
           </div>
         ) : (
-          Object.entries(grouped).map(([date, groupItems], groupIndex) => (
+          <>
+          {Object.entries(grouped).map(([date, groupItems], groupIndex) => (
             <div key={date} className="mb-6">
               <h2 className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{date}</h2>
               <div className="space-y-3">
@@ -540,7 +592,21 @@ const Transactions: React.FC = () => {
                 ))}
               </div>
             </div>
-          ))
+          ))}
+          {hasMore && (
+             <div className="flex justify-center mt-6 mb-8">
+               <motion.button
+                 whileTap={{ scale: 0.95 }}
+                 onClick={() => fetchTransactions(page + 1)}
+                 disabled={loadingMore}
+                 className="px-6 py-2 rounded-xl bg-white/10 border border-white/20 text-gray-600 dark:text-gray-300 font-bold hover:bg-white/20 transition-all disabled:opacity-50 flex items-center gap-2"
+               >
+                 {loadingMore && <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>}
+                 {loadingMore ? 'Carregando...' : 'Carregar Mais'}
+               </motion.button>
+             </div>
+          )}
+          </>
         )}
       </div>
     </motion.div>
