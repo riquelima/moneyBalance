@@ -75,10 +75,6 @@ const Dashboard: React.FC = () => {
   };
 
   const fetchAllData = useCallback(async () => {
-    // Only set loading on initial fetch or full refresh, not on period change if we want smoother transition
-    // But for now, simple approach:
-    // Check if we have cached data for "initial load" parts (profile, today/yesterday)
-    
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) return;
     const user = userData.user;
@@ -86,37 +82,30 @@ const Dashboard: React.FC = () => {
     const promises = [];
 
     // 1. Daily Data (Today/Yesterday)
-    const dailyCache = getFromCache(`daily_${user.id}`);
-    if (dailyCache) {
-      setTodayExpense(dailyCache.today);
-      setYesterdayExpense(dailyCache.yesterday);
-    } else {
-      promises.push((async () => {
-        const now = new Date();
-        const todayISO = getSPDateISO(now);
-        const [y, m, d] = todayISO.split('-').map(Number);
-        const todayDateObj = new Date(y, m-1, d);
-        const yesterdayDateObj = new Date(todayDateObj);
-        yesterdayDateObj.setDate(todayDateObj.getDate() - 1);
-        
-        const yStr = yesterdayDateObj.getFullYear();
-        const mStr = String(yesterdayDateObj.getMonth() + 1).padStart(2, '0');
-        const dStr = String(yesterdayDateObj.getDate()).padStart(2, '0');
-        const yesterdayISO = `${yStr}-${mStr}-${dStr}`;
+    promises.push((async () => {
+      const now = new Date();
+      const todayISO = getSPDateISO(now);
+      const [y, m, d] = todayISO.split('-').map(Number);
+      const todayDateObj = new Date(y, m-1, d);
+      const yesterdayDateObj = new Date(todayDateObj);
+      yesterdayDateObj.setDate(todayDateObj.getDate() - 1);
+      
+      const yStr = yesterdayDateObj.getFullYear();
+      const mStr = String(yesterdayDateObj.getMonth() + 1).padStart(2, '0');
+      const dStr = String(yesterdayDateObj.getDate()).padStart(2, '0');
+      const yesterdayISO = `${yStr}-${mStr}-${dStr}`;
 
-        const [todayRes, yesterdayRes] = await Promise.all([
-           supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', todayISO),
-           supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', yesterdayISO)
-        ]);
+      const [todayRes, yesterdayRes] = await Promise.all([
+          supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', todayISO),
+          supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', yesterdayISO)
+      ]);
 
-        const tTotal = todayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-        const yTotal = yesterdayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-        
-        setTodayExpense(tTotal);
-        setYesterdayExpense(yTotal);
-        saveToCache(`daily_${user.id}`, { today: tTotal, yesterday: yTotal });
-      })());
-    }
+      const tTotal = todayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      const yTotal = yesterdayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      
+      setTodayExpense(tTotal);
+      setYesterdayExpense(yTotal);
+    })());
 
     // 2. Profile
     const profileCache = getFromCache(`profile_${user.id}`);
@@ -141,15 +130,6 @@ const Dashboard: React.FC = () => {
       })());
     }
 
-    // 3. Summary & Chart (Dependent on selected filters, so we cache based on filters)
-    // For simplicity, we just fetch them here as part of the "load" but they might need their own effect if they change often.
-    // However, merging them into one big initial load is good, and then having a separate effect for filter changes.
-    // But since `useEffect` dependencies trigger the effect, let's keep the logic for Summary/Chart separate or handle it here if filters match default.
-    
-    // Actually, to avoid complexity, let's keep the initial data fetch here (Profile, Daily) and let the other effects handle Summary/Chart, 
-    // BUT we will wrap them in Promise.all inside their own effects or optimize them.
-    
-    // Let's execute the static parts first.
     if (promises.length > 0) {
         await Promise.all(promises);
     }
@@ -160,6 +140,18 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchAllData();
+    
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('dashboard_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_transactions' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchAllData]);
 
 
@@ -285,135 +277,131 @@ const Dashboard: React.FC = () => {
 
       // 1. Month Data (Summary + Lists + Week Chart)
       // This covers the most common view
-      const monthKey = `month_data_${user.id}_${selectedYear}_${selectedMonth}`;
-      const monthCache = getFromCache(monthKey);
       
-      let monthTransactions: any[] = [];
-      
-      if (monthCache) {
-         monthTransactions = monthCache;
-         if (mounted) {
-            processMonthData(monthTransactions);
-            setSummaryLoading(false);
-         }
-      } else {
-         promises.push((async () => {
-            try {
-              const y = selectedYear;
-              const m = String(selectedMonth + 1).padStart(2, '0');
-              const endDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-              const dStart = `${y}-${m}-01`;
-              const dEnd = `${y}-${m}-${endDay}`;
-              
-              const { data, error } = await supabase
-                 .from('user_transactions')
-                 .select('id, description, amount, type, date, is_paid')
-                 .eq('user_id', user.id)
-                 .gte('date', dStart)
-                 .lte('date', dEnd)
-                 .order('date', { ascending: true })
-                 .order('created_at', { ascending: true });
+      promises.push((async () => {
+        try {
+          const y = selectedYear;
+          const m = String(selectedMonth + 1).padStart(2, '0');
+          const endDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+          const dStart = `${y}-${m}-01`;
+          const dEnd = `${y}-${m}-${endDay}`;
+          
+          const { data, error } = await supabase
+              .from('user_transactions')
+              .select('id, description, amount, type, date, is_paid')
+              .eq('user_id', user.id)
+              .gte('date', dStart)
+              .lte('date', dEnd)
+              .order('date', { ascending: true })
+              .order('created_at', { ascending: true });
 
-              if (error) throw error;
+          if (error) throw error;
 
-              if (data && mounted) {
-                  processMonthData(data);
-                  saveToCache(monthKey, data);
-              }
-            } catch (err) {
-              console.error('Error fetching month data:', err);
-            } finally {
-              if (mounted) setSummaryLoading(false);
-            }
-         })());
-      }
+          if (data && mounted) {
+              processMonthData(data);
+          }
+        } catch (err) {
+          console.error('Error fetching month data:', err);
+        } finally {
+          if (mounted) setSummaryLoading(false);
+        }
+      })());
 
       // 2. Day Chart (Current Week)
       if (period === 'day') {
-         const dayKey = `chart_day_${user.id}_${chartType}_${new Date().toDateString()}`; // Cache daily
-         const dayCache = getFromCache(dayKey);
-         if (dayCache) {
-             setChart(dayCache);
-         } else {
-             promises.push((async () => {
-                 const now = new Date();
-                 const todayISO = getSPDateISO(now); // Use helper if available, or manual
-                 // Fallback manual to match existing logic
-                 const today = parseLocalISODate(todayISO);
-                 const mondayOffset = (today.getDay() + 6) % 7;
-                 const start = new Date(today);
-                 start.setDate(today.getDate() - mondayOffset);
-                 const end = new Date(start);
-                 end.setDate(start.getDate() + 6);
-                 
-                 const fmt = (d: Date) => {
-                    const Y = d.getFullYear();
-                    const M = String(d.getMonth() + 1).padStart(2, '0');
-                    const D = String(d.getDate()).padStart(2, '0');
-                    return `${Y}-${M}-${D}`;
-                 };
+           promises.push((async () => {
+               const now = new Date();
+               const todayISO = getSPDateISO(now); // Use helper if available, or manual
+               // Fallback manual to match existing logic
+               const today = parseLocalISODate(todayISO);
+               const mondayOffset = (today.getDay() + 6) % 7;
+               const start = new Date(today);
+               start.setDate(today.getDate() - mondayOffset);
+               const end = new Date(start);
+               end.setDate(start.getDate() + 6);
+               
+               const fmt = (d: Date) => {
+                  const Y = d.getFullYear();
+                  const M = String(d.getMonth() + 1).padStart(2, '0');
+                  const D = String(d.getDate()).padStart(2, '0');
+                  return `${Y}-${M}-${D}`;
+               };
 
-                 const { data } = await supabase
-                   .from('user_transactions')
-                   .select('amount, date')
-                   .eq('user_id', user.id)
-                   .eq('type', chartType)
-                   .gte('date', fmt(start))
-                   .lte('date', fmt(end));
-                 
-                 if (data && mounted) {
-                     const vals = Array(7).fill(0);
-                     data.forEach((t: any) => {
-                         const d = parseLocalISODate(t.date);
-                         const idx = (d.getDay() + 6) % 7;
-                         vals[idx] += Number(t.amount || 0);
-                     });
-                     const c = { labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals), raw: vals };
-                     setChart(c);
-                     saveToCache(dayKey, c);
-                 }
-             })());
-         }
+               const { data } = await supabase
+                 .from('user_transactions')
+                 .select('amount, date')
+                 .eq('user_id', user.id)
+                 .eq('type', chartType)
+                 .gte('date', fmt(start))
+                 .lte('date', fmt(end));
+               
+               if (data && mounted) {
+                   const vals = Array(7).fill(0);
+                   data.forEach((t: any) => {
+                       const d = parseLocalISODate(t.date);
+                       const idx = (d.getDay() + 6) % 7;
+                       vals[idx] += Number(t.amount || 0);
+                   });
+                   const c = { labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals), raw: vals };
+                   setChart(c);
+               }
+           })());
       }
 
       // 3. Month Chart (Year View)
       if (period === 'month') {
-          const yearKey = `chart_year_${user.id}_${chartYear}_${chartType}`;
-          const yearCache = getFromCache(yearKey);
-          if (yearCache) {
-              setChart(yearCache);
-          } else {
-              promises.push((async () => {
-                  const start = `${chartYear}-01-01`;
-                  const end = `${chartYear}-12-31`;
-                  const { data } = await supabase
-                    .from('user_transactions')
-                    .select('amount, date')
-                    .eq('user_id', user.id)
-                    .eq('type', chartType)
-                    .gte('date', start)
-                    .lte('date', end);
-                    
-                  if (data && mounted) {
-                      const vals = Array(12).fill(0);
-                      data.forEach((t: any) => {
-                          const d = parseLocalISODate(t.date);
-                          const idx = d.getMonth();
-                          vals[idx] += Number(t.amount || 0);
-                      });
-                      const c = { labels: last12MonthsLabels(), values: normalize(vals), raw: vals };
-                      setChart(c);
-                      saveToCache(yearKey, c);
-                  }
-              })());
-          }
+          promises.push((async () => {
+              const start = `${chartYear}-01-01`;
+              const end = `${chartYear}-12-31`;
+              const { data } = await supabase
+                .from('user_transactions')
+                .select('amount, date')
+                .eq('user_id', user.id)
+                .eq('type', chartType)
+                .gte('date', start)
+                .lte('date', end);
+                
+              if (data && mounted) {
+                  const vals = Array(12).fill(0);
+                  data.forEach((t: any) => {
+                      const d = parseLocalISODate(t.date);
+                      const idx = d.getMonth();
+                      vals[idx] += Number(t.amount || 0);
+                  });
+                  const c = { labels: last12MonthsLabels(), values: normalize(vals), raw: vals };
+                  setChart(c);
+              }
+          })());
       }
       
       if (promises.length > 0) await Promise.all(promises);
     };
 
     fetchDashboardData();
-    return () => { mounted = false; };
+    
+    // Subscribe to realtime changes within this effect scope as well?
+    // Actually, since this effect depends on filters, we should probably have a general subscription
+    // that triggers a re-fetch of everything or specifically calls this.
+    // But since `fetchAllData` (which I just modified) is separate, I should also add subscription here
+    // OR make the previous subscription call this one too.
+    
+    // The previous subscription calls `fetchAllData`. It does NOT call `fetchDashboardData` because `fetchDashboardData` is inside this useEffect.
+    // So I need to add subscription here too, or refactor `fetchDashboardData` out of useEffect.
+    
+    // Refactoring out is better but might break dependencies. 
+    // Adding subscription here is safer for now.
+    
+    const channel = supabase
+      .channel('dashboard_charts_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_transactions' }, () => {
+         fetchDashboardData();
+      })
+      .subscribe();
+
+    return () => { 
+        mounted = false; 
+        supabase.removeChannel(channel);
+    };
   }, [selectedYear, selectedMonth, period, chartType, chartYear]);
 
 

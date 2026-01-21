@@ -179,6 +179,19 @@ const Transactions: React.FC = () => {
 
   useEffect(() => {
     fetchTransactions(0, true);
+    
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('transactions_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_transactions' }, () => {
+         // Refresh current view
+         fetchTransactions(0, true);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchTransactions]);
 
   
