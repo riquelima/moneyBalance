@@ -5,6 +5,23 @@ export const toLocalISO = (d: Date) => {
   return `${y}-${m}-${dd}`;
 };
 
+export const toLocalISODateTime = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+
+  const offset = -d.getTimezoneOffset();
+  const absOffset = Math.abs(offset);
+  const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+  const offsetMinutes = String(absOffset % 60).padStart(2, '0');
+  const offsetSign = offset >= 0 ? '+' : '-';
+  const tz = `${offsetSign}${offsetHours}:${offsetMinutes}`;
+
+  return `${y}-${m}-${dd}T${h}:${min}:00${tz}`;
+};
+
 export const parseLocalISODate = (iso: string) => {
   const [y, m, dd] = String(iso).split('T')[0].split('-').map(Number);
   return new Date(y, (m || 1) - 1, dd || 1);
