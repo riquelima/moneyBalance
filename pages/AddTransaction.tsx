@@ -126,21 +126,32 @@ const AddTransaction: React.FC = () => {
       const names = Array.from(new Set((data || []).map((x: any) => String(x.name || '')).filter(Boolean)));
       setUserCategories(names);
 
-      // Fetch profile phone
+      // Fetch profile phone or check metadata
+      let phoneToSet: string | null = null;
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('whatsapp')
         .eq('id', user.id)
         .maybeSingle();
+
       if (profile?.whatsapp && profile.whatsapp.trim() !== '') {
-        const p = String(profile.whatsapp).replace(/\D/g, '');
+        phoneToSet = profile.whatsapp;
+      } else if (user.user_metadata?.whatsapp) {
+        phoneToSet = user.user_metadata.whatsapp;
+      }
+
+      if (phoneToSet) {
+        const p = String(phoneToSet).replace(/\D/g, '');
         if (p.length >= 10) {
           setExistingPhone(p);
           const formatted = p.length === 11
             ? `(${p.slice(0, 2)}) ${p.slice(2, 7)}-${p.slice(7)}`
-            : p.length === 13 && p.startsWith('55')
+            : (p.length === 13 && p.startsWith('55'))
               ? `(${p.slice(2, 4)}) ${p.slice(4, 9)}-${p.slice(9)}`
-              : p;
+              : (p.length === 10)
+                ? `(${p.slice(0, 2)}) ${p.slice(2, 6)}-${p.slice(6)}`
+                : p;
           setReminderPhone(formatted);
         }
       }
@@ -516,7 +527,7 @@ const AddTransaction: React.FC = () => {
                     </div>
                   )}
 
-                  {(!existingPhone || !reminderPhone) && (
+                  {!existingPhone && (
                     <div className="col-span-2 h-14 w-full rounded-2xl bg-gray-50 border border-gray-200 px-4 flex flex-col justify-center items-start">
                       <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">WhatsApp para Lembrete</span>
                       <input
