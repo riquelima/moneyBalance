@@ -123,7 +123,7 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
 
                         return (
                             <motion.path
-                                key={index}
+                                key={slice.name || index}
                                 d={path}
                                 fill={slice.color}
                                 stroke="white"
@@ -156,8 +156,8 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
                 {/* Center Info (Overlay) */}
                 {donut && (
                     <div
-                        className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
-                        style={{ width: innerRadius * 2, height: innerRadius * 2, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-20"
+                        style={{ width: innerRadius * 2, height: innerRadius * 2 }}
                     >
                         <AnimatePresence mode="wait">
                             {activeItem ? (
