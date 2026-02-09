@@ -98,7 +98,7 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
 
     const activeItem = activeIndex !== null ? processedData[activeIndex] : null;
 
-    const activeItem = activeIndex !== null ? processedData[activeIndex] : null;
+
 
     return (
         <div className="flex flex-col items-center justify-center w-full relative">
