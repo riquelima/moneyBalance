@@ -15,7 +15,7 @@ describe('buildWebhookPayload', () => {
   ];
 
   it('groups by month/year and formats values with 2 decimals', () => {
-    const payload = buildWebhookPayload(user as any, transactions as any, categories as any, profile as any);
+    const payload = buildWebhookPayload(user as any, transactions as any, categories as any, profile as any, []);
     expect(payload.cliente.nome).toContain('Henrique');
     expect(payload.metadados.totalRegistros).toBe(3);
     expect(Array.isArray(payload.historico)).toBe(true);

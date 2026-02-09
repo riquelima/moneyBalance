@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { categories as categoryNames } from '../categories';
+import StyledPieChart from '../components/StyledPieChart';
 
 const Reports: React.FC = () => {
   const navigate = useNavigate();
@@ -19,12 +20,14 @@ const Reports: React.FC = () => {
   const [incomeTotal, setIncomeTotal] = useState(0);
   const [lastIncomeTotal, setLastIncomeTotal] = useState(0);
   const [incomeCategories, setIncomeCategories] = useState<Array<{ name: string; amount: number }>>([]);
+  const [paidTotal, setPaidTotal] = useState(0);
+  const [pendingTotal, setPendingTotal] = useState(0);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const budgetNames = categoryNames.slice();
-  const incomeNames = ['Salário','Rendimentos','Dinheiro Extra'];
+  const incomeNames = ['Salário', 'Rendimentos', 'Dinheiro Extra'];
   const budgetCats = useMemo(() => budgetNames.map(n => {
     const src = incomeNames.includes(n) ? incomeCategories : categories;
     return { name: n, amount: (src.find(c => c.name === n)?.amount || 0) };
@@ -50,7 +53,7 @@ const Reports: React.FC = () => {
 
       const { data: curTx } = await supabase
         .from('user_transactions')
-        .select('amount, type, date, category_id')
+        .select('amount, type, date, category_id, is_paid')
         .eq('user_id', user.id)
         .gte('date', fmt(startCur))
         .lte('date', fmt(endCur))
@@ -69,6 +72,11 @@ const Reports: React.FC = () => {
       const totalPrev = (prevTx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
       setMonthTotal(totalCur);
       setLastMonthTotal(totalPrev);
+
+      const paidCur = expCur.filter((t: any) => t.is_paid).reduce((acc: number, t: any) => acc + Number(t.amount), 0);
+      const pendingCur = expCur.filter((t: any) => !t.is_paid).reduce((acc: number, t: any) => acc + Number(t.amount), 0);
+      setPaidTotal(paidCur);
+      setPendingTotal(pendingCur);
 
       const map = new Map<string, number>();
       expCur.forEach((t: any) => {
@@ -110,15 +118,15 @@ const Reports: React.FC = () => {
       // Process Year Data
       const monthlyNet = Array(12).fill(0);
       const monthlyDataExists = Array(12).fill(false);
-      
+
       (yearTx || []).forEach((t: any) => {
         const parts = String(t.date || '').split('-');
         const m = parseInt(parts[1], 10) - 1; // 0-11
         if (m >= 0 && m <= 11) {
-            const val = Number(t.amount);
-            if (t.type === 'income') monthlyNet[m] += val;
-            else monthlyNet[m] -= val;
-            monthlyDataExists[m] = true;
+          const val = Number(t.amount);
+          if (t.type === 'income') monthlyNet[m] += val;
+          else monthlyNet[m] -= val;
+          monthlyDataExists[m] = true;
         }
       });
 
@@ -127,7 +135,7 @@ const Reports: React.FC = () => {
       // Project future months based on the trend calculated (percent)
       const projectedValues = [...monthlyNet];
       const isProjected = Array(12).fill(false);
-      
+
       // Determine cutoff for projection. We project starting from selectedMonth + 1
       // If we have actual data for future months, we use it? 
       // Requirement: "dados precisos". Using actuals is most precise.
@@ -137,28 +145,28 @@ const Reports: React.FC = () => {
       // Usually "Projection" means "What if". 
       // Let's stick to: Use Actuals where they exist (and <= selectedMonth + 1 maybe?), Project the rest.
       // Simpler: Project from selectedMonth + 1.
-      
+
       let lastVal = monthlyNet[selectedMonth];
       // If selected month has no data (e.g. future), try to find last month with data?
       // Or just use the totalNet calculated earlier for consistency
       lastVal = totalNet;
 
       for (let i = selectedMonth + 1; i < 12; i++) {
-          if (!monthlyDataExists[i]) { // Only project if no actual data? Or always project future?
-             // Always project for "future" relative to selected context
-             const nextVal = lastVal * (1 + percent / 100);
-             projectedValues[i] = nextVal;
-             isProjected[i] = true;
-             lastVal = nextVal;
-          }
+        if (!monthlyDataExists[i]) { // Only project if no actual data? Or always project future?
+          // Always project for "future" relative to selected context
+          const nextVal = lastVal * (1 + percent / 100);
+          projectedValues[i] = nextVal;
+          isProjected[i] = true;
+          lastVal = nextVal;
+        }
       }
 
-      setProjection({ 
-          labels: monthNames, 
-          values: projectedValues, 
-          total: totalNet, 
-          percent,
-          isProjected
+      setProjection({
+        labels: monthNames,
+        values: projectedValues,
+        total: totalNet,
+        percent,
+        isProjected
       });
 
       setIncomeTotal(incomeCur);
@@ -185,7 +193,7 @@ const Reports: React.FC = () => {
       setHasData(((curTx || []).length + (prevTx || []).length) > 0);
     };
     // debounce para reduzir aborts ao alternar mês/ano rapidamente
-    tid = window.setTimeout(() => { load().catch(() => {}); }, 250);
+    tid = window.setTimeout(() => { load().catch(() => { }); }, 250);
     return () => { if (tid) clearTimeout(tid); ac.abort(); };
   }, [selectedYear, selectedMonth]);
 
@@ -209,7 +217,7 @@ const Reports: React.FC = () => {
     return () => { cancelled = true; };
   }, [selectedYear, selectedMonth]);
 
-  
+
 
   const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const changePct = useMemo(() => {
@@ -241,103 +249,53 @@ const Reports: React.FC = () => {
     // Expense: primary (#8854D0), danger (#FF6B6B), accent (#FFE66D), dark (#000)
     // Income: secondary (#20BF55), accent (#FFE66D), primary-teal (#4ECDC4)
     if (type === 'expense') {
-        const colors = ['#8854D0', '#FF6B6B', '#FD9644', '#4A4A4A', '#8854D0'];
-        const idx = Math.floor(p * 10) % colors.length;
-        return colors[idx];
+      const colors = ['#8854D0', '#FF6B6B', '#FD9644', '#4A4A4A', '#8854D0'];
+      const idx = Math.floor(p * 10) % colors.length;
+      return colors[idx];
     } else {
-        const colors = ['#20BF55', '#4ECDC4', '#FFE66D', '#3867D6', '#20BF55'];
-        const idx = Math.floor(p * 10) % colors.length;
-        return colors[idx];
+      const colors = ['#20BF55', '#4ECDC4', '#FFE66D', '#3867D6', '#20BF55'];
+      const idx = Math.floor(p * 10) % colors.length;
+      return colors[idx];
     }
   };
   const makeIncomeColors = (data: Array<{ name: string; amount: number }>) => {
     return data.map((_, i) => {
-        const palette = ['#20BF55', '#4ECDC4', '#3867D6', '#FFE66D']; // Green, Teal, Blue, Yellow
-        return palette[i % palette.length];
+      // Expanded palette for Income (Greens, Teals, Blues, Yellows)
+      const palette = [
+        '#20BF55', '#4ECDC4', '#3867D6', '#FFE66D',
+        '#26de81', '#2bcbba', '#45aaf2', '#f7b731',
+        '#0fb9b1', '#20bf6b', '#2d98da', '#fa8231',
+        '#00d2d3', '#54a0ff', '#5f27cd', '#c8d6e5'
+      ];
+      return palette[i % palette.length];
     });
   };
   const makeExpenseColors = (data: Array<{ name: string; amount: number }>) => {
     return data.map((_, i) => {
-        const palette = ['#2D9CDB', '#FF6B6B', '#FD9644', '#000000'];
-        return palette[i % palette.length];
+      // Expanded palette for Expenses (Reds, Oranges, Purples, Darks, Blues)
+      const palette = [
+        '#FF6B6B', '#FD9644', '#8854D0', '#2D9CDB',
+        '#eb3b5a', '#fa8231', '#a55eea', '#4b7bec',
+        '#fc5c65', '#fd9644', '#45aaf2', '#26de81',
+        '#778ca3', '#d1d8e0', '#4b6584', '#a5b1c2'
+      ];
+      return palette[i % palette.length];
     });
   };
   const incomeColors = useMemo(() => makeIncomeColors(incomeCategories), [incomeCategories]);
   const expenseColors = useMemo(() => makeExpenseColors(categories), [categories]);
-  
-  const Pie: React.FC<{ data: { name: string; amount: number }[]; colors: string[]; size?: number; thickness?: number; denominator?: number }> = ({ data, colors, size = 200, thickness = 30, denominator }) => {
-    const [opened, setOpened] = useState<Record<number, boolean>>({});
-    const totalData = data.reduce((a, d) => a + Number(d.amount || 0), 0);
-    const denom = typeof denominator === 'number' && denominator > 0 ? denominator : totalData;
-    const R = size / 2; // raio total para pizza preenchida
-    let start = -Math.PI / 2; // começa no topo
-    const slices = data.map((d, i) => {
-      const p = denom ? Number(d.amount || 0) / denom : 0;
-      const ang = p * 2 * Math.PI;
-      const end = start + ang;
-      const x0 = Math.cos(start) * R, y0 = Math.sin(start) * R;
-      const x1 = Math.cos(end) * R, y1 = Math.sin(end) * R;
-      const large = ang > Math.PI ? 1 : 0;
-      const path = `M 0 0 L ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} Z`;
-      const mid = start + ang / 2;
-      const rx = Math.cos(mid) * (R * 0.7); // Rótulo mais externo
-      const ry = Math.sin(mid) * (R * 0.7);
-      start = end;
-      return { p, path, color: colors[i % colors.length], rx, ry, name: d.name };
-    });
-    
-    // Fill remaining space with pattern or solid color if needed
-    const sumP = slices.reduce((a, s) => a + s.p, 0);
-    const rest = Math.max(0, 1 - sumP);
-    if (rest > 0.01) {
-      const ang = rest * 2 * Math.PI;
-      const end = start + ang;
-      const x0 = Math.cos(start) * R, y0 = Math.sin(start) * R;
-      const x1 = Math.cos(end) * R, y1 = Math.sin(end) * R;
-      const large = ang > Math.PI ? 1 : 0;
-      const path = `M 0 0 L ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} Z`;
-      slices.push({ p: rest, path, color: '#F7F7F7', rx: 0, ry: 0 }); // Background color for empty space
-    }
 
-    return (
-      <svg width={size + 20} height={size + 20} viewBox={`-10 -10 ${size + 20} ${size + 20}`} className="mx-auto overflow-visible">
-        <g transform={`translate(${size / 2},${size / 2})`}>
-          {/* Sombra dura deslocada para o gráfico inteiro */}
-          <circle cx="4" cy="4" r={R} className="fill-black/5" />
-          
-          {slices.map((s, i) => (
-            <g key={i} onClick={() => setOpened(prev => ({ ...prev, [i]: !prev[i] }))} style={{ cursor: 'pointer' }}>
-              <path d={s.path} fill={s.color} className="stroke-white" strokeWidth="3" />
-              {s.p > 0.05 && (
-                <g>
-                    <rect x={s.rx - 18} y={s.ry - 8} width="36" height="16" className="fill-white stroke-white" strokeWidth="2" />
-                    <text x={s.rx} y={s.ry} className="fill-gray-900" fontSize={10} fontWeight={900} textAnchor="middle" dominantBaseline="middle">
-                    {(s.p * 100).toFixed(0)}%
-                    </text>
-                    {opened[i] && (
-                      <text x={s.rx} y={s.ry + 12} className="fill-gray-900" fontSize={9} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
-                        {s.name}
-                      </text>
-                    )}
-                </g>
-              )}
-            </g>
-          ))}
-          <circle cx="0" cy="0" r={R} fill="none" className="stroke-white" strokeWidth="3" />
-        </g>
-      </svg>
-    );
-  };
+
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className="flex flex-col min-h-screen p-4 pb-28 gap-8 font-display text-gray-900"
     >
       <header className="flex items-center justify-between sticky top-0 bg-white/80 z-50 py-3 px-4 border-b border-white/40 backdrop-blur-xl shadow-glass-sm -mx-4 transition-all duration-300">
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 hover:bg-white/80 border border-white/40 transition-all">
-            <span className="material-symbols-outlined text-gray-900">arrow_back</span>
+          <span className="material-symbols-outlined text-gray-900">arrow_back</span>
         </motion.button>
         <h1 className="text-lg font-bold text-gray-900">Relatórios</h1>
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-gray-900 font-bold text-xs bg-white/50 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md uppercase">
@@ -391,46 +349,36 @@ const Reports: React.FC = () => {
             {/* Card Saídas */}
             <div className="min-w-full snap-center">
               <motion.div
-                className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass"
+                className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass overflow-hidden relative"
                 initial={{ x: 0 }}
                 whileHover={{ y: -4 }}
               >
                 <div className="flex flex-col gap-4 items-center">
-                    <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
-                      <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Saídas</p>
-                      <p className="text-danger text-4xl font-black text-center tracking-tight">{fmtBRL(monthTotal)}</p>
-                    </div>
-                    
-                    <div className="py-4">
-                      <Pie data={categories} colors={expenseColors} denominator={monthTotal} />
-                    </div>
-                    
-                    <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
-                      {categories.length === 0 ? (
-                        <div className="h-20 flex items-center justify-center">
-                          <p className="text-center text-gray-500 font-medium text-sm">Sem despesas.</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-2">
-                          {categories.map((d, i) => (
-                            <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/20">
-                              <div className="flex items-center gap-3">
-                                  <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: expenseColors[i % expenseColors.length] }}></div>
-                                  <p className="text-xs text-gray-900 font-bold uppercase truncate max-w-[140px]">{d.name}</p>
-                              </div>
-                              <p className="text-danger text-xs font-black">- {fmtBRL(d.amount)}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                  <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
+                    <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Saídas</p>
+                    <p className="text-danger text-4xl font-black text-center tracking-tight">{fmtBRL(monthTotal)}</p>
                   </div>
-                </motion.div>
+
+                  <div className="py-4">
+                    <StyledPieChart
+                      data={categories.map((c, i) => ({
+                        name: c.name,
+                        value: c.amount,
+                        color: expenseColors[i % expenseColors.length]
+                      }))}
+                      size={200}
+                      thickness={40}
+                    />
+                  </div>
+
+
+                </div>
+              </motion.div>
             </div>
-            
+
             {/* Card Entradas */}
             <div className="min-w-full snap-center">
-              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass transition-all hover:-translate-y-1">
+              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass transition-all hover:-translate-y-1 overflow-hidden relative">
                 <div className="flex flex-col gap-4 items-center">
                   <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
                     <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Entradas</p>
@@ -438,34 +386,26 @@ const Reports: React.FC = () => {
                   </div>
 
                   <div className="py-4">
-                    <Pie data={incomeCategories} colors={incomeColors} />
+                    <StyledPieChart
+                      data={incomeCategories.map((c, i) => ({
+                        name: c.name,
+                        value: c.amount,
+                        color: incomeColors[i % incomeColors.length]
+                      }))}
+                      size={200}
+                      thickness={40}
+                    />
                   </div>
 
-                  <div className="mt-2 w-full max-h-60 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
-                    {incomeCategories.length === 0 ? (
-                      <div className="h-20 flex items-center justify-center">
-                        <p className="text-center text-gray-500 font-medium text-sm">Sem receitas.</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        {incomeCategories.map((d, i) => (
-                          <div key={`${d.name}-${i}`} className="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/20">
-                            <div className="flex items-center gap-3">
-                                <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: incomeColors[i % incomeColors.length] }}></div>
-                                <p className="text-xs text-gray-900 font-bold uppercase truncate max-w-[140px]">{d.name}</p>
-                            </div>
-                            <p className="text-secondary text-xs font-black">+ {fmtBRL(d.amount)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+
 
       {/* Budgets */}
       <section>
@@ -475,7 +415,7 @@ const Reports: React.FC = () => {
             const limit = Number(budgets[c.name] || 0);
             const spent = Number(c.amount || 0);
             const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
-            
+
             // Glassy pastel colors
             const cardColors = [
               'bg-teal-500/10 border-teal-500/20',
@@ -496,7 +436,7 @@ const Reports: React.FC = () => {
               return 'bg-gray-200';
             })();
             const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / --`;
-            
+
             return (
               <motion.button
                 whileTap={{ scale: 0.98 }}
@@ -579,7 +519,7 @@ const Reports: React.FC = () => {
       <section>
         <div className="flex items-center justify-between mb-6 px-2">
           <h2 className="text-xl font-bold uppercase text-gray-900">Projeção</h2>
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/projecao-futura')}
             className="rounded-full p-2 bg-white/50 hover:bg-white/80 border border-white/20 transition-all"
@@ -590,96 +530,96 @@ const Reports: React.FC = () => {
         <div className="bg-white/60 rounded-3xl p-6 border border-white/40 shadow-glass backdrop-blur-xl">
           <div className="flex min-w-72 flex-1 flex-col gap-4">
             <div className="border-b border-gray-200/50 pb-4">
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
-                <p className="text-primary text-4xl font-black text-center tracking-tight">{fmtBRL(projection.total)}</p>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
+              <p className="text-primary text-4xl font-black text-center tracking-tight">{fmtBRL(projection.total)}</p>
             </div>
-            
+
             <div className="flex justify-center gap-2 items-center bg-white/40 border border-white/20 rounded-xl p-2 backdrop-blur-sm">
               <p className="text-gray-500 text-[10px] font-bold uppercase">Próximos 3 meses</p>
               <p className={`${projection.percent >= 0 ? 'text-secondary' : 'text-danger'} text-xs font-black bg-white/80 px-2 py-0.5 rounded-md`}>{`${projection.percent >= 0 ? '+' : ''}${projection.percent.toFixed(1)}%`}</p>
             </div>
 
             <div className="flex min-h-[180px] flex-1 flex-col gap-4 py-4 relative">
-              <svg 
-                fill="none" 
-                height="150" 
-                preserveAspectRatio="none" 
-                viewBox="-5 0 482 150" 
-                width="100%" 
-                xmlns="http://www.w3.org/2000/svg" 
+              <svg
+                fill="none"
+                height="150"
+                preserveAspectRatio="none"
+                viewBox="-5 0 482 150"
+                width="100%"
+                xmlns="http://www.w3.org/2000/svg"
                 className="overflow-visible"
                 onMouseLeave={() => !clickedPoint && setHoveredPoint(null)}
               >
                 <defs>
                   <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#20BF55" stopOpacity="0.2"/>
-                    <stop offset="100%" stopColor="#20BF55" stopOpacity="0"/>
+                    <stop offset="0%" stopColor="#20BF55" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#20BF55" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 {/* Area preenchida */}
                 <path d={`M0 149 ${linePath.replace(/^M[^ ]+ [^ ]+/, '')} L 475 149 Z`} fill="url(#chartGradient)" />
-                
+
                 {/* Linha principal */}
                 <path d={linePath} stroke="#20BF55" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" filter="url(#glow)" />
-                
+
                 {/* Pontos */}
                 {projection.values.map((v, i) => {
-                    if (!linePath) return null;
-                    const min = Math.min(...projection.values);
-                    const max = Math.max(...projection.values);
-                    const rng = max - min || 1;
-                    const w = 478 - 2;
-                    const h = 150 - 2;
-                    const x = (i / (projection.values.length - 1)) * w;
-                    const y = h - ((v - min) / rng) * h;
-                    const isHovered = hoveredPoint === i;
-                    const isClicked = clickedPoint === i;
-                    const isActive = isHovered || isClicked;
-                    const isProj = projection.isProjected[i];
+                  if (!linePath) return null;
+                  const min = Math.min(...projection.values);
+                  const max = Math.max(...projection.values);
+                  const rng = max - min || 1;
+                  const w = 478 - 2;
+                  const h = 150 - 2;
+                  const x = (i / (projection.values.length - 1)) * w;
+                  const y = h - ((v - min) / rng) * h;
+                  const isHovered = hoveredPoint === i;
+                  const isClicked = clickedPoint === i;
+                  const isActive = isHovered || isClicked;
+                  const isProj = projection.isProjected[i];
 
-                    return (
-                        <g 
-                          key={i}
-                          onMouseEnter={() => setHoveredPoint(i)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setClickedPoint(isClicked ? null : i);
-                          }}
-                          className="cursor-pointer transition-all duration-300"
-                        >
-                            {/* Hit area larger than visual point */}
-                            <rect x={x-10} y={y-10} width="20" height="20" fill="transparent" />
-                            
-                            <circle 
-                              cx={x} 
-                              cy={y} 
-                              r={isActive ? 6 : 4} 
-                              className={`${isProj ? 'fill-gray-200' : 'fill-white'} stroke-primary transition-all duration-300`} 
-                              strokeWidth={2}
-                            />
-                            
-                            {isActive && (
-                              <g pointerEvents="none">
-                                <foreignObject x={x - 60} y={y - 50} width="120" height="40" className="overflow-visible">
-                                  <div className="flex flex-col items-center justify-center">
-                                    <div className="bg-black/80 text-white text-[10px] font-bold uppercase py-1 px-2 rounded-lg backdrop-blur-md whitespace-nowrap z-50 shadow-lg">
-                                      {isProj ? 'Projeção: ' : 'Real: '}{fmtBRL(v)}
-                                    </div>
-                                    <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-black/80"></div>
-                                  </div>
-                                </foreignObject>
-                              </g>
-                            )}
+                  return (
+                    <g
+                      key={i}
+                      onMouseEnter={() => setHoveredPoint(i)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setClickedPoint(isClicked ? null : i);
+                      }}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {/* Hit area larger than visual point */}
+                      <rect x={x - 10} y={y - 10} width="20" height="20" fill="transparent" />
+
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={isActive ? 6 : 4}
+                        className={`${isProj ? 'fill-gray-200' : 'fill-white'} stroke-primary transition-all duration-300`}
+                        strokeWidth={2}
+                      />
+
+                      {isActive && (
+                        <g pointerEvents="none">
+                          <foreignObject x={x - 60} y={y - 50} width="120" height="40" className="overflow-visible">
+                            <div className="flex flex-col items-center justify-center">
+                              <div className="bg-black/80 text-white text-[10px] font-bold uppercase py-1 px-2 rounded-lg backdrop-blur-md whitespace-nowrap z-50 shadow-lg">
+                                {isProj ? 'Projeção: ' : 'Real: '}{fmtBRL(v)}
+                              </div>
+                              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-black/80"></div>
+                            </div>
+                          </foreignObject>
                         </g>
-                    );
+                      )}
+                    </g>
+                  );
                 })}
               </svg>
               <div className="flex justify-between px-2 border-t border-gray-200/50 pt-3">
                 {projection.labels.map((l, i) => {
                   const isActive = hoveredPoint === i || clickedPoint === i;
                   return (
-                    <p 
-                      key={l} 
+                    <p
+                      key={l}
                       className={`text-[10px] font-bold uppercase cursor-pointer transition-colors ${isActive ? 'text-primary scale-110' : 'text-gray-500'}`}
                       onMouseEnter={() => setHoveredPoint(i)}
                       onClick={(e) => {
