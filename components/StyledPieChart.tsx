@@ -98,23 +98,15 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
 
     const activeItem = activeIndex !== null ? processedData[activeIndex] : null;
 
-    const uniqueId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
-    const filterId = `glow-shadow-${uniqueId}`;
+    const activeItem = activeIndex !== null ? processedData[activeIndex] : null;
 
     return (
         <div className="flex flex-col items-center justify-center w-full relative">
             <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
                 <svg width={size} height={size} viewBox={`-${size / 2} -${size / 2} ${size} ${size}`} className="overflow-visible z-10">
-                    <defs>
-                        <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.15)" />
-                        </filter>
-                    </defs>
-
                     {processedData.map((slice, index) => {
                         const isActive = activeIndex === index;
                         const path = getSlicePath(slice.startAngle, slice.endAngle, innerRadius, outerRadius);
-                        // Calculate centroid for potential label placement or animation direction
                         const midAngle = slice.startAngle + (slice.endAngle - slice.startAngle) / 2;
                         const midRad = (midAngle - 90) * (Math.PI / 180);
                         const offset = isActive ? 10 : 0;
@@ -123,31 +115,33 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
 
                         return (
                             <motion.path
-                                key={slice.name || index}
+                                key={`${index}-${slice.name}`}
                                 d={path}
                                 fill={slice.color}
                                 stroke="white"
                                 strokeWidth="2"
                                 initial={{ scale: 0, opacity: 0, rotate: -45 }}
                                 animate={{
-                                    scale: 1,
-                                    opacity: 1,
+                                    scale: isActive ? 1.05 : 1,
+                                    opacity: (activeIndex === null || isActive) ? 1 : 0.5,
                                     rotate: 0,
                                     x: tx,
                                     y: ty,
-                                    filter: isActive ? `url(#${filterId})` : 'none'
+                                }}
+                                style={{
+                                    filter: isActive ? 'drop-shadow(0px 4px 8px rgba(0,0,0,0.2))' : 'none',
+                                    transformBox: 'fill-box',
+                                    transformOrigin: 'center'
                                 }}
                                 transition={{
                                     type: 'spring',
                                     stiffness: 100,
-                                    damping: 20,
-                                    delay: index * 0.1
+                                    damping: 20
                                 }}
                                 onMouseEnter={() => setActiveIndex(index)}
                                 onMouseLeave={() => setActiveIndex(null)}
-                                onClick={() => setActiveIndex(index === activeIndex ? null : index)} // Toggle on click
-                                className="cursor-pointer hover:opacity-90 transition-opacity"
-                                style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+                                onClick={() => setActiveIndex(index === activeIndex ? null : index)}
+                                className="cursor-pointer"
                             />
                         );
                     })}
