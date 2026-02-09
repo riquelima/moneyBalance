@@ -102,109 +102,106 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
     const filterId = `glow-shadow-${uniqueId}`;
 
     return (
-        <div className="flex flex-col items-center justify-center w-full">
-            <div className="relative" style={{ width: size, height: size }}>
-                <svg width={size} height={size} viewBox={`-${size / 2} -${size / 2} ${size} ${size}`} className="overflow-visible">
-                    <AnimatePresence>
-                        {/* Drop Shadow Filter */}
-                        <defs>
-                            <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-                                <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.15)" />
-                            </filter>
-                        </defs>
+        <div className="flex flex-col items-center justify-center w-full relative">
+            <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+                <svg width={size} height={size} viewBox={`-${size / 2} -${size / 2} ${size} ${size}`} className="overflow-visible z-10">
+                    <defs>
+                        <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.15)" />
+                        </filter>
+                    </defs>
 
+                    {processedData.map((slice, index) => {
+                        const isActive = activeIndex === index;
+                        const path = getSlicePath(slice.startAngle, slice.endAngle, innerRadius, outerRadius);
+                        // Calculate centroid for potential label placement or animation direction
+                        const midAngle = slice.startAngle + (slice.endAngle - slice.startAngle) / 2;
+                        const midRad = (midAngle - 90) * (Math.PI / 180);
+                        const offset = isActive ? 10 : 0;
+                        const tx = Math.cos(midRad) * offset;
+                        const ty = Math.sin(midRad) * offset;
 
-                        {processedData.map((slice, index) => {
-                            const isActive = activeIndex === index;
-                            const path = getSlicePath(slice.startAngle, slice.endAngle, innerRadius, outerRadius);
-                            // Calculate centroid for potential label placement or animation direction
-                            const midAngle = slice.startAngle + (slice.endAngle - slice.startAngle) / 2;
-                            const midRad = (midAngle - 90) * (Math.PI / 180);
-                            const offset = isActive ? 10 : 0;
-                            const tx = Math.cos(midRad) * offset;
-                            const ty = Math.sin(midRad) * offset;
-
-                            return (
-                                <motion.path
-                                    key={index}
-                                    d={path}
-                                    fill={slice.color}
-                                    stroke="white"
-                                    strokeWidth="2"
-                                    initial={{ scale: 0, opacity: 0, rotate: -45 }}
-                                    animate={{
-                                        scale: 1,
-                                        opacity: 1,
-                                        rotate: 0,
-                                        x: tx,
-                                        y: ty,
-                                        filter: isActive ? `url(#${filterId})` : 'none'
-                                    }}
-                                    transition={{
-                                        type: 'spring',
-                                        stiffness: 100,
-                                        damping: 20,
-                                        delay: index * 0.1
-                                    }}
-                                    onMouseEnter={() => setActiveIndex(index)}
-                                    onMouseLeave={() => setActiveIndex(null)}
-                                    onClick={() => setActiveIndex(index === activeIndex ? null : index)} // Toggle on click
-                                    className="cursor-pointer hover:opacity-90 transition-opacity"
-                                    style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-                                />
-                            );
-                        })}
-
-                        {/* Center Info (Donut Hole) */}
-                        {donut && (
-                            <foreignObject x={-innerRadius} y={-innerRadius} width={innerRadius * 2} height={innerRadius * 2}>
-                                <div className="flex flex-col items-center justify-center h-full text-center pointer-events-none p-2">
-                                    <AnimatePresence mode="wait">
-                                        {activeItem ? (
-                                            <motion.div
-                                                key="active"
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                className="flex flex-col items-center"
-                                            >
-                                                <span
-                                                    className="font-bold uppercase mb-1 text-center leading-tight break-words px-1"
-                                                    style={{
-                                                        color: activeItem.color,
-                                                        fontSize: activeItem.name.length > 14 ? '9px' : '11px',
-                                                        maxWidth: '100%'
-                                                    }}
-                                                >
-                                                    {activeItem.name}
-                                                </span>
-                                                <span className="text-2xl font-black text-gray-900 leading-none">
-                                                    {Math.round(activeItem.percentage * 100)}%
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-400 mt-0.5">
-                                                    {activeItem.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                                </span>
-                                            </motion.div>
-                                        ) : (
-                                            <motion.div
-                                                key="total"
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                className="flex flex-col items-center"
-                                            >
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total</span>
-                                                <span className="text-sm font-black text-gray-900 text-center leading-tight truncate max-w-full px-1">
-                                                    {total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
-                                                </span>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                            </foreignObject>
-                        )}
-                    </AnimatePresence>
+                        return (
+                            <motion.path
+                                key={index}
+                                d={path}
+                                fill={slice.color}
+                                stroke="white"
+                                strokeWidth="2"
+                                initial={{ scale: 0, opacity: 0, rotate: -45 }}
+                                animate={{
+                                    scale: 1,
+                                    opacity: 1,
+                                    rotate: 0,
+                                    x: tx,
+                                    y: ty,
+                                    filter: isActive ? `url(#${filterId})` : 'none'
+                                }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 100,
+                                    damping: 20,
+                                    delay: index * 0.1
+                                }}
+                                onMouseEnter={() => setActiveIndex(index)}
+                                onMouseLeave={() => setActiveIndex(null)}
+                                onClick={() => setActiveIndex(index === activeIndex ? null : index)} // Toggle on click
+                                className="cursor-pointer hover:opacity-90 transition-opacity"
+                                style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+                            />
+                        );
+                    })}
                 </svg>
+
+                {/* Center Info (Overlay) */}
+                {donut && (
+                    <div
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+                        style={{ width: innerRadius * 2, height: innerRadius * 2, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                    >
+                        <AnimatePresence mode="wait">
+                            {activeItem ? (
+                                <motion.div
+                                    key="active"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    className="flex flex-col items-center justify-center"
+                                >
+                                    <span
+                                        className="font-bold uppercase mb-1 text-center leading-tight break-words px-1"
+                                        style={{
+                                            color: activeItem.color,
+                                            fontSize: activeItem.name.length > 14 ? '9px' : '11px',
+                                            maxWidth: '100%'
+                                        }}
+                                    >
+                                        {activeItem.name}
+                                    </span>
+                                    <span className="text-2xl font-black text-gray-900 leading-none">
+                                        {Math.round(activeItem.percentage * 100)}%
+                                    </span>
+                                    <span className="text-[10px] font-bold text-gray-400 mt-0.5">
+                                        {activeItem.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </span>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="total"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    className="flex flex-col items-center justify-center"
+                                >
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total</span>
+                                    <span className="text-sm font-black text-gray-900 text-center leading-tight truncate max-w-full px-1">
+                                        {total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
+                                    </span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                )}
             </div>
 
             {/* Legend Below - Grid Layout (2 Columns) */}
