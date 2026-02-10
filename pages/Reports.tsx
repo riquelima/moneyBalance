@@ -46,6 +46,21 @@ const Reports: React.FC = () => {
         const dd = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${dd}`;
       };
+
+      // FETCH ADJUSTMENT ID
+      let adjustmentCatId: string | null = null;
+      try {
+        const { data: adjCat } = await supabase
+          .from('user_categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .ilike('name', 'Ajuste de Saldo')
+          .maybeSingle()
+          .abortSignal(ac.signal);
+        if (adjCat) adjustmentCatId = adjCat.id;
+      } catch (e) { /* ignore */ }
+
+
       const startCur = new Date(selectedYear, selectedMonth, 1);
       const endCur = new Date(selectedYear, selectedMonth + 1, 0);
       const startPrev = new Date(selectedYear, selectedMonth - 1, 1);
@@ -61,12 +76,13 @@ const Reports: React.FC = () => {
 
       const { data: prevTx } = await supabase
         .from('user_transactions')
-        .select('amount, type, date')
+        .select('amount, type, date, category_id') // Added category_id
         .eq('user_id', user.id)
         .gte('date', fmt(startPrev))
         .lte('date', fmt(endPrev))
         .abortSignal(ac.signal);
 
+      // --- EXPENSES (no change) ---
       const expCur = (curTx || []).filter((t: any) => t.type === 'expense');
       const totalCur = expCur.reduce((acc: number, t: any) => acc + Number(t.amount), 0);
       const totalPrev = (prevTx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
@@ -96,11 +112,26 @@ const Reports: React.FC = () => {
       arr.sort((a, b) => b.amount - a.amount);
       setCategories(arr);
 
-      const incomeCur = (curTx || []).filter((x: any) => x.type === 'income').reduce((s: number, x: any) => s + Number(x.amount), 0);
-      const expenseCur = (curTx || []).filter((x: any) => x.type === 'expense').reduce((s: number, x: any) => s + Number(x.amount), 0);
-      const totalNet = incomeCur - expenseCur;
-      const incomePrev = (prevTx || []).filter((x: any) => x.type === 'income').reduce((s: number, x: any) => s + Number(x.amount), 0);
-      const expensePrev = (prevTx || []).filter((x: any) => x.type === 'expense').reduce((s: number, x: any) => s + Number(x.amount), 0);
+      // --- INCOME (Exclude Adjustment) ---
+      const incomeCurRaw = (curTx || []).filter((x: any) => x.type === 'income');
+      const incomePrevRaw = (prevTx || []).filter((x: any) => x.type === 'income');
+
+      // Filter Logic
+      const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatId);
+      const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatId);
+
+      const incomeCur = incomeCurFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
+      const incomePrev = incomePrevFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
+
+      // For Net Calculation (Projection), should we exclude adjustment?
+      // "Ajuste de Saldo" is artificial. Excluding it gives a better "real" net.
+      // But BALANCE requires it.
+      // However, Projection is about specific monthly performance.
+      // Let's exclude it from Net for projection purposes to avoid spikes.
+      const expenseCur = totalCur;
+      const expensePrev = totalPrev;
+
+      const totalNet = incomeCur - expenseCur; // This net excludes adjustment
       const prevNet = incomePrev - expensePrev;
       const percent = prevNet ? ((totalNet - prevNet) / prevNet) * 100 : 0;
 
@@ -109,7 +140,7 @@ const Reports: React.FC = () => {
       const endYear = new Date(selectedYear, 11, 31);
       const { data: yearTx } = await supabase
         .from('user_transactions')
-        .select('amount, type, date')
+        .select('amount, type, date, category_id') // Added category_id
         .eq('user_id', user.id)
         .gte('date', fmt(startYear))
         .lte('date', fmt(endYear))
@@ -120,6 +151,9 @@ const Reports: React.FC = () => {
       const monthlyDataExists = Array(12).fill(false);
 
       (yearTx || []).forEach((t: any) => {
+        // Exclude Adjustment from annual projection data as well
+        if (t.type === 'income' && t.category_id === adjustmentCatId) return;
+
         const parts = String(t.date || '').split('-');
         const m = parseInt(parts[1], 10) - 1; // 0-11
         if (m >= 0 && m <= 11) {
@@ -137,18 +171,10 @@ const Reports: React.FC = () => {
       const isProjected = Array(12).fill(false);
 
       // Determine cutoff for projection. We project starting from selectedMonth + 1
-      // If we have actual data for future months, we use it? 
-      // Requirement: "dados precisos". Using actuals is most precise.
-      // But for "Projection" concept, if we are in March, Apr-Dec should be projected.
-      // Let's assume we project from selectedMonth + 1 onwards ONLY IF no data exists?
-      // Or forcing projection from selectedMonth onwards to show the "Trend"?
-      // Usually "Projection" means "What if". 
-      // Let's stick to: Use Actuals where they exist (and <= selectedMonth + 1 maybe?), Project the rest.
-      // Simpler: Project from selectedMonth + 1.
-
       let lastVal = monthlyNet[selectedMonth];
       // If selected month has no data (e.g. future), try to find last month with data?
-      // Or just use the totalNet calculated earlier for consistency
+      // Or just use the totalNet calculated earlier (which is incomeCur - expenseCur)
+      // totalNet effectively IS monthlyNet[selectedMonth] but computed from fresh curTx data.
       lastVal = totalNet;
 
       for (let i = selectedMonth + 1; i < 12; i++) {
@@ -172,8 +198,9 @@ const Reports: React.FC = () => {
       setIncomeTotal(incomeCur);
       setLastIncomeTotal(incomePrev);
 
+      // --- INCOME CATEGORIES (Exclude Adjustment) ---
       const mapInc = new Map<string, number>();
-      (curTx || []).filter((t: any) => t.type === 'income').forEach((t: any) => {
+      incomeCurFiltered.forEach((t: any) => {
         const key = t.category_id || 'none';
         mapInc.set(key, (mapInc.get(key) || 0) + Number(t.amount));
       });

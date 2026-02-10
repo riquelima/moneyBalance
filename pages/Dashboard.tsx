@@ -16,7 +16,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('month');
   const [chartType, setChartType] = useState<'income' | 'expense'>('expense');
-  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const [summary, setSummary] = useState({ income: 0, expense: 0, pending: 0, balance: 0, paid: 0 });
   const [displayName, setDisplayName] = useState<string>('Usuário');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
@@ -34,21 +34,21 @@ const Dashboard: React.FC = () => {
   const [isReportOpen, setIsReportOpen] = useState<boolean>(true);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
   const { isPrivacyEnabled, togglePrivacy } = usePrivacy();
-  
+
   const [todayExpense, setTodayExpense] = useState(0);
   const [yesterdayExpense, setYesterdayExpense] = useState(0);
 
   const getSPDateISO = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
     }).format(date).split('/').reverse().join('-');
   };
 
   const getCacheKey = (key: string) => `dashboard_cache_${key}`;
-  
+
   const saveToCache = (key: string, data: any) => {
     try {
       localStorage.setItem(getCacheKey(key), JSON.stringify({
@@ -86,23 +86,23 @@ const Dashboard: React.FC = () => {
       const now = new Date();
       const todayISO = getSPDateISO(now);
       const [y, m, d] = todayISO.split('-').map(Number);
-      const todayDateObj = new Date(y, m-1, d);
+      const todayDateObj = new Date(y, m - 1, d);
       const yesterdayDateObj = new Date(todayDateObj);
       yesterdayDateObj.setDate(todayDateObj.getDate() - 1);
-      
+
       const yStr = yesterdayDateObj.getFullYear();
       const mStr = String(yesterdayDateObj.getMonth() + 1).padStart(2, '0');
       const dStr = String(yesterdayDateObj.getDate()).padStart(2, '0');
       const yesterdayISO = `${yStr}-${mStr}-${dStr}`;
 
       const [todayRes, yesterdayRes] = await Promise.all([
-          supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', todayISO),
-          supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', yesterdayISO)
+        supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', todayISO),
+        supabase.from('user_transactions').select('amount').eq('user_id', user.id).eq('type', 'expense').eq('date', yesterdayISO)
       ]);
 
       const tTotal = todayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
       const yTotal = yesterdayRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-      
+
       setTodayExpense(tTotal);
       setYesterdayExpense(yTotal);
     })());
@@ -118,12 +118,12 @@ const Dashboard: React.FC = () => {
         const metaLast = (user.user_metadata?.lastName as string) || '';
         const metaUsername = (user.user_metadata?.username as string) || '';
         const candidate = metaName || metaUsername || user.email || 'Usuário';
-        
+
         const { data: prof } = await supabase.from('user_profiles').select('display_name, avatar_url').eq('id', user.id).maybeSingle();
-        
+
         const dName = (prof?.display_name as string) || (metaName && metaLast ? `${metaName} ${metaLast}` : candidate);
         const aUrl = (prof?.avatar_url as string) || '';
-        
+
         setDisplayName(dName);
         setAvatarUrl(aUrl);
         saveToCache(`profile_${user.id}`, { displayName: dName, avatarUrl: aUrl });
@@ -131,16 +131,16 @@ const Dashboard: React.FC = () => {
     }
 
     if (promises.length > 0) {
-        await Promise.all(promises);
+      await Promise.all(promises);
     }
-    
+
     setLoading(false);
 
   }, []);
 
   useEffect(() => {
     fetchAllData();
-    
+
     // Subscribe to realtime changes
     const channel = supabase
       .channel('dashboard_changes')
@@ -187,8 +187,8 @@ const Dashboard: React.FC = () => {
     period === 'week'
       ? getWeeksOfMonth(selectedYear, selectedMonth)
       : (period === 'month'
-          ? { labels: last12MonthsLabels(), values: Array(12).fill(6), raw: Array(12).fill(0) }
-          : dataMap.day)
+        ? { labels: last12MonthsLabels(), values: Array(12).fill(6), raw: Array(12).fill(0) }
+        : dataMap.day)
   );
   const now = new Date();
   const highlightIndex = period === 'month' ? selectedMonth : 3;
@@ -233,20 +233,52 @@ const Dashboard: React.FC = () => {
       return vals.map(v => (v === 0 ? 0 : Math.max(6, Math.round((v / max) * 100))));
     };
 
-    const processMonthData = (data: any[]) => {
+    const processMonthData = async (data: any[]) => {
+      // 1. Fetch "Ajuste de Saldo" category ID
+      let adjustmentCatId: string | null = null;
+      try {
+        const { data: adjCat } = await supabase
+          .from('user_categories')
+          .select('id')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .ilike('name', 'Ajuste de Saldo')
+          .maybeSingle();
+        if (adjCat) adjustmentCatId = adjCat.id;
+      } catch (e) {
+        console.error('Error fetching adjustment category:', e);
+      }
+
       // Summary
-      const income = data.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0);
-      const expense = data.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0);
+      // BALANCE: Includes everything (Adjustment included)
+      const totalIncome = data.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0);
+      const totalExpense = data.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0);
+
+      // DISPLAY INCOME: Excludes 'Ajuste de Saldo'
+      // We check if category_id matches adjustmentCatId.
+      const displayIncome = data
+        .filter(t => t.type === 'income' && t.category_id !== adjustmentCatId)
+        .reduce((a, t) => a + Number(t.amount), 0);
+
       const pending = data.filter(t => t.type === 'expense' && !t.is_paid).reduce((a, t) => a + Number(t.amount), 0);
       const paid = data.filter(t => t.type === 'expense' && t.is_paid).reduce((a, t) => a + Number(t.amount), 0);
-      setSummary({ income, expense, pending, balance: income - expense, paid });
 
-      // Lists
-      setIncomeItems(data.filter(t => t.type === 'income'));
-      setExpenseItems(data.filter(t => t.type === 'expense'));
+      if (mounted) {
+        setSummary({
+          income: displayIncome, // UI shows filtered income
+          expense: totalExpense,
+          pending,
+          balance: totalIncome - totalExpense, // Balance uses REAL total
+          paid
+        });
+
+        // Lists
+        // Filter out adjustments from the visible income list
+        setIncomeItems(data.filter(t => t.type === 'income' && t.category_id !== adjustmentCatId));
+        setExpenseItems(data.filter(t => t.type === 'expense'));
+      }
 
       // Week Chart
-      if (period === 'week') {
+      if (period === 'week' && mounted) {
         const first = new Date(selectedYear, selectedMonth, 1);
         const last = new Date(selectedYear, selectedMonth + 1, 0);
         const startDowMonday = (first.getDay() + 6) % 7;
@@ -254,13 +286,18 @@ const Dashboard: React.FC = () => {
         const weeks = Math.ceil((startDowMonday + daysInMonth) / 7);
         const labels = Array.from({ length: weeks }, (_, i) => `Sem${i + 1}`);
         const vals = Array(weeks).fill(0);
-        
-        data.filter(t => t.type === chartType).forEach((t: any) => {
-           const d = parseLocalISODate(t.date);
-           const dayIndex = d.getDate();
-           const totalOffset = startDowMonday + dayIndex - 1;
-           const w = Math.floor(totalOffset / 7);
-           if (w >= 0 && w < weeks) vals[w] += Number(t.amount || 0);
+
+        data.filter(t => {
+          if (t.type !== chartType) return false;
+          // If chart is Income, exclude Adjustment
+          if (chartType === 'income' && t.category_id === adjustmentCatId) return false;
+          return true;
+        }).forEach((t: any) => {
+          const d = parseLocalISODate(t.date);
+          const dayIndex = d.getDate();
+          const totalOffset = startDowMonday + dayIndex - 1;
+          const w = Math.floor(totalOffset / 7);
+          if (w >= 0 && w < weeks) vals[w] += Number(t.amount || 0);
         });
         setChart({ labels, values: normalize(vals), raw: vals });
       }
@@ -270,14 +307,28 @@ const Dashboard: React.FC = () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
       if (!user || !mounted) return;
-      
+
       setSummaryLoading(true);
+
+      // We need adjustment ID for charts too, so fetch it once here or inside sub-functions?
+      // Better to fetch it once.
+      let adjustmentCatId: string | null = null;
+      try {
+        const { data: adjCat } = await supabase
+          .from('user_categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .ilike('name', 'Ajuste de Saldo') // Case-insensitive check
+          .maybeSingle();
+        if (adjCat) adjustmentCatId = adjCat.id;
+      } catch (e) { /* ignore */ }
+
 
       const promises = [];
 
       // 1. Month Data (Summary + Lists + Week Chart)
       // This covers the most common view
-      
+
       promises.push((async () => {
         try {
           const y = selectedYear;
@@ -285,20 +336,21 @@ const Dashboard: React.FC = () => {
           const endDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
           const dStart = `${y}-${m}-01`;
           const dEnd = `${y}-${m}-${endDay}`;
-          
+
           const { data, error } = await supabase
-              .from('user_transactions')
-              .select('id, description, amount, type, date, is_paid')
-              .eq('user_id', user.id)
-              .gte('date', dStart)
-              .lte('date', dEnd)
-              .order('date', { ascending: true })
-              .order('created_at', { ascending: true });
+            .from('user_transactions')
+            .select('id, description, amount, type, date, is_paid, category_id') // Added category_id
+            .eq('user_id', user.id)
+            .gte('date', dStart)
+            .lte('date', dEnd)
+            .order('date', { ascending: true })
+            .order('created_at', { ascending: true });
 
           if (error) throw error;
 
           if (data && mounted) {
-              processMonthData(data);
+            await processMonthData(data); // Made async to re-fetch ID if needed, or pass it? passing would be cleaner but processMonthData is defined above.
+            // Actually processMonthData fetches ID itself now.
           }
         } catch (err) {
           console.error('Error fetching month data:', err);
@@ -309,103 +361,97 @@ const Dashboard: React.FC = () => {
 
       // 2. Day Chart (Current Week)
       if (period === 'day') {
-           promises.push((async () => {
-               const now = new Date();
-               const todayISO = getSPDateISO(now); // Use helper if available, or manual
-               // Fallback manual to match existing logic
-               const today = parseLocalISODate(todayISO);
-               const mondayOffset = (today.getDay() + 6) % 7;
-               const start = new Date(today);
-               start.setDate(today.getDate() - mondayOffset);
-               const end = new Date(start);
-               end.setDate(start.getDate() + 6);
-               
-               const fmt = (d: Date) => {
-                  const Y = d.getFullYear();
-                  const M = String(d.getMonth() + 1).padStart(2, '0');
-                  const D = String(d.getDate()).padStart(2, '0');
-                  return `${Y}-${M}-${D}`;
-               };
+        promises.push((async () => {
+          const now = new Date();
+          const todayISO = getSPDateISO(now);
+          const today = parseLocalISODate(todayISO);
+          const mondayOffset = (today.getDay() + 6) % 7;
+          const start = new Date(today);
+          start.setDate(today.getDate() - mondayOffset);
+          const end = new Date(start);
+          end.setDate(start.getDate() + 6);
 
-               const { data } = await supabase
-                 .from('user_transactions')
-                 .select('amount, date')
-                 .eq('user_id', user.id)
-                 .eq('type', chartType)
-                 .gte('date', fmt(start))
-                 .lte('date', fmt(end));
-               
-               if (data && mounted) {
-                   const vals = Array(7).fill(0);
-                   data.forEach((t: any) => {
-                       const d = parseLocalISODate(t.date);
-                       const idx = (d.getDay() + 6) % 7;
-                       vals[idx] += Number(t.amount || 0);
-                   });
-                   const c = { labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], values: normalize(vals), raw: vals };
-                   setChart(c);
-               }
-           })());
+          const fmt = (d: Date) => {
+            const Y = d.getFullYear();
+            const M = String(d.getMonth() + 1).padStart(2, '0');
+            const D = String(d.getDate()).padStart(2, '0');
+            return `${Y}-${M}-${D}`;
+          };
+
+          const { data } = await supabase
+            .from('user_transactions')
+            .select('amount, date, category_id')
+            .eq('user_id', user.id)
+            .eq('type', chartType)
+            .gte('date', fmt(start))
+            .lte('date', fmt(end));
+
+          if (data && mounted) {
+            const vals = Array(7).fill(0);
+            data.forEach((t: any) => {
+              // Filter out Adjustment if chart type is Income
+              if (chartType === 'income' && adjustmentCatId && t.category_id === adjustmentCatId) return;
+
+              const d = parseLocalISODate(t.date);
+              const idx = (d.getDay() + 6) % 7;
+              vals[idx] += Number(t.amount || 0);
+            });
+            const c = { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'], values: normalize(vals), raw: vals };
+            setChart(c);
+          }
+        })());
       }
 
       // 3. Month Chart (Year View)
       if (period === 'month') {
-          promises.push((async () => {
-              const start = `${chartYear}-01-01`;
-              const end = `${chartYear}-12-31`;
-              const { data } = await supabase
-                .from('user_transactions')
-                .select('amount, date')
-                .eq('user_id', user.id)
-                .eq('type', chartType)
-                .gte('date', start)
-                .lte('date', end);
-                
-              if (data && mounted) {
-                  const vals = Array(12).fill(0);
-                  data.forEach((t: any) => {
-                      const d = parseLocalISODate(t.date);
-                      const idx = d.getMonth();
-                      vals[idx] += Number(t.amount || 0);
-                  });
-                  const c = { labels: last12MonthsLabels(), values: normalize(vals), raw: vals };
-                  setChart(c);
-              }
-          })());
+        promises.push((async () => {
+          const start = `${chartYear}-01-01`;
+          const end = `${chartYear}-12-31`;
+          const { data } = await supabase
+            .from('user_transactions')
+            .select('amount, date, category_id')
+            .eq('user_id', user.id)
+            .eq('type', chartType)
+            .gte('date', start)
+            .lte('date', end);
+
+          if (data && mounted) {
+            const vals = Array(12).fill(0);
+            data.forEach((t: any) => {
+              // Filter out Adjustment if chart type is Income
+              if (chartType === 'income' && adjustmentCatId && t.category_id === adjustmentCatId) return;
+
+              const d = parseLocalISODate(t.date);
+              const idx = d.getMonth();
+              vals[idx] += Number(t.amount || 0);
+            });
+            const c = { labels: last12MonthsLabels(), values: normalize(vals), raw: vals };
+            setChart(c);
+          }
+        })());
       }
-      
+
       if (promises.length > 0) await Promise.all(promises);
     };
 
     fetchDashboardData();
-    
-    // Subscribe to realtime changes within this effect scope as well?
-    // Actually, since this effect depends on filters, we should probably have a general subscription
-    // that triggers a re-fetch of everything or specifically calls this.
-    // But since `fetchAllData` (which I just modified) is separate, I should also add subscription here
-    // OR make the previous subscription call this one too.
-    
-    // The previous subscription calls `fetchAllData`. It does NOT call `fetchDashboardData` because `fetchDashboardData` is inside this useEffect.
-    // So I need to add subscription here too, or refactor `fetchDashboardData` out of useEffect.
-    
-    // Refactoring out is better but might break dependencies. 
-    // Adding subscription here is safer for now.
-    
+
+
     const channel = supabase
       .channel('dashboard_charts_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_transactions' }, () => {
-         fetchDashboardData();
+        fetchDashboardData();
       })
       .subscribe();
 
-    return () => { 
-        mounted = false; 
-        supabase.removeChannel(channel);
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
     };
   }, [selectedYear, selectedMonth, period, chartType, chartYear]);
 
 
-  
+
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -430,7 +476,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -438,27 +484,27 @@ const Dashboard: React.FC = () => {
     >
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white/80 backdrop-blur-xl p-4 -mx-4 border-b border-white/40 shadow-glass-sm transition-all duration-300">
         <div className="flex items-center gap-4">
-            {avatarUrl && (
-              <img 
-                src={avatarUrl}
-                alt="Profile" 
-                className="h-12 w-12 rounded-full border-2 border-white/50 shadow-sm object-cover"
-                onClick={() => navigate('/settings')}
-              />
-            )}
-            <div>
-                <p className="text-sm font-medium text-gray-500">Bem-vindo(a),</p>
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h1>
-            </div>
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              className="h-12 w-12 rounded-full border-2 border-white/50 shadow-sm object-cover"
+              onClick={() => navigate('/settings')}
+            />
+          )}
+          <div>
+            <p className="text-sm font-medium text-gray-500">Bem-vindo(a),</p>
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h1>
+          </div>
         </div>
         <div className="flex items-center gap-3">
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
-                <span className="material-symbols-outlined text-gray-600 text-[22px]">notifications</span>
-                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white"></span>
-            </motion.button>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
-                <span className="material-symbols-outlined text-gray-600 text-[22px]">settings</span>
-            </motion.button>
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
+            <span className="material-symbols-outlined text-gray-600 text-[22px]">notifications</span>
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white"></span>
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
+            <span className="material-symbols-outlined text-gray-600 text-[22px]">settings</span>
+          </motion.button>
         </div>
       </header>
 
@@ -494,13 +540,13 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <motion.section 
+      <motion.section
         variants={itemVariants}
         className="rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
         data-onboarding="saldo-total"
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
-        
+
         {/* Hide Values Button - Top Left */}
         <motion.button
           whileTap={{ scale: 0.95 }}
@@ -576,48 +622,48 @@ const Dashboard: React.FC = () => {
               <span className="material-symbols-outlined text-xl">today</span>
               <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Hoje</p>
             </div>
-             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
-                Comparação com ontem
-             </div>
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
+              Comparação com ontem
+            </div>
           </div>
           {loading ? (
             <Skeleton width={120} height={28} />
           ) : (
             <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
-               {formatBRL(todayExpense)}
+              {formatBRL(todayExpense)}
             </p>
           )}
-          
+
           <div className="flex items-center gap-1 mt-1">
-             {loading ? (
-               <Skeleton width={60} height={20} />
-             ) : (
-               (() => {
+            {loading ? (
+              <Skeleton width={60} height={20} />
+            ) : (
+              (() => {
                 const diff = todayExpense - yesterdayExpense;
                 if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
                 if (yesterdayExpense === 0 && todayExpense > 0) return (
-                    <>
-                        <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
-                        <span className="text-xs font-bold text-success">100%</span>
-                    </>
+                  <>
+                    <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
+                    <span className="text-xs font-bold text-success">100%</span>
+                  </>
                 );
-                
+
                 const pct = (diff / yesterdayExpense) * 100;
                 if (diff > 0) return (
-                     <>
-                        <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
-                        <span className="text-xs font-bold text-success">{pct.toFixed(1)}%</span>
-                     </>
+                  <>
+                    <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
+                    <span className="text-xs font-bold text-success">{pct.toFixed(1)}%</span>
+                  </>
                 );
                 if (diff < 0) return (
-                     <>
-                        <span className="material-symbols-outlined text-sm text-danger font-bold">arrow_downward</span>
-                        <span className="text-xs font-bold text-danger">{Math.abs(pct).toFixed(1)}%</span>
-                     </>
+                  <>
+                    <span className="material-symbols-outlined text-sm text-danger font-bold">arrow_downward</span>
+                    <span className="text-xs font-bold text-danger">{Math.abs(pct).toFixed(1)}%</span>
+                  </>
                 );
                 return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
-             })()
-             )}
+              })()
+            )}
           </div>
         </motion.div>
 
@@ -633,18 +679,18 @@ const Dashboard: React.FC = () => {
             navigate(`/transactions?type=expense&date=${yesterdayISO}`);
           }}
         >
-            <div className="flex items-center gap-2 text-primary">
-              <span className="material-symbols-outlined text-xl">calendar_today</span>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Ontem</p>
-            </div>
-             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
-                Total de saídas de ontem
-             </div>
+          <div className="flex items-center gap-2 text-primary">
+            <span className="material-symbols-outlined text-xl">calendar_today</span>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Ontem</p>
+          </div>
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
+            Total de saídas de ontem
+          </div>
           {loading ? (
             <Skeleton width={120} height={28} />
           ) : (
             <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
-               {formatBRL(yesterdayExpense)}
+              {formatBRL(yesterdayExpense)}
             </p>
           )}
         </motion.div>
@@ -653,7 +699,7 @@ const Dashboard: React.FC = () => {
       <PastSelfWidget />
 
       <motion.section variants={itemVariants}>
-        <button 
+        <button
           onClick={() => setIsChartsOpen(!isChartsOpen)}
           className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isChartsOpen}
@@ -664,7 +710,7 @@ const Dashboard: React.FC = () => {
             </div>
             Gráficos
           </h3>
-          <span 
+          <span
             className={`material-symbols-outlined text-text-secondary dark:text-gray-400 transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
           >
             expand_more
@@ -680,91 +726,91 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-            <div className="mb-4">
-            <div className="mt-2 flex items-center gap-2 w-full justify-between">
-              <div className="flex items-center gap-1 rounded-xl bg-white/50 dark:bg-black/20 p-1 border border-white/20 backdrop-blur-md">
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setPeriod('day')}
-                  className={period === 'day' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
-                >DIA</motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setPeriod('month')}
-                  className={period === 'month' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
-                >MÊS</motion.button>
+              <div className="mb-4">
+                <div className="mt-2 flex items-center gap-2 w-full justify-between">
+                  <div className="flex items-center gap-1 rounded-xl bg-white/50 dark:bg-black/20 p-1 border border-white/20 backdrop-blur-md">
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setPeriod('day')}
+                      className={period === 'day' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
+                    >DIA</motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setPeriod('month')}
+                      className={period === 'month' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
+                    >MÊS</motion.button>
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
+                    className={chartType === 'expense' ? 'rounded-xl border border-danger/20 px-4 py-2 text-xs font-bold text-white bg-danger shadow-lg shadow-danger/30' : 'rounded-xl border border-success/20 px-4 py-2 text-xs font-bold text-white bg-success shadow-lg shadow-success/30'}
+                  >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</motion.button>
+                </div>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
-                className={chartType === 'expense' ? 'rounded-xl border border-danger/20 px-4 py-2 text-xs font-bold text-white bg-danger shadow-lg shadow-danger/30' : 'rounded-xl border border-success/20 px-4 py-2 text-xs font-bold text-white bg-success shadow-lg shadow-success/30'}
-              >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</motion.button>
-            </div>
-        </div>
-        
-        <div className="flex h-64 w-full flex-col justify-end rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass relative overflow-hidden backdrop-blur-xl">
-          <AnimatePresence initial={false} custom={direction} mode="wait">
-            <motion.div
-              key={`${period}-${chartYear}-${chartType}`}
-              custom={direction}
-              variants={chartVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-              className="w-full h-full flex flex-col justify-end"
-              drag={period === 'month' ? "x" : false}
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleChartSwipe}
-            >
-              <div className="grid h-full w-full items-end gap-2" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
-                {current.values.map((h, i) => {
-                  const rawVal = (chart.raw || current.raw || [])[i] || 0;
-                  const labelText = formatBRL(rawVal);
-                  const charCount = labelText.replace(/\s/g, '').length;
-                  const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
-                  const showLabel = rawVal > 0;
-                  const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
 
-                  return (
-                    <div key={i} className="relative flex flex-col justify-end items-center h-full group">
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        transition={{ duration: 1, delay: i * 0.05 }}
-                        className={`${chartType === 'expense' ? 'bg-danger' : 'bg-success'} rounded-t-lg relative flex items-center justify-center ${period === 'month' ? 'w-2 sm:w-3' : 'w-full max-w-[40px]'}`}
-                        style={{ 
-                          backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#34C759', 
-                          opacity: (period === 'month' && !isHighlighted && chartYear === selectedYear) ? 0.3 : 0.9, 
-                          minHeight: showLabel ? `${minPx}px` : undefined 
-                        }}
-                      >
-                        {showLabel && (
-                          <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
-                            <span className={`${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{labelText}</span>
-                          </span>
-                        )}
-                      </motion.div>
+              <div className="flex h-64 w-full flex-col justify-end rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass relative overflow-hidden backdrop-blur-xl">
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.div
+                    key={`${period}-${chartYear}-${chartType}`}
+                    custom={direction}
+                    variants={chartVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                    className="w-full h-full flex flex-col justify-end"
+                    drag={period === 'month' ? "x" : false}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDragEnd={handleChartSwipe}
+                  >
+                    <div className="grid h-full w-full items-end gap-2" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+                      {current.values.map((h, i) => {
+                        const rawVal = (chart.raw || current.raw || [])[i] || 0;
+                        const labelText = formatBRL(rawVal);
+                        const charCount = labelText.replace(/\s/g, '').length;
+                        const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
+                        const showLabel = rawVal > 0;
+                        const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
+
+                        return (
+                          <div key={i} className="relative flex flex-col justify-end items-center h-full group">
+                            <motion.div
+                              initial={{ height: 0 }}
+                              animate={{ height: `${h}%` }}
+                              transition={{ duration: 1, delay: i * 0.05 }}
+                              className={`${chartType === 'expense' ? 'bg-danger' : 'bg-success'} rounded-t-lg relative flex items-center justify-center ${period === 'month' ? 'w-2 sm:w-3' : 'w-full max-w-[40px]'}`}
+                              style={{
+                                backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#34C759',
+                                opacity: (period === 'month' && !isHighlighted && chartYear === selectedYear) ? 0.3 : 0.9,
+                                minHeight: showLabel ? `${minPx}px` : undefined
+                              }}
+                            >
+                              {showLabel && (
+                                <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
+                                  <span className={`${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{labelText}</span>
+                                </span>
+                              )}
+                            </motion.div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                    <div className="mt-4 grid w-full border-t border-white/20 pt-3 text-[10px] text-gray-500 font-bold uppercase tracking-wider" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+                      {current.labels.map((l, idx) => (
+                        <span key={idx} className={`text-center ${period === 'month' && idx === selectedMonth && chartYear === selectedYear ? 'text-primary' : ''}`}>{l}</span>
+                      ))}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
-              <div className="mt-4 grid w-full border-t border-white/20 pt-3 text-[10px] text-gray-500 font-bold uppercase tracking-wider" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
-                  {current.labels.map((l, idx) => (
-                    <span key={idx} className={`text-center ${period === 'month' && idx === selectedMonth && chartYear === selectedYear ? 'text-primary' : ''}`}>{l}</span>
-                  ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.section>
 
       <motion.section variants={itemVariants}>
-        <button 
+        <button
           onClick={() => setIsReportOpen(!isReportOpen)}
           className="w-full flex items-center justify-between group focus:outline-none mb-4"
           aria-expanded={isReportOpen}
@@ -775,7 +821,7 @@ const Dashboard: React.FC = () => {
             </div>
             RELATÓRIO
           </h3>
-          <span 
+          <span
             className={`material-symbols-outlined text-gray-500 transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
           >
             expand_more
