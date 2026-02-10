@@ -38,6 +38,7 @@ const Dashboard: React.FC = () => {
 
   const [todayExpense, setTodayExpense] = useState(0);
   const [yesterdayExpense, setYesterdayExpense] = useState(0);
+  const [saldoAtual, setSaldoAtual] = useState(0);
 
   const getSPDateISO = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -106,6 +107,28 @@ const Dashboard: React.FC = () => {
 
       setTodayExpense(tTotal);
       setYesterdayExpense(yTotal);
+    })());
+
+    // 1.5 Saldo Atual (Current Month Paid Income)
+    promises.push((async () => {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const start = `${y}-${m}-01`;
+      const endDay = new Date(y, now.getMonth() + 1, 0).getDate();
+      const end = `${y}-${m}-${endDay}`;
+
+      const { data: incomeData } = await supabase
+        .from('user_transactions')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('type', 'income')
+        .eq('is_paid', true)
+        .gte('date', start)
+        .lte('date', end);
+
+      const totalPaidIncome = incomeData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      setSaldoAtual(totalPaidIncome);
     })());
 
     // 2. Profile
@@ -544,41 +567,62 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <motion.section
-        variants={itemVariants}
-        className="rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
-        data-onboarding="saldo-total"
-      >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
-
-        {/* Hide Values Button - Top Left */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={togglePrivacy}
-          aria-label={isPrivacyEnabled ? 'Mostrar valores' : 'Ocultar valores'}
-          className="absolute top-6 left-6 p-0 border-0 bg-transparent cursor-pointer hover:opacity-70 transition-opacity"
+      <div className="flex w-full overflow-x-auto snap-x snap-mandatory gap-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] -mx-4 px-4 pb-2">
+        {/* Saldo Total Card */}
+        <motion.section
+          variants={itemVariants}
+          className="min-w-full snap-center rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
+          data-onboarding="saldo-total"
         >
-          <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
-        </motion.button>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
 
-        {/* 'Este Mês' Button - Top Right */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowMonthPicker(s => !s)}
-          className="absolute top-6 right-6 p-0 border-0 bg-transparent text-gray-500 hover:text-gray-900 font-bold text-sm transition-colors"
+          {/* Hide Values Button - Top Left */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={togglePrivacy}
+            aria-label={isPrivacyEnabled ? 'Mostrar valores' : 'Ocultar valores'}
+            className="absolute top-6 left-6 p-0 border-0 bg-transparent cursor-pointer hover:opacity-70 transition-opacity"
+          >
+            <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
+          </motion.button>
+
+          {/* 'Este Mês' Button - Top Right */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowMonthPicker(s => !s)}
+            className="absolute top-6 right-6 p-0 border-0 bg-transparent text-gray-500 hover:text-gray-900 font-bold text-sm transition-colors"
+          >
+            {selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}
+          </motion.button>
+
+          <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
+          {summaryLoading ? (
+            <div className="flex justify-center">
+              <Skeleton width={200} height={48} />
+            </div>
+          ) : (
+            <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+          )}
+        </motion.section>
+
+        {/* Saldo Atual Card (Já Recebido) */}
+        <motion.section
+          variants={itemVariants}
+          className="min-w-full snap-center rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
+          data-onboarding="saldo-atual"
         >
-          {selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}
-        </motion.button>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
 
-        <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
-        {summaryLoading ? (
-          <div className="flex justify-center">
-            <Skeleton width={200} height={48} />
-          </div>
-        ) : (
-          <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
-        )}
-      </motion.section>
+          <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Já Recebido</p>
+          {summaryLoading ? (
+            <div className="flex justify-center">
+              <Skeleton width={200} height={48} />
+            </div>
+          ) : (
+            <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(saldoAtual)}</h2>
+          )}
+        </motion.section>
+      </div>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
         {[
@@ -700,26 +744,28 @@ const Dashboard: React.FC = () => {
         </motion.div>
       </motion.section>
 
-      <PastSelfWidget />
 
-      <motion.section variants={itemVariants}>
-        <button
-          onClick={() => setIsChartsOpen(!isChartsOpen)}
-          className="w-full flex items-center justify-between group focus:outline-none mb-4"
-          aria-expanded={isChartsOpen}
-        >
-          <h3 className="text-lg font-black uppercase text-text-primary dark:text-white flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
-              <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-5 h-5" />
+
+      <motion.section variants={itemVariants} className="mt-8">
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-white shadow-sm border border-gray-100">
+              <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-6 h-6" />
             </div>
-            Gráficos
-          </h3>
-          <span
-            className={`material-symbols-outlined text-text-secondary dark:text-gray-400 transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
+            <h3 className="text-xl font-black uppercase text-gray-900 tracking-tight">Gráficos</h3>
+          </div>
+
+          <button
+            onClick={() => setIsChartsOpen(!isChartsOpen)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
           >
-            expand_more
-          </span>
-        </button>
+            <span
+              className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
+            >
+              expand_more
+            </span>
+          </button>
+        </div>
 
         <AnimatePresence>
           {isChartsOpen && (
@@ -727,33 +773,39 @@ const Dashboard: React.FC = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
               className="overflow-hidden"
             >
-              <div className="mb-4">
-                <div className="mt-2 flex items-center gap-2 w-full justify-between">
-                  <div className="flex items-center gap-1 rounded-xl bg-white/50 dark:bg-black/20 p-1 border border-white/20 backdrop-blur-md">
-                    <motion.button
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setPeriod('day')}
-                      className={period === 'day' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
-                    >DIA</motion.button>
-                    <motion.button
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setPeriod('month')}
-                      className={period === 'month' ? 'rounded-lg px-4 py-1.5 text-xs font-bold text-white bg-dark dark:bg-white dark:text-dark shadow-md' : 'rounded-lg px-4 py-1.5 text-xs font-bold text-text-secondary dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5'}
-                    >MÊS</motion.button>
-                  </div>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setChartType(t => (t === 'expense' ? 'income' : 'expense'))}
-                    className={chartType === 'expense' ? 'rounded-xl border border-danger/20 px-4 py-2 text-xs font-bold text-white bg-danger shadow-lg shadow-danger/30' : 'rounded-xl border border-success/20 px-4 py-2 text-xs font-bold text-white bg-success shadow-lg shadow-success/30'}
-                  >{chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}</motion.button>
+              {/* Controls */}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6 px-1">
+                {/* Period Toggle */}
+                <div className="bg-gray-100 p-1.5 rounded-2xl flex items-center shadow-inner">
+                  <button
+                    onClick={() => setPeriod('day')}
+                    className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${period === 'day' ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-100' : 'text-gray-500 hover:text-gray-900 scale-95 hover:scale-100'}`}
+                  >
+                    DIA
+                  </button>
+                  <button
+                    onClick={() => setPeriod('month')}
+                    className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${period === 'month' ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-100' : 'text-gray-500 hover:text-gray-900 scale-95 hover:scale-100'}`}
+                  >
+                    MÊS
+                  </button>
                 </div>
+
+                {/* Type Toggle */}
+                <button
+                  onClick={() => setChartType(prev => prev === 'expense' ? 'income' : 'expense')}
+                  className={`px-6 py-3 rounded-2xl text-xs font-black text-white shadow-lg transition-all active:scale-95 ${chartType === 'expense' ? 'bg-[#FF6B6B] shadow-[#FF6B6B]/30' : 'bg-[#34C759] shadow-[#34C759]/30'}`}
+                >
+                  {chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}
+                </button>
               </div>
 
-              <div className="flex h-64 w-full flex-col justify-end rounded-3xl bg-white/60 dark:bg-black/40 p-6 border border-white/40 dark:border-white/10 shadow-glass relative overflow-hidden backdrop-blur-xl">
-                <AnimatePresence initial={false} custom={direction} mode="wait">
+              {/* Chart Container */}
+              <div className="w-full bg-white rounded-[2rem] p-6 pb-8 shadow-xl shadow-gray-200/50 border border-gray-100/50 relative overflow-hidden min-h-[360px] flex flex-col justify-end">
+                <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
                     key={`${period}-${chartYear}-${chartType}`}
                     custom={direction}
@@ -761,53 +813,70 @@ const Dashboard: React.FC = () => {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
                     className="w-full h-full flex flex-col justify-end"
                     drag={period === 'month' ? "x" : false}
                     dragConstraints={{ left: 0, right: 0 }}
                     dragElastic={0.2}
                     onDragEnd={handleChartSwipe}
                   >
-                    <div className="grid h-full w-full items-end gap-2" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
+                    {/* Bars visualization */}
+                    <div className="flex items-end justify-between gap-2 sm:gap-4 h-[280px] w-full px-2">
                       {current.values.map((h, i) => {
                         const rawVal = (chart.raw || current.raw || [])[i] || 0;
                         const labelText = formatBRL(rawVal);
-                        const charCount = labelText.replace(/\s/g, '').length;
-                        const minPx = Math.min(180, Math.max(36, Math.ceil(charCount * 8) + 20));
-                        const showLabel = rawVal > 0;
                         const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
+                        const showInsideLabel = h > 20 && rawVal > 0;
 
                         return (
-                          <div key={i} className="relative flex flex-col justify-end items-center h-full group">
+                          <div key={i} className="flex flex-col items-center justify-end h-full w-full gap-3 group relative cursor-pointer" onClick={() => {
+                            if (period === 'month') {
+                              setSelectedMonth(i);
+                            }
+                          }}>
+                            {/* Tooltip/Value (Hover) */}
+                            {rawVal > 0 && !showInsideLabel && (
+                              <div className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-20">
+                                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900 absolute -bottom-1"></div>
+                                <div className={`px-2 py-1.5 rounded-lg text-[10px] font-bold text-white whitespace-nowrap shadow-lg bg-gray-900 ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+                                  {labelText}
+                                </div>
+                              </div>
+                            )}
+
                             <motion.div
+                              layout
                               initial={{ height: 0 }}
-                              animate={{ height: `${h}%` }}
-                              transition={{ duration: 1, delay: i * 0.05 }}
-                              className={`${chartType === 'expense' ? 'bg-danger' : 'bg-success'} rounded-t-lg relative flex items-center justify-center ${period === 'month' ? 'w-2 sm:w-3' : 'w-full max-w-[40px]'}`}
+                              animate={{ height: `${Math.max(4, h)}%` }}
+                              transition={{ duration: 0.8, delay: i * 0.04, type: "spring", bounce: 0.2 }}
+                              className={`w-full max-w-[48px] rounded-t-xl relative transition-all duration-300 ${isHighlighted || period === 'day' ? 'opacity-100 shadow-md' : 'opacity-40 hover:opacity-80'}`}
                               style={{
                                 backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#34C759',
-                                opacity: (period === 'month' && !isHighlighted && chartYear === selectedYear) ? 0.3 : 0.9,
-                                minHeight: showLabel ? `${minPx}px` : undefined
                               }}
                             >
-                              {showLabel && (
-                                <span className={`rotate-90 text-[10px] font-bold text-white whitespace-nowrap leading-none pointer-events-none drop-shadow-md`}>
-                                  <span className={`${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{labelText}</span>
-                                </span>
+                              {/* Rotated Label Inside */}
+                              {showInsideLabel && (
+                                <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+                                  <span
+                                    className={`rotate-[-90deg] text-[10px] font-bold text-white/90 whitespace-nowrap drop-shadow-sm ${isPrivacyEnabled ? 'blur-sm' : ''}`}
+                                  >
+                                    {labelText}
+                                  </span>
+                                </div>
                               )}
                             </motion.div>
+
+                            {/* X-Axis Label */}
+                            <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${isHighlighted ? 'text-gray-900 scale-110' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                              {current.labels[i]}
+                            </span>
                           </div>
                         );
                       })}
                     </div>
-                    <div className="mt-4 grid w-full border-t border-white/20 pt-3 text-[10px] text-gray-500 font-bold uppercase tracking-wider" style={{ gridTemplateColumns: `repeat(${current.labels.length}, minmax(0, 1fr))` }}>
-                      {current.labels.map((l, idx) => (
-                        <span key={idx} className={`text-center ${period === 'month' && idx === selectedMonth && chartYear === selectedYear ? 'text-primary' : ''}`}>{l}</span>
-                      ))}
-                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
+
             </motion.div>
           )}
         </AnimatePresence>
@@ -909,6 +978,8 @@ const Dashboard: React.FC = () => {
           )}
         </AnimatePresence>
       </motion.section>
+
+      <PastSelfWidget />
 
     </motion.div>
   );
