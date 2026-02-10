@@ -15,27 +15,65 @@ interface CustomSelectProps {
   label?: string;
 }
 
+import { createPortal } from 'react-dom';
+
 const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, label }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, minWidth: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find(o => o.value === value) || options[0];
 
+  const updateCoords = useCallback(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 8,
+        left: rect.left,
+        minWidth: rect.width
+      });
+    }
+  }, []);
+
   useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('resize', updateCoords);
+      window.addEventListener('scroll', updateCoords, true);
+    }
+    return () => {
+      window.removeEventListener('resize', updateCoords);
+      window.removeEventListener('scroll', updateCoords, true);
+    };
+  }, [isOpen, updateCoords]);
+
+  // Click outside listener for Portal
+  useEffect(() => {
+    if (!isOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      const dropdown = document.getElementById(`dropdown-${label || 'select'}`);
+
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target as Node) &&
+        (!dropdown || !dropdown.contains(target as Node))
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen, label]);
 
   return (
     <div className="relative" ref={containerRef}>
       <motion.button
         whileTap={{ scale: 0.98 }}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          updateCoords();
+          setIsOpen(!isOpen);
+        }}
         className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm hover:bg-gray-50 transition-colors"
       >
         {label && <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>}
@@ -45,16 +83,24 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, l
         </span>
       </motion.button>
 
-      <AnimatePresence>
-        {isOpen && (
+      {isOpen && createPortal(
+        <AnimatePresence>
           <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            id={`dropdown-${label || 'select'}`}
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[60]"
+            style={{
+              position: 'fixed',
+              top: coords.top,
+              left: coords.left,
+              minWidth: coords.minWidth,
+              zIndex: 9999
+            }}
+            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
           >
-            <div className="max-h-60 overflow-y-auto no-scrollbar py-2">
+            <div className="max-h-60 overflow-y-auto no-scrollbar py-2 w-48">
               {options.map((option) => (
                 <button
                   key={option.value}
@@ -72,8 +118,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, l
               ))}
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
