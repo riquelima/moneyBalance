@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
@@ -6,6 +6,77 @@ import { parseLocalISODate, toLocalISO, labelForDate } from '../utils/date';
 import { usePrivacy } from '../src/context/PrivacyContext';
 import { categories } from '../categories';
 import Skeleton from '../components/ui/Skeleton';
+
+// --- Custom Selector Component ---
+interface CustomSelectProps {
+  options: { label: string; value: string | number }[];
+  value: string | number;
+  onChange: (value: string | number) => void;
+  label?: string;
+}
+
+const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, label }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find(o => o.value === value) || options[0];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm hover:bg-gray-50 transition-colors"
+      >
+        {label && <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>}
+        <span className="text-sm font-bold text-gray-900 min-w-[3rem] text-left">{selectedOption.label}</span>
+        <span className={`material-symbols-outlined text-gray-400 text-lg transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+          expand_more
+        </span>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[60]"
+          >
+            <div className="max-h-60 overflow-y-auto no-scrollbar py-2">
+              {options.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${value === option.value
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
@@ -35,7 +106,6 @@ const Transactions: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([new Date().getFullYear()]);
 
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const categoryOrder = [...categories, 'Sem Categoria'];
 
   // --- Helpers ---
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -299,33 +369,29 @@ const Transactions: React.FC = () => {
         </div>
 
         {/* Chips Row */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar mask-gradient-right">
-          {/* Year Chip */}
-          <div className="flex items-center bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm shrink-0">
-            <span className="text-xs font-bold text-gray-500 mr-2">Ano</span>
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              className="bg-transparent text-sm font-bold text-gray-900 outline-none appearance-none pr-4 cursor-pointer"
-              style={{ backgroundImage: 'none' }} // Hide default arrow
-            >
-              <option value="all">Todos</option>
-              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar mask-gradient-right">
 
-          {/* Month Chip */}
-          <div className="flex items-center bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm shrink-0">
-            <span className="text-xs font-bold text-gray-500 mr-2">Mês</span>
-            <select
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              className="bg-transparent text-sm font-bold text-gray-900 outline-none appearance-none pr-4 cursor-pointer"
-            >
-              <option value="all">Todos</option>
-              {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-            </select>
-          </div>
+          {/* Custom Year Selector */}
+          <CustomSelect
+            label="Ano"
+            value={yearFilter}
+            onChange={(val) => setYearFilter(val === 'all' ? 'all' : Number(val))}
+            options={[
+              { label: 'Todos', value: 'all' },
+              ...availableYears.map(y => ({ label: String(y), value: y }))
+            ]}
+          />
+
+          {/* Custom Month Selector */}
+          <CustomSelect
+            label="Mês"
+            value={monthFilter}
+            onChange={(val) => setMonthFilter(val === 'all' ? 'all' : Number(val))}
+            options={[
+              { label: 'Todos', value: 'all' },
+              ...monthNames.map((m, i) => ({ label: m, value: i }))
+            ]}
+          />
 
           {/* Clear Filter Chip (if active) */}
           {(searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || categoryFilter !== 'all' || dateFilter) && (
@@ -343,10 +409,10 @@ const Transactions: React.FC = () => {
                 setSearchQuery('');
                 navigate(location.pathname);
               }}
-              className="flex items-center gap-1 bg-red-50 border border-red-100 rounded-full px-3 py-1.5 text-red-500 text-xs font-bold shrink-0"
+              className="flex items-center gap-1 bg-red-50 border border-red-100 rounded-full px-4 py-2 text-red-500 text-xs font-bold shrink-0 shadow-sm hover:bg-red-100/50 transition-colors"
             >
               <span>Limpar</span>
-              <span className="material-symbols-outlined text-[14px]">close</span>
+              <span className="material-symbols-outlined text-[16px]">close</span>
             </motion.button>
           )}
         </div>
@@ -535,11 +601,12 @@ const Transactions: React.FC = () => {
                           onDragStart={() => setOpenId(null)}
                           onDragEnd={(e, info) => setOpenId(info.offset.x < -50 ? t.id : null)}
                           animate={{ x: openId === t.id ? -120 : 0 }}
-                          className="relative z-10 flex items-center gap-4 bg-white/80 backdrop-blur-md p-5 rounded-[24px] border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-[0.98] transition-transform"
+                          className="relative z-10 flex items-center gap-4 bg-white p-5 rounded-[24px] border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-transform"
+                        // Changed bg-white/80 to bg-white, added border-gray-100, refined shadow to be more solid
                         >
                           {/* Icon */}
                           <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'}`}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${t.type === 'income' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}
                           >
                             <span className="material-symbols-outlined text-2xl">
                               {t.type === 'income' ? 'arrow_upward' : 'arrow_downward'}
