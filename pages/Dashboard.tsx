@@ -5,6 +5,7 @@ import { supabase } from '../supabaseClient';
 import { parseLocalISODate, labelForDate } from '../utils/date';
 import { usePrivacy } from '../src/context/PrivacyContext';
 import Skeleton from '../components/ui/Skeleton';
+import Header from '../components/common/Header';
 
 import PastSelfWidget from '../components/dashboard/PastSelfWidget';
 
@@ -482,31 +483,34 @@ const Dashboard: React.FC = () => {
       animate="show"
       className="flex flex-col p-4 pt-6 gap-6 min-h-screen text-gray-900 pb-32"
     >
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white/80 backdrop-blur-xl p-4 -mx-4 border-b border-white/40 shadow-glass-sm transition-all duration-300">
-        <div className="flex items-center gap-4">
-          {avatarUrl && (
+      <Header
+        title="Visão Geral"
+        leftAction={
+          avatarUrl ? (
             <img
               src={avatarUrl}
               alt="Profile"
-              className="h-12 w-12 rounded-full border-2 border-white/50 shadow-sm object-cover"
+              className="h-10 w-10 rounded-full border-2 border-white/50 shadow-sm object-cover cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate('/settings')}
             />
-          )}
-          <div>
-            <p className="text-sm font-medium text-gray-500">Bem-vindo(a),</p>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h1>
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-gray-200 border-2 border-white/50 shadow-sm flex items-center justify-center cursor-pointer" onClick={() => navigate('/settings')}>
+              <span className="material-symbols-outlined text-gray-500">person</span>
+            </div>
+          )
+        }
+        rightAction={
+          <div className="flex items-center gap-2">
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
+              <span className="material-symbols-outlined text-gray-600 text-[20px]">notifications</span>
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-1 ring-white"></span>
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
+              <span className="material-symbols-outlined text-gray-600 text-[20px]">settings</span>
+            </motion.button>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
-            <span className="material-symbols-outlined text-gray-600 text-[22px]">notifications</span>
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white"></span>
-          </motion.button>
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2.5 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
-            <span className="material-symbols-outlined text-gray-600 text-[22px]">settings</span>
-          </motion.button>
-        </div>
-      </header>
+        }
+      />
 
       {showMonthPicker && (
         <div className="flex justify-center relative z-40 mb-4">

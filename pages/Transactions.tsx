@@ -6,6 +6,7 @@ import { parseLocalISODate, toLocalISO, labelForDate } from '../utils/date';
 import { usePrivacy } from '../src/context/PrivacyContext';
 import { categories } from '../categories';
 import Skeleton from '../components/ui/Skeleton';
+import Header from '../components/common/Header';
 
 // --- Custom Selector Component ---
 interface CustomSelectProps {
@@ -109,8 +110,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, l
                     setIsOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${value === option.value
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   {option.label}
@@ -370,6 +371,10 @@ const Transactions: React.FC = () => {
     visible: { y: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
+
+
+  // ... (inside component)
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -377,30 +382,27 @@ const Transactions: React.FC = () => {
       className="flex flex-col min-h-screen bg-gray-50/50 pb-24"
     >
       {/* --- Header --- */}
-      <motion.header
-        initial="hidden"
-        animate="visible"
-        variants={headerVariants}
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-5 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm"
-      >
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowFilter(true)}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <span className="material-symbols-outlined text-xl">filter_list</span>
-        </motion.button>
-
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Transações</h1>
-
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigate('/add-transaction')}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
-        >
-          <span className="material-symbols-outlined text-xl">add</span>
-        </motion.button>
-      </motion.header>
+      <Header
+        title="Transações"
+        leftAction={
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowFilter(true)}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">filter_list</span>
+          </motion.button>
+        }
+        rightAction={
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate('/add-transaction')}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">add</span>
+          </motion.button>
+        }
+      />
 
       {/* --- Search & Quick Filters --- */}
       <div className="px-5 py-4 space-y-4">

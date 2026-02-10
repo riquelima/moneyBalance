@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { categories as categoryNames } from '../categories';
 import StyledPieChart from '../components/StyledPieChart';
+import Header from '../components/common/Header';
 
 const Reports: React.FC = () => {
   const navigate = useNavigate();
@@ -320,20 +321,24 @@ const Reports: React.FC = () => {
       animate={{ opacity: 1 }}
       className="flex flex-col min-h-screen p-4 pb-28 gap-8 font-display text-gray-900"
     >
-      <header className="flex items-center justify-between sticky top-0 bg-white/80 z-50 py-3 px-4 border-b border-white/40 backdrop-blur-xl shadow-glass-sm -mx-4 transition-all duration-300">
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 hover:bg-white/80 border border-white/40 transition-all">
-          <span className="material-symbols-outlined text-gray-900">arrow_back</span>
-        </motion.button>
-        <h1 className="text-lg font-bold text-gray-900">Relatórios</h1>
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-gray-900 font-bold text-xs bg-white/50 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md uppercase">
-          {(() => {
-            const d = new Date();
-            return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
-              ? 'Mês Atual'
-              : `${monthNames[selectedMonth]} ${selectedYear}`;
-          })()}
-        </motion.button>
-      </header>
+      <Header
+        title="Relatórios"
+        leftAction={
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 hover:bg-white/80 border border-white/40 transition-all">
+            <span className="material-symbols-outlined text-gray-900">arrow_back</span>
+          </motion.button>
+        }
+        rightAction={
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-gray-900 font-bold text-xs bg-white/50 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md uppercase">
+            {(() => {
+              const d = new Date();
+              return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
+                ? 'Mês Atual'
+                : `${monthNames[selectedMonth]} ${selectedYear}`;
+            })()}
+          </motion.button>
+        }
+      />
 
       {showMonthPicker && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-md">

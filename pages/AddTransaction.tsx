@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { parseLocalISODate, toLocalISO, toLocalISODateTime } from '../utils/date';
 import { categories } from '../categories';
+import Header from '../components/common/Header';
 
 const AddTransaction: React.FC = () => {
   const navigate = useNavigate();
@@ -180,17 +181,20 @@ const AddTransaction: React.FC = () => {
         </div>
 
         {/* Header */}
-        <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="w-10"></div> {/* Spacer */}
-          <h1 className="text-lg font-bold text-gray-900 tracking-wide">Nova Transação</h1>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-all"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </motion.button>
-        </header>
+        <Header
+          title="Nova Transação"
+          leftAction={<div className="w-10" />}
+          rightAction={
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(-1)}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-all"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </motion.button>
+          }
+          className="rounded-t-3xl border-b border-gray-100 bg-white"
+        />
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
