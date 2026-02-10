@@ -55,8 +55,8 @@ const Reports: React.FC = () => {
           .select('id')
           .eq('user_id', user.id)
           .ilike('name', 'Ajuste de Saldo')
-          .maybeSingle()
-          .abortSignal(ac.signal);
+          .abortSignal(ac.signal)
+          .maybeSingle();
         if (adjCat) adjustmentCatId = adjCat.id;
       } catch (e) { /* ignore */ }
 
