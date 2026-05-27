@@ -7,7 +7,6 @@ import { usePrivacy } from '../src/context/PrivacyContext';
 import Skeleton from '../components/ui/Skeleton';
 import Header from '../components/common/Header';
 
-import PastSelfWidget from '../components/dashboard/PastSelfWidget';
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -979,7 +978,6 @@ const Dashboard: React.FC = () => {
         </AnimatePresence>
       </motion.section>
 
-      <PastSelfWidget />
 
     </motion.div>
   );
