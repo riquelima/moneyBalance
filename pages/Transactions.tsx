@@ -386,20 +386,20 @@ const Transactions: React.FC = () => {
         title="Transações"
         leftAction={
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowFilter(true)}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
           >
-            <span className="material-symbols-outlined text-xl">filter_list</span>
+            <span className="material-symbols-outlined text-[20px]">filter_list</span>
           </motion.button>
         }
         rightAction={
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/add-transaction')}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary/90 transition-all"
           >
-            <span className="material-symbols-outlined text-xl">add</span>
+            <span className="material-symbols-outlined text-[20px]">add</span>
           </motion.button>
         }
       />

@@ -509,26 +509,39 @@ const Dashboard: React.FC = () => {
         title="Visão Geral"
         leftAction={
           avatarUrl ? (
-            <img
+            <motion.img
+              whileTap={{ scale: 0.95 }}
               src={avatarUrl}
               alt="Profile"
-              className="h-10 w-10 rounded-full border-2 border-white/50 shadow-sm object-cover cursor-pointer hover:opacity-80 transition-opacity"
+              className="h-10 w-10 rounded-full border border-white/40 shadow-sm object-cover cursor-pointer hover:opacity-80 transition-all"
               onClick={() => navigate('/settings')}
             />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-gray-200 border-2 border-white/50 shadow-sm flex items-center justify-center cursor-pointer" onClick={() => navigate('/settings')}>
-              <span className="material-symbols-outlined text-gray-500">person</span>
-            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm transition-all text-gray-700"
+              onClick={() => navigate('/settings')}
+            >
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            </motion.button>
           )
         }
         rightAction={
           <div className="flex items-center gap-2">
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/notifications')} className="relative p-2 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
-              <span className="material-symbols-outlined text-gray-600 text-[20px]">notifications</span>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/notifications')}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
+            >
+              <span className="material-symbols-outlined text-[20px]">notifications</span>
               <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-1 ring-white"></span>
             </motion.button>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/settings')} className="p-2 rounded-full bg-white/50 hover:bg-white/80 transition-all border border-white/40 shadow-sm backdrop-blur-md">
-              <span className="material-symbols-outlined text-gray-600 text-[20px]">settings</span>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/settings')}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
             </motion.button>
           </div>
         }

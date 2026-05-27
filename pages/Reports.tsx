@@ -324,12 +324,20 @@ const Reports: React.FC = () => {
       <Header
         title="Relatórios"
         leftAction={
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 hover:bg-white/80 border border-white/40 transition-all">
-            <span className="material-symbols-outlined text-gray-900">arrow_back</span>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
+          >
+            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </motion.button>
         }
         rightAction={
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowMonthPicker(true)} className="text-gray-900 font-bold text-xs bg-white/50 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md uppercase">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowMonthPicker(true)}
+            className="h-10 px-4 flex items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md text-xs font-bold text-gray-700 uppercase transition-all"
+          >
             {(() => {
               const d = new Date();
               return (selectedYear === d.getFullYear() && selectedMonth === d.getMonth())
