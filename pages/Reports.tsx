@@ -118,8 +118,8 @@ const Reports: React.FC = () => {
       const incomePrevRaw = (prevTx || []).filter((x: any) => x.type === 'income');
 
       // Filter Logic
-      const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatId);
-      const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatId);
+      const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
+      const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
 
       const incomeCur = incomeCurFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
       const incomePrev = incomePrevFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
@@ -152,8 +152,8 @@ const Reports: React.FC = () => {
       const monthlyDataExists = Array(12).fill(false);
 
       (yearTx || []).forEach((t: any) => {
-        // Exclude Adjustment from annual projection data as well
-        if (t.type === 'income' && t.category_id === adjustmentCatId) return;
+        // Exclude Adjustment and transfer from annual projection data as well
+        if (t.type === 'income' && (t.category_id === adjustmentCatId || t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return;
 
         const parts = String(t.date || '').split('-');
         const m = parseInt(parts[1], 10) - 1; // 0-11

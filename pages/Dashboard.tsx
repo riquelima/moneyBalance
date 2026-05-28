@@ -119,14 +119,28 @@ const Dashboard: React.FC = () => {
 
       const { data: incomeData } = await supabase
         .from('user_transactions')
-        .select('amount')
+        .select('amount, category_id')
         .eq('user_id', user.id)
         .eq('type', 'income')
         .eq('is_paid', true)
         .gte('date', start)
         .lte('date', end);
 
-      const totalPaidIncome = incomeData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      // Fetch "Ajuste de Saldo" category ID to exclude it
+      let adjustmentCatId: string | null = null;
+      try {
+        const { data: adjCat } = await supabase
+          .from('user_categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .ilike('name', 'Ajuste de Saldo')
+          .maybeSingle();
+        if (adjCat) adjustmentCatId = adjCat.id;
+      } catch (e) { /* ignore */ }
+
+      const totalPaidIncome = incomeData
+        ?.filter(t => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558')
+        ?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
       setSaldoAtual(totalPaidIncome);
     })());
 
@@ -276,10 +290,10 @@ const Dashboard: React.FC = () => {
       const totalIncome = data.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0);
       const totalExpense = data.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0);
 
-      // DISPLAY INCOME: Excludes 'Ajuste de Saldo'
-      // We check if category_id matches adjustmentCatId.
+      // DISPLAY INCOME: Excludes 'Ajuste de Saldo' and 'transferencia propria'
+      // We check if category_id matches adjustmentCatId or 'd7956754-9a58-487d-9636-2cd59c2f4558'.
       const displayIncome = data
-        .filter(t => t.type === 'income' && t.category_id !== adjustmentCatId)
+        .filter(t => t.type === 'income' && t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558')
         .reduce((a, t) => a + Number(t.amount), 0);
 
       const pending = data.filter(t => t.type === 'expense' && !t.is_paid).reduce((a, t) => a + Number(t.amount), 0);
@@ -295,8 +309,8 @@ const Dashboard: React.FC = () => {
         });
 
         // Lists
-        // Filter out adjustments from the visible income list
-        setIncomeItems(data.filter(t => t.type === 'income' && t.category_id !== adjustmentCatId));
+        // Filter out adjustments and transfer from the visible income list
+        setIncomeItems(data.filter(t => t.type === 'income' && t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558'));
         setExpenseItems(data.filter(t => t.type === 'expense'));
       }
 
@@ -312,8 +326,8 @@ const Dashboard: React.FC = () => {
 
         data.filter(t => {
           if (t.type !== chartType) return false;
-          // If chart is Income, exclude Adjustment
-          if (chartType === 'income' && t.category_id === adjustmentCatId) return false;
+          // If chart is Income, exclude Adjustment and transfer
+          if (chartType === 'income' && (t.category_id === adjustmentCatId || t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return false;
           return true;
         }).forEach((t: any) => {
           const d = parseLocalISODate(t.date);
@@ -412,8 +426,8 @@ const Dashboard: React.FC = () => {
           if (data && mounted) {
             const vals = Array(7).fill(0);
             data.forEach((t: any) => {
-              // Filter out Adjustment if chart type is Income
-              if (chartType === 'income' && adjustmentCatId && t.category_id === adjustmentCatId) return;
+              // Filter out Adjustment and transfer if chart type is Income
+              if (chartType === 'income' && (t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558' || (adjustmentCatId && t.category_id === adjustmentCatId))) return;
 
               const d = parseLocalISODate(t.date);
               const idx = (d.getDay() + 6) % 7;
@@ -441,8 +455,8 @@ const Dashboard: React.FC = () => {
           if (data && mounted) {
             const vals = Array(12).fill(0);
             data.forEach((t: any) => {
-              // Filter out Adjustment if chart type is Income
-              if (chartType === 'income' && adjustmentCatId && t.category_id === adjustmentCatId) return;
+              // Filter out Adjustment and transfer if chart type is Income
+              if (chartType === 'income' && (t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558' || (adjustmentCatId && t.category_id === adjustmentCatId))) return;
 
               const d = parseLocalISODate(t.date);
               const idx = d.getMonth();
