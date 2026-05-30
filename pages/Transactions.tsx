@@ -961,44 +961,47 @@ const Transactions: React.FC = () => {
       </AnimatePresence>
 
       {/* Barra de Ações em Lote Flutuante */}
-      <AnimatePresence>
-        {selectedIds.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="fixed bottom-6 left-4 right-4 z-50 p-4 max-w-md mx-auto bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-glass-lg rounded-2xl flex items-center justify-between gap-4 font-display select-none"
-          >
-            <div className="flex flex-col items-start gap-0.5">
-              <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Lote selecionado</span>
-              <p className="text-sm font-black text-gray-950 dark:text-white leading-none">
-                {selectedIds.length} {selectedIds.length === 1 ? 'transação' : 'transações'}
-              </p>
-            </div>
+      {createPortal(
+        <AnimatePresence>
+          {selectedIds.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.9 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed bottom-28 left-4 right-4 z-[110] p-4 max-w-md mx-auto bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-glass-lg rounded-2xl flex items-center justify-between gap-4 font-display select-none text-gray-900 dark:text-white"
+            >
+              <div className="flex flex-col items-start gap-0.5">
+                <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Lote selecionado</span>
+                <p className="text-sm font-black text-gray-950 dark:text-white leading-none">
+                  {selectedIds.length} {selectedIds.length === 1 ? 'transação' : 'transações'}
+                </p>
+              </div>
 
-            <div className="flex items-center gap-2">
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedIds([])}
-                className="px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold text-xs uppercase transition-all flex items-center justify-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">close</span>
-                <span>Limpar</span>
-              </motion.button>
-              
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={handleBulkMarkPaid}
-                className="px-4 py-2.5 rounded-xl bg-primary text-white font-black text-xs uppercase shadow-md shadow-primary/25 hover:shadow-primary/45 transition-all flex items-center justify-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                <span>Pagar todas</span>
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedIds([])}
+                  className="px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold text-xs uppercase transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                  <span>Limpar</span>
+                </motion.button>
+                
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleBulkMarkPaid}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-white font-black text-xs uppercase shadow-md shadow-primary/25 hover:shadow-primary/45 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>Pagar todas</span>
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </motion.div>
   );
 };
