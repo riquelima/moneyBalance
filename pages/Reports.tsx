@@ -565,7 +565,7 @@ const Reports: React.FC = () => {
                           : 'text-lg sm:text-xl font-black tracking-tight leading-none';
                         return (
                           <>
-                            <p className="text-[11px] sm:text-[12px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-2 w-full truncate px-1">
+                            <p className="text-[16px] sm:text-[18px] font-black uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500 leading-none mb-2.5 w-full truncate px-1">
                               {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
                             </p>
                             <p className={`w-full truncate px-1 font-display ${valFontClass} ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
