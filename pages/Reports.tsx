@@ -629,7 +629,7 @@ const Reports: React.FC = () => {
         <div className="flex items-center justify-between mb-6 px-2">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 flex items-center justify-center shadow-sm">
-              <img src="https://cdn-icons-png.flaticon.com/512/1043/1043432.png" alt="Ícone estatísticas" className="w-6 h-6 dark:invert" />
+              <img src="https://cdn-icons-png.flaticon.com/512/603/603148.png" alt="Ícone estatísticas" className="w-6 h-6 dark:invert" />
             </div>
             <h3 className="text-xl font-black uppercase text-gray-900 dark:text-white tracking-tight">Estatísticas</h3>
           </div>
