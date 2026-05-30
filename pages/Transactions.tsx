@@ -543,6 +543,31 @@ const Transactions: React.FC = () => {
                   {(groupItems as any[]).map((t: any) => {
                     const cat = t.category_id ? catMap[t.category_id] : null;
                     const catName = cat?.name || 'Sem Categoria';
+                    const isIncome = t.type === 'income';
+
+                    const cardBgClass = isIncome 
+                      ? 'bg-[#20BF55]/10 dark:bg-[#20BF55]/15 border-[#20BF55]/20 dark:border-[#20BF55]/30 shadow-[0_4px_16px_rgba(32,191,85,0.04)]' 
+                      : 'bg-[#FF6B6B]/10 dark:bg-[#FF6B6B]/15 border-[#FF6B6B]/20 dark:border-[#FF6B6B]/30 shadow-[0_4px_16px_rgba(255,107,107,0.04)]';
+
+                    const iconBgClass = isIncome 
+                      ? 'bg-[#20BF55]/20 text-[#20BF55]' 
+                      : 'bg-[#FF6B6B]/20 text-[#FF6B6B]';
+
+                    const textTitleClass = isIncome
+                      ? 'text-[#1B7A3D] dark:text-[#26de81]'
+                      : 'text-[#B83232] dark:text-[#ff7979]';
+
+                    const textCatClass = isIncome
+                      ? 'bg-[#20BF55]/15 text-[#1B7A3D] dark:text-[#26de81]'
+                      : 'bg-[#FF6B6B]/15 text-[#B83232] dark:text-[#ff7979]';
+
+                    const textDateClass = isIncome
+                      ? 'text-[#1B7A3D]/70 dark:text-[#26de81]/70'
+                      : 'text-[#B83232]/70 dark:text-[#ff7979]/70';
+
+                    const textAmountClass = isIncome
+                      ? 'text-[#20BF55]'
+                      : 'text-[#FF6B6B]';
 
                     return (
                       <motion.div
@@ -581,12 +606,11 @@ const Transactions: React.FC = () => {
                           onDragStart={() => setOpenId(null)}
                           onDragEnd={(e, info) => setOpenId(info.offset.x < -50 ? t.id : null)}
                           animate={{ x: openId === t.id ? -120 : 0 }}
-                          className="relative z-10 flex items-center gap-4 bg-white p-5 rounded-[24px] border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-transform"
-                        // Changed bg-white/80 to bg-white, added border-gray-100, refined shadow to be more solid
+                          className={`relative z-10 flex items-center gap-4 p-5 rounded-[24px] border active:scale-[0.98] transition-all duration-300 ${cardBgClass}`}
                         >
                           {/* Icon */}
                           <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${t.type === 'income' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors ${iconBgClass}`}
                           >
                             <span className="material-symbols-outlined text-2xl">
                               {t.type === 'income' ? 'arrow_upward' : 'arrow_downward'}
@@ -595,14 +619,14 @@ const Transactions: React.FC = () => {
 
                           {/* Details */}
                           <div className="flex-1 min-w-0">
-                            <h4 className={`text-sm font-bold text-gray-900 truncate ${t.is_paid ? 'line-through opacity-50' : ''}`}>
+                            <h4 className={`text-sm font-extrabold truncate transition-colors ${textTitleClass} ${t.is_paid ? 'line-through opacity-50' : ''}`}>
                               {t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}
                             </h4>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors ${textCatClass}`}>
                                 {catName}
                               </span>
-                              <span className="text-[10px] font-medium text-gray-400">
+                              <span className={`text-[10px] font-bold transition-colors ${textDateClass}`}>
                                 {parseLocalISODate(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                               </span>
                             </div>
@@ -610,7 +634,7 @@ const Transactions: React.FC = () => {
 
                           {/* Amount */}
                           <div className="text-right">
-                            <span className={`block text-base font-black ${t.type === 'income' ? 'text-green-500' : 'text-red-500'} ${isPrivacyEnabled ? 'blur-sm' : ''} ${t.is_paid ? 'line-through opacity-50' : ''}`}>
+                            <span className={`block text-base font-black transition-colors ${textAmountClass} ${isPrivacyEnabled ? 'blur-sm' : ''} ${t.is_paid ? 'line-through opacity-50' : ''}`}>
                               {formatBRL(t.amount)}
                             </span>
                           </div>
