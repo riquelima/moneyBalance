@@ -148,23 +148,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
     <div className="flex flex-col h-auto pb-24">
       <div className="flex flex-col h-auto border border-white/40 rounded-3xl shadow-glass bg-white/70 backdrop-blur-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between p-6 bg-primary text-white">
           <button 
             onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white text-gray-700 transition-all active:scale-95 shadow-sm"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white transition-all active:scale-95 shadow-sm"
           >
-            <span className="material-symbols-outlined text-lg">chevron_left</span>
+            <span className="material-symbols-outlined text-lg leading-none">chevron_left</span>
           </button>
           
-          <h2 className="text-xl font-bold capitalize text-gray-900 tracking-wide">
+          <h2 className="text-xl font-black capitalize tracking-wide select-none">
             {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
           </h2>
 
           <button 
             onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white text-gray-700 transition-all active:scale-95 shadow-sm"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white transition-all active:scale-95 shadow-sm"
           >
-            <span className="material-symbols-outlined text-lg">chevron_right</span>
+            <span className="material-symbols-outlined text-lg leading-none">chevron_right</span>
           </button>
         </div>
 
