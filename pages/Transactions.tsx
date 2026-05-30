@@ -680,7 +680,7 @@ const Transactions: React.FC = () => {
                           onDragStart={() => setOpenId(null)}
                           onDragEnd={(e, info) => setOpenId(info.offset.x < -50 ? t.id : null)}
                           animate={{ x: openId === t.id ? -120 : 0 }}
-                          className={`relative z-10 flex items-center gap-4 p-5 rounded-[24px] border active:scale-[0.98] transition-all duration-300 ${cardBgClass}`}
+                          className={`relative z-10 flex items-center gap-4 p-5 rounded-[24px] border active:scale-[0.98] ${cardBgClass}`}
                         >
                           {/* Icon */}
                           <div
