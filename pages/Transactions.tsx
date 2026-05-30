@@ -289,7 +289,7 @@ const Transactions: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col min-h-screen bg-gray-50/50 pb-24"
+      className="flex flex-col min-h-screen p-4 pb-24 gap-6 font-display text-gray-900 dark:text-white"
     >
       {/* --- Header --- */}
       <Header
@@ -349,7 +349,7 @@ const Transactions: React.FC = () => {
       />
 
       {/* --- Search & Quick Filters --- */}
-      <div className="px-5 py-4 space-y-4">
+      <div className="py-2 space-y-4">
         <div className="flex gap-2">
           <div className="relative flex-1 group">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined">search</span>
@@ -490,7 +490,7 @@ const Transactions: React.FC = () => {
       </AnimatePresence>
 
       {/* --- Transaction List --- */}
-      <div className="flex-1 px-5 pb-6">
+      <div className="flex-1 pb-6">
         {loading && page === 0 ? (
           <div className="space-y-4 pt-2">
             {[1, 2, 3, 4].map(i => (
@@ -546,8 +546,8 @@ const Transactions: React.FC = () => {
                     const isIncome = t.type === 'income';
 
                     const cardBgClass = isIncome 
-                      ? 'bg-[#20BF55]/10 dark:bg-[#20BF55]/15 border-[#20BF55]/20 dark:border-[#20BF55]/30 shadow-[0_4px_16px_rgba(32,191,85,0.04)]' 
-                      : 'bg-[#FF6B6B]/10 dark:bg-[#FF6B6B]/15 border-[#FF6B6B]/20 dark:border-[#FF6B6B]/30 shadow-[0_4px_16px_rgba(255,107,107,0.04)]';
+                      ? 'bg-[#E8F8EE] dark:bg-[#1D2D23] border-[#20BF55]/20 dark:border-[#20BF55]/30 shadow-[0_4px_16px_rgba(32,191,85,0.04)]' 
+                      : 'bg-[#FFF0F0] dark:bg-[#3A2323] border-[#FF6B6B]/20 dark:border-[#FF6B6B]/30 shadow-[0_4px_16px_rgba(255,107,107,0.04)]';
 
                     const iconBgClass = isIncome 
                       ? 'bg-[#20BF55]/20 text-[#20BF55]' 
