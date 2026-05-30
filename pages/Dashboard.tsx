@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
@@ -580,8 +581,9 @@ const Dashboard: React.FC = () => {
 
       {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
       <AnimatePresence>
-        {showMonthPicker && (
-          <motion.div
+        {showMonthPicker && createPortal(
+          (
+            <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -679,7 +681,7 @@ const Dashboard: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
+        ), document.body)}
       </AnimatePresence>
 
       <div className="flex w-full overflow-x-auto snap-x snap-mandatory gap-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pb-2">

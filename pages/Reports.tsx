@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
@@ -479,8 +480,9 @@ const Reports: React.FC = () => {
 
       {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
       <AnimatePresence>
-        {showMonthPicker && (
-          <motion.div
+        {showMonthPicker && createPortal(
+          (
+            <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -578,7 +580,7 @@ const Reports: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
+        ), document.body)}
       </AnimatePresence>
 
       <section>
