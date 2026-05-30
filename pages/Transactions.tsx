@@ -8,123 +8,7 @@ import { categories } from '../categories';
 import Skeleton from '../components/ui/Skeleton';
 import Header from '../components/common/Header';
 
-// --- Custom Selector Component ---
-interface CustomSelectProps {
-  options: { label: string; value: string | number }[];
-  value: string | number;
-  onChange: (value: string | number) => void;
-  label?: string;
-}
 
-import { createPortal } from 'react-dom';
-
-const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, label }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [coords, setCoords] = useState({ top: 0, left: 0, minWidth: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const selectedOption = options.find(o => o.value === value) || options[0];
-
-  const updateCoords = useCallback(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left,
-        minWidth: rect.width
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      updateCoords();
-      window.addEventListener('resize', updateCoords);
-      window.addEventListener('scroll', updateCoords, true);
-    }
-    return () => {
-      window.removeEventListener('resize', updateCoords);
-      window.removeEventListener('scroll', updateCoords, true);
-    };
-  }, [isOpen, updateCoords]);
-
-  // Click outside listener for Portal
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const dropdown = document.getElementById(`dropdown-${label || 'select'}`);
-
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(target as Node) &&
-        (!dropdown || !dropdown.contains(target as Node))
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, label]);
-
-  return (
-    <div className="relative" ref={containerRef}>
-      <motion.button
-        whileTap={{ scale: 0.98 }}
-        onClick={() => {
-          updateCoords();
-          setIsOpen(!isOpen);
-        }}
-        className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm hover:bg-gray-50 transition-colors"
-      >
-        {label && <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>}
-        <span className="text-sm font-bold text-gray-900 min-w-[3rem] text-left">{selectedOption.label}</span>
-        <span className={`material-symbols-outlined text-gray-400 text-lg transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-          expand_more
-        </span>
-      </motion.button>
-
-      {isOpen && createPortal(
-        <AnimatePresence>
-          <motion.div
-            id={`dropdown-${label || 'select'}`}
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              position: 'fixed',
-              top: coords.top,
-              left: coords.left,
-              minWidth: coords.minWidth,
-              zIndex: 9999
-            }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
-          >
-            <div className="max-h-60 overflow-y-auto no-scrollbar py-2 w-48">
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${value === option.value
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>,
-        document.body
-      )}
-    </div>
-  );
-};
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
@@ -154,6 +38,16 @@ const Transactions: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([new Date().getFullYear()]);
 
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [tempYear, setTempYear] = useState<number>(new Date().getFullYear());
+
+  useEffect(() => {
+    if (yearFilter !== 'all') {
+      setTempYear(yearFilter);
+    }
+  }, [yearFilter]);
 
   // --- Helpers ---
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -277,6 +171,22 @@ const Transactions: React.FC = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
 
+      // Carregar avatar do perfil do cache local
+      try {
+        const cached = localStorage.getItem(`dashboard_cache_profile_${userData.user.id}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.data?.avatarUrl) {
+            if (mounted) setAvatarUrl(parsed.data.avatarUrl);
+          }
+        } else {
+          const { data: prof } = await supabase.from('user_profiles').select('avatar_url').eq('id', userData.user.id).maybeSingle();
+          if (prof?.avatar_url && mounted) {
+            setAvatarUrl(prof.avatar_url);
+          }
+        }
+      } catch (e) { /* ignore */ }
+
       const { data: cats } = await supabase.from('user_categories').select('id, name').eq('user_id', userData.user.id).order('name');
       if (mounted && cats) {
         setUserCategoryList(cats.map((c: any) => c.name));
@@ -383,64 +293,85 @@ const Transactions: React.FC = () => {
     >
       {/* --- Header --- */}
       <Header
-        title="Transações"
+        title={
+          <div className="flex flex-col items-center gap-1 py-0.5 w-full">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-none select-none">Transações</h1>
+            
+            {/* Filtro global 'Este Mês' no centro do header, abaixo do título */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowMonthPicker(s => !s)}
+              className="h-7 px-2 border border-black/5 dark:border-white/10 bg-white/40 dark:bg-white/5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold text-[10px] transition-all flex items-center justify-center gap-1 shadow-sm backdrop-blur-md select-none mt-1"
+            >
+              <span className="material-symbols-outlined !text-[11px] leading-none">calendar_month</span>
+              <span className="leading-none">
+                {monthFilter === 'all' && yearFilter === 'all' 
+                  ? 'Todos os Períodos' 
+                  : monthFilter === 'all' 
+                  ? `Ano ${yearFilter}` 
+                  : yearFilter === 'all'
+                  ? `${monthNames[monthFilter as number]}`
+                  : `${monthNames[monthFilter as number]} ${yearFilter}`}
+              </span>
+            </motion.button>
+          </div>
+        }
+        className="!pt-4 !pb-1.5"
         leftAction={
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowFilter(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
-          >
-            <span className="material-symbols-outlined text-[20px]">filter_list</span>
-          </motion.button>
+          avatarUrl ? (
+            <motion.img
+              whileTap={{ scale: 0.95 }}
+              src={avatarUrl}
+              alt="Profile"
+              className="h-10 w-10 rounded-full border border-white/40 shadow-sm object-cover cursor-pointer hover:opacity-80 transition-all"
+              onClick={() => navigate('/settings')}
+            />
+          ) : (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm transition-all text-gray-700"
+              onClick={() => navigate('/settings')}
+            >
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            </motion.button>
+          )
         }
         rightAction={
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/add-transaction')}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary/90 transition-all"
+            onClick={() => navigate('/notifications')}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
           >
-            <span className="material-symbols-outlined text-[20px]">add</span>
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-1 ring-white"></span>
           </motion.button>
         }
       />
 
       {/* --- Search & Quick Filters --- */}
       <div className="px-5 py-4 space-y-4">
-        <div className="relative group">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined">search</span>
-          <input
-            type="text"
-            placeholder="Buscar transações"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1 group">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined">search</span>
+            <input
+              type="text"
+              placeholder="Buscar transações"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            />
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowFilter(true)}
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-gray-200 shadow-sm text-gray-600 hover:bg-gray-50 shrink-0 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[22px]">filter_list</span>
+          </motion.button>
         </div>
 
         {/* Chips Row */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar mask-gradient-right">
-
-          {/* Custom Year Selector */}
-          <CustomSelect
-            label="Ano"
-            value={yearFilter}
-            onChange={(val) => setYearFilter(val === 'all' ? 'all' : Number(val))}
-            options={[
-              { label: 'Todos', value: 'all' },
-              ...availableYears.map(y => ({ label: String(y), value: y }))
-            ]}
-          />
-
-          {/* Custom Month Selector */}
-          <CustomSelect
-            label="Mês"
-            value={monthFilter}
-            onChange={(val) => setMonthFilter(val === 'all' ? 'all' : Number(val))}
-            options={[
-              { label: 'Todos', value: 'all' },
-              ...monthNames.map((m, i) => ({ label: m, value: i }))
-            ]}
-          />
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 no-scrollbar mask-gradient-right">
 
           {/* Clear Filter Chip (if active) */}
           {(searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || categoryFilter !== 'all' || dateFilter) && (
@@ -705,6 +636,131 @@ const Transactions: React.FC = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
+      <AnimatePresence>
+        {showMonthPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowMonthPicker(false)}
+          >
+            {/* Painel com animação Spring elástica e suporte a arrastar para fechar (drag="y") */}
+            <motion.div
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 250 }}
+              dragElastic={{ top: 0.05, bottom: 0.6 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 120) {
+                  setShowMonthPicker(false);
+                }
+              }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 26, stiffness: 210 }}
+              className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white"
+              onClick={(e) => e.stopPropagation()} // Impede fechamento ao clicar no painel
+            >
+              {/* Indicador visual de pílula arrastável */}
+              <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-2" />
+
+              {/* Cabeçalho do seletor de Ano */}
+              <div className="flex items-center justify-between border-b border-gray-200/50 dark:border-white/5 pb-4">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setTempYear(y => y - 1)}
+                  className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
+                >
+                  <span className="material-symbols-outlined">chevron_left</span>
+                </motion.button>
+                
+                <div className="px-6">
+                  <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none">{tempYear}</p>
+                </div>
+
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setTempYear(y => y + 1)}
+                  className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
+                >
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </motion.button>
+              </div>
+
+              {/* Seletor rápido de anos (Últimos 3 Anos) */}
+              <div className="grid grid-cols-3 gap-2">
+                {[tempYear - 2, tempYear - 1, tempYear].map((y) => (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    key={y}
+                    onClick={() => setTempYear(y)}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${y === tempYear ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                  >
+                    {y}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Grade de meses (Botões grandes e confortáveis) */}
+              <div className="grid grid-cols-4 gap-2">
+                {monthNames.map((m, idx) => (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    key={m}
+                    onClick={() => { 
+                      setMonthFilter(idx); 
+                      setYearFilter(tempYear);
+                      setShowMonthPicker(false); 
+                    }}
+                    className={`px-2 py-3.5 rounded-xl text-xs font-black uppercase transition-all ${idx === monthFilter && tempYear === yearFilter ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                  >
+                    {m}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Botões de Ação na Base */}
+              <div className="flex gap-2.5 mt-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { 
+                    setYearFilter('all'); 
+                    setMonthFilter('all'); 
+                    setShowMonthPicker(false); 
+                  }}
+                  className="flex-1 rounded-2xl bg-black/5 dark:bg-white/5 py-3.5 text-xs font-black uppercase text-gray-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
+                >
+                  Ver Todos
+                </motion.button>
+
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { 
+                    const d = new Date(); 
+                    setYearFilter(d.getFullYear()); 
+                    setMonthFilter(d.getMonth()); 
+                    setShowMonthPicker(false); 
+                  }}
+                  className="flex-1 rounded-2xl bg-black/5 dark:bg-white/5 py-3.5 text-xs font-black uppercase text-gray-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
+                >
+                  Mês Atual
+                </motion.button>
+                
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowMonthPicker(false)}
+                  className="flex-1 rounded-2xl bg-primary py-3.5 text-xs font-black uppercase text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all"
+                >
+                  Fechar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
