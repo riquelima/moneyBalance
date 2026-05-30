@@ -537,10 +537,11 @@ const Transactions: React.FC = () => {
 
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Categoria</label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-4 gap-1.5">
                     <button
                       onClick={() => setCategoryFilter('all')}
-                      className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${categoryFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                      title="Todas as categorias"
+                      className={`px-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all text-center w-full truncate ${categoryFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
                     >
                       Todas
                     </button>
@@ -548,7 +549,8 @@ const Transactions: React.FC = () => {
                       <button
                         key={name}
                         onClick={() => setCategoryFilter(name)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${categoryFilter === name ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                        title={name}
+                        className={`px-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all text-center w-full truncate ${categoryFilter === name ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
                       >
                         {name}
                       </button>
