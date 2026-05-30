@@ -580,9 +580,9 @@ const Dashboard: React.FC = () => {
       />
 
       {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
-      <AnimatePresence>
-        {showMonthPicker && createPortal(
-          (
+      {createPortal(
+        <AnimatePresence>
+          {showMonthPicker && (
             <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -681,8 +681,10 @@ const Dashboard: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
-        ), document.body)}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <div className="flex w-full overflow-x-auto snap-x snap-mandatory gap-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pb-2">
         {/* Saldo Total Card */}

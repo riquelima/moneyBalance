@@ -736,9 +736,9 @@ const Transactions: React.FC = () => {
       </div>
 
       {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
-      <AnimatePresence>
-        {showMonthPicker && createPortal(
-          (
+      {createPortal(
+        <AnimatePresence>
+          {showMonthPicker && (
             <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -858,8 +858,10 @@ const Transactions: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
-        ), document.body)}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Modal de Exclusão (Regra 2) */}
       <AnimatePresence>

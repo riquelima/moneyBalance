@@ -479,9 +479,9 @@ const Reports: React.FC = () => {
       />
 
       {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
-      <AnimatePresence>
-        {showMonthPicker && createPortal(
-          (
+      {createPortal(
+        <AnimatePresence>
+          {showMonthPicker && (
             <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -580,8 +580,10 @@ const Reports: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
-        ), document.body)}
-      </AnimatePresence>
+        )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <section>
         {/* Título de Estatísticas simétrico com Gráficos */}
