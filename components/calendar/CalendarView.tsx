@@ -145,7 +145,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
   const selectedTransactions = selectedDate ? getDayTransactions(selectedDate) : [];
 
   return (
-    <div className="flex flex-col h-auto p-4 pb-24">
+    <div className="flex flex-col h-auto pb-24">
       <div className="flex flex-col h-auto border border-white/40 rounded-3xl shadow-glass bg-white/70 backdrop-blur-xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
