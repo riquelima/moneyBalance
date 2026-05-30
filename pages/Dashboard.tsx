@@ -687,7 +687,7 @@ const Dashboard: React.FC = () => {
         {/* Altura reduzida para min-h-[120px] e padding reduzido para p-4 para um design super compacto */}
         <motion.section
           variants={itemVariants}
-          className="min-w-full snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#8854D0]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(136,84,208,0.12)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
+          className="w-full min-w-full flex-shrink-0 snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#8854D0]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(136,84,208,0.12)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
           data-onboarding="saldo-total"
         >
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-primary via-secondary to-primary opacity-80"></div>
@@ -725,7 +725,7 @@ const Dashboard: React.FC = () => {
         {/* Altura reduzida para min-h-[120px] e padding reduzido para p-4 para um design super compacto */}
         <motion.section
           variants={itemVariants}
-          className="min-w-full snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#20BF55]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(32,199,89,0.1)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
+          className="w-full min-w-full flex-shrink-0 snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#20BF55]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(32,199,89,0.1)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
           data-onboarding="saldo-atual"
         >
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-secondary via-primary to-secondary opacity-80"></div>
