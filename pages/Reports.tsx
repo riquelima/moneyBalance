@@ -28,6 +28,12 @@ const Reports: React.FC = () => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [statTab, setStatTab] = useState<'expense' | 'income'>('expense');
+  const [activeCatIndex, setActiveCatIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setActiveCatIndex(null);
+  }, [statTab]);
+
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const budgetNames = categoryNames.slice();
   const incomeNames = ['Salário', 'Rendimentos', 'Dinheiro Extra'];
@@ -528,30 +534,65 @@ const Reports: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-gradient-to-br from-white/70 to-white/40 dark:from-[#1C1C1E]/60 dark:to-black/60 p-6 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-[2.5rem] backdrop-blur-2xl flex flex-col gap-6"
+            className="bg-gradient-to-br from-white/70 to-white/40 dark:from-[#1C1C1E]/60 dark:to-black/60 p-4 sm:p-6 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-[2.5rem] backdrop-blur-2xl flex flex-col gap-3"
           >
-            {/* Donut Chart com Valor no Centro */}
-            <div className="flex flex-col items-center justify-center py-4 relative">
-              <div className="relative flex items-center justify-center">
+            {/* Donut Chart com Valor no Centro - Margens minimizadas à direita e abaixo */}
+            <div className="flex flex-col items-center justify-center py-0.5 relative w-full overflow-hidden">
+              <div className="relative flex items-center justify-center -mr-1 -mb-1">
                 <StyledPieChart
                   data={(statTab === 'expense' ? categories : incomeCategories).map((c, i) => ({
                     name: c.name,
                     value: c.amount,
                     color: (statTab === 'expense' ? expenseColors : incomeColors)[i % (statTab === 'expense' ? expenseColors : incomeColors).length]
                   }))}
-                  size={210}
-                  thickness={32}
+                  size={290}
+                  thickness={30}
                   hideLegend={true}
                   hideCenterText={true}
+                  activeIndex={activeCatIndex}
+                  onActiveIndexChange={setActiveCatIndex}
                 />
-                {/* Valor Centralizado Dinâmico com Legenda Interna */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-1">
-                    {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
-                  </p>
-                  <p className={`text-lg sm:text-xl font-black font-display tracking-tight leading-none ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
-                    {(statTab === 'expense' ? monthTotal : incomeTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
-                  </p>
+                {/* Valor Centralizado Dinâmico com Legenda Interna - Maior Diâmetro Útil */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none px-8">
+                  {activeCatIndex === null ? (
+                    <>
+                      <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-1.5">
+                        {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
+                      </p>
+                      <p className={`text-xl sm:text-2xl font-black font-display tracking-tight leading-none ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
+                        {(statTab === 'expense' ? monthTotal : incomeTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
+                      </p>
+                    </>
+                  ) : (
+                    (() => {
+                      const items = statTab === 'expense' ? categories : incomeCategories;
+                      const activeItem = items[activeCatIndex];
+                      if (!activeItem) return null;
+                      const colors = statTab === 'expense' ? expenseColors : incomeColors;
+                      const activeColor = colors[activeCatIndex % colors.length];
+                      const total = statTab === 'expense' ? monthTotal : incomeTotal;
+                      const percent = total > 0 ? Math.round((activeItem.amount / total) * 100) : 0;
+                      return (
+                        <div className="flex flex-col items-center justify-center text-center w-full overflow-hidden">
+                          <p 
+                            className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] leading-none mb-1.5 max-w-full truncate px-1"
+                            style={{ color: activeColor }}
+                          >
+                            {activeItem.name}
+                          </p>
+                          <p 
+                            className="text-xl sm:text-2xl font-black font-display tracking-tight leading-none mb-1"
+                            style={{ color: activeColor }}
+                          >
+                            {activeItem.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-[10px] sm:text-[11px] font-bold text-gray-400 dark:text-gray-500 leading-none">
+                            {percent}% do total
+                          </p>
+                        </div>
+                      );
+                    })()
+                  )}
                 </div>
               </div>
             </div>
@@ -560,7 +601,7 @@ const Reports: React.FC = () => {
             <div className="h-[1px] w-full bg-gray-200/50 dark:bg-white/5" />
 
             {/* Lista das Categorias com Barras de Progresso de Vidro (Glassmorphic) */}
-            <div className="flex flex-col gap-4 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
               {(statTab === 'expense' ? categories : incomeCategories).length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">
                   Nenhuma categoria registrada este mês
@@ -570,9 +611,19 @@ const Reports: React.FC = () => {
                   const total = statTab === 'expense' ? monthTotal : incomeTotal;
                   const percent = total > 0 ? Math.round((c.amount / total) * 100) : 0;
                   const catColor = (statTab === 'expense' ? expenseColors : incomeColors)[i % (statTab === 'expense' ? expenseColors : incomeColors).length];
+                  const isActive = activeCatIndex === i;
 
                   return (
-                    <div key={c.name} className="flex flex-col gap-1.5 select-none py-1 group">
+                    <motion.div
+                      key={c.name}
+                      onClick={() => setActiveCatIndex(isActive ? null : i)}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex flex-col gap-1.5 select-none py-2 px-3 rounded-2xl transition-all cursor-pointer border ${
+                        isActive 
+                          ? 'bg-white/70 dark:bg-white/10 border-white/50 dark:border-white/20 shadow-glass-sm scale-[1.02] translate-x-0.5' 
+                          : 'bg-transparent border-transparent hover:bg-white/30 dark:hover:bg-white/5'
+                      }`}
+                    >
                       {/* Texto descritivo da Categoria */}
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
@@ -617,17 +668,18 @@ const Reports: React.FC = () => {
                           className="h-full rounded-full transition-all"
                           style={{
                             backgroundColor: catColor,
-                            boxShadow: `0 0 10px ${catColor}50`,
+                            boxShadow: isActive ? `0 0 12px ${catColor}70` : `0 0 8px ${catColor}40`,
                           }}
                         />
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })
               )}
             </div>
           </motion.div>
         </div>
+
       </section>
 
       {/* AI FAB */}

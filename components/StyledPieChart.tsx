@@ -14,6 +14,8 @@ interface StyledPieChartProps {
     thickness?: number;
     hideLegend?: boolean;
     hideCenterText?: boolean;
+    activeIndex?: number | null;
+    onActiveIndexChange?: (index: number | null) => void;
 }
 
 const StyledPieChart: React.FC<StyledPieChartProps> = ({
@@ -22,9 +24,22 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
     donut = true,
     thickness = 40,
     hideLegend = false,
-    hideCenterText = false
+    hideCenterText = false,
+    activeIndex: controlledActiveIndex,
+    onActiveIndexChange
 }) => {
-    const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    const [localActiveIndex, setLocalActiveIndex] = useState<number | null>(null);
+
+    const isControlled = controlledActiveIndex !== undefined;
+    const activeIndex = isControlled ? controlledActiveIndex : localActiveIndex;
+    const setActiveIndex = (index: number | null) => {
+        if (onActiveIndexChange) {
+            onActiveIndexChange(index);
+        }
+        if (!isControlled) {
+            setLocalActiveIndex(index);
+        }
+    };
 
     const total = useMemo(() => data.reduce((acc, curr) => acc + curr.value, 0), [data]);
 
@@ -97,7 +112,7 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
     };
 
     const center = size / 2;
-    const outerRadius = (size / 2) - 10; // Padding
+    const outerRadius = (size / 2) - 8; // Padding ajustado para maximizar tamanho
     const innerRadius = donut ? outerRadius - thickness : 0;
 
     const activeItem = activeIndex !== null ? processedData[activeIndex] : null;
