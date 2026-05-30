@@ -27,6 +27,7 @@ const Reports: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [statTab, setStatTab] = useState<'expense' | 'income'>('expense');
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const budgetNames = categoryNames.slice();
   const incomeNames = ['Salário', 'Rendimentos', 'Dinheiro Extra'];
@@ -491,177 +492,140 @@ const Reports: React.FC = () => {
       </AnimatePresence>
 
       <section>
-        <h2 className="text-xl font-bold mb-6 text-gray-900 px-2">Estatísticas</h2>
-        <div className="w-full overflow-hidden">
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-1 no-scrollbar">
-            {/* Card Saídas */}
-            <div className="min-w-full snap-center">
-              <motion.div
-                className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass overflow-hidden relative"
-                initial={{ x: 0 }}
-                whileHover={{ y: -4 }}
-              >
-                <div className="flex flex-col gap-4 items-center">
-                  <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
-                    <div className="flex items-center justify-center gap-1.5 w-full mb-1">
-                      <div className="w-5 h-5 rounded-full bg-[#FF6B6B]/15 border border-[#FF6B6B]/30 text-[#FF6B6B] flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined !text-[10px] leading-none">arrow_upward</span>
-                      </div>
-                      <p className="text-[#FF6B6B] text-xs font-black uppercase tracking-widest leading-none">Saídas</p>
-                    </div>
-                    <p className="text-danger text-4xl font-black text-center tracking-tight">{fmtBRL(monthTotal)}</p>
-                  </div>
-
-                  <div className="py-4">
-                    <StyledPieChart
-                      data={categories.map((c, i) => ({
-                        name: c.name,
-                        value: c.amount,
-                        color: expenseColors[i % expenseColors.length]
-                      }))}
-                      size={200}
-                      thickness={40}
-                    />
-                  </div>
-
-
-                </div>
-              </motion.div>
+        {/* Título de Estatísticas simétrico com Gráficos */}
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 flex items-center justify-center shadow-sm">
+              <img src="https://cdn-icons-png.flaticon.com/512/1043/1043432.png" alt="Ícone estatísticas" className="w-6 h-6 dark:invert" />
             </div>
-
-            {/* Card Entradas */}
-            <div className="min-w-full snap-center">
-              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass transition-all hover:-translate-y-1 overflow-hidden relative">
-                <div className="flex flex-col gap-4 items-center">
-                  <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
-                    <div className="flex items-center justify-center gap-1.5 w-full mb-1">
-                      <div className="w-5 h-5 rounded-full bg-[#20BF55]/15 border border-[#20BF55]/30 text-[#20BF55] flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined !text-[10px] leading-none">arrow_downward</span>
-                      </div>
-                      <p className="text-[#20BF55] text-xs font-black uppercase tracking-widest leading-none">Entradas</p>
-                    </div>
-                    <p className="text-secondary text-4xl font-black text-center tracking-tight">{fmtBRL(incomeTotal)}</p>
-                  </div>
-
-                  <div className="py-4">
-                    <StyledPieChart
-                      data={incomeCategories.map((c, i) => ({
-                        name: c.name,
-                        value: c.amount,
-                        color: incomeColors[i % incomeColors.length]
-                      }))}
-                      size={200}
-                      thickness={40}
-                    />
-                  </div>
-
-
-                </div>
-              </div>
-            </div>
+            <h3 className="text-xl font-black uppercase text-gray-900 dark:text-white tracking-tight">Estatísticas</h3>
           </div>
         </div>
-      </section>
 
-
-
-      {/* Budgets */}
-      <section>
-        <h2 className="text-xl font-bold mb-6 text-gray-900 px-2">Orçamentos</h2>
-        <div className="flex flex-col gap-4 max-h-[340px] overflow-y-auto pr-1 p-1 custom-scrollbar">
-          {budgetCats.map((c, index) => {
-            const limit = Number(budgets[c.name] || 0);
-            const spent = Number(c.amount || 0);
-            const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
-
-            // Glassy pastel colors
-            const cardColors = [
-              'bg-teal-500/10 border-teal-500/20',
-              'bg-purple-500/10 border-purple-500/20',
-              'bg-orange-500/10 border-orange-500/20',
-              'bg-blue-500/10 border-blue-500/20',
-              'bg-red-500/10 border-red-500/20',
-              'bg-green-500/10 border-green-500/20',
-            ];
-            const cardStyle = cardColors[index % cardColors.length];
-
-            const barColor = (() => {
-              if (limit > 0) {
-                if (spent < limit) return 'bg-accent';
-                if (spent === limit) return 'bg-secondary';
-                return 'bg-danger';
-              }
-              return 'bg-gray-200';
-            })();
-            const right = limit > 0 ? `${fmtBRL(spent)} / ${fmtBRL(limit)}` : `${fmtBRL(spent)} / --`;
-
-            return (
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                key={c.name}
-                onClick={() => { setEditingCat(c.name); setTempLimit(limit ? String(limit) : ''); }}
-                className={`group relative ${cardStyle} border rounded-2xl p-4 shadow-sm backdrop-blur-md transition-all shrink-0`}
-              >
-                <div className="flex items-center justify-between mb-3 relative z-10">
-                  <p className="font-bold text-gray-900 uppercase text-xs tracking-wider">{c.name}</p>
-                  <p className="text-[10px] text-gray-500 font-bold bg-white/50 px-2 py-1 rounded-lg backdrop-blur-md">{right}</p>
-                </div>
-                <div className="h-2 w-full bg-white/30 rounded-full overflow-hidden">
-                  <div className={`h-full ${barColor} transition-all duration-500 rounded-full`} style={{ width: `${pct}%` }}></div>
-                </div>
-              </motion.button>
-            );
-          })}
-          {budgetCats.length === 0 && (
-            <div className="bg-white/50 p-6 rounded-2xl border border-white/20 text-gray-500 text-center backdrop-blur-md">
-              <p className="font-medium">Nenhum orçamento configurado.</p>
-            </div>
-          )}
+        {/* Toggle Premium SAÍDAS / ENTRADAS */}
+        <div className="flex items-center justify-center mb-6 px-1">
+          <div className="bg-gray-100 dark:bg-white/5 p-1.5 rounded-2xl flex items-center shadow-inner border border-black/5 dark:border-white/10 w-full max-w-xs">
+            <button
+              onClick={() => setStatTab('expense')}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${statTab === 'expense' ? 'bg-[#FF6B6B] text-white shadow-lg shadow-[#FF6B6B]/20 scale-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white scale-95 hover:scale-100'}`}
+            >
+              SAÍDAS
+            </button>
+            <button
+              onClick={() => setStatTab('income')}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${statTab === 'income' ? 'bg-[#20BF55] text-white shadow-lg shadow-[#20BF55]/20 scale-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white scale-95 hover:scale-100'}`}
+            >
+              ENTRADAS
+            </button>
+          </div>
         </div>
-        {editingCat && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-md">
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="w-full max-w-md bg-white/90 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/20 shadow-glass-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold uppercase text-gray-900">Definir Limite</h3>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="text-gray-500 hover:text-gray-900 p-2 rounded-full hover:bg-black/5 transition-all">
-                  <span className="material-symbols-outlined">close</span>
-                </motion.button>
+
+        {/* Card Premium de Estatísticas com Rosquinha Centralizada e Legenda Interna */}
+        <div className="w-full">
+          <motion.div
+            layout
+            key={statTab}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-gradient-to-br from-white/70 to-white/40 dark:from-[#1C1C1E]/60 dark:to-black/60 p-6 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-[2.5rem] backdrop-blur-2xl flex flex-col gap-6"
+          >
+            {/* Donut Chart com Valor no Centro */}
+            <div className="flex flex-col items-center justify-center py-4 relative">
+              <div className="relative flex items-center justify-center">
+                <StyledPieChart
+                  data={(statTab === 'expense' ? categories : incomeCategories).map((c, i) => ({
+                    name: c.name,
+                    value: c.amount,
+                    color: (statTab === 'expense' ? expenseColors : incomeColors)[i % (statTab === 'expense' ? expenseColors : incomeColors).length]
+                  }))}
+                  size={210}
+                  thickness={32}
+                />
+                {/* Valor Centralizado Dinâmico com Legenda Interna */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-1">
+                    {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
+                  </p>
+                  <p className={`text-2xl font-black font-display tracking-tight leading-none ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
+                    {fmtBRL(statTab === 'expense' ? monthTotal : incomeTotal)}
+                  </p>
+                </div>
               </div>
-              <p className="text-xs font-bold text-gray-500 uppercase mb-2 bg-accent/20 text-accent inline-block px-2 py-1 rounded-md">{editingCat}</p>
-              <input
-                type="text"
-                value={tempLimit}
-                onChange={(e) => setTempLimit(e.target.value)}
-                placeholder="EX: 800"
-                className="w-full rounded-xl bg-white/50 border border-gray-200 p-4 text-gray-900 font-bold placeholder:text-gray-400 focus:ring-2 focus:ring-primary/50 focus:outline-none transition-all"
-              />
-              <div className="mt-8 flex gap-3">
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEditingCat(null)} className="flex-1 rounded-xl bg-gray-100 py-3 font-bold uppercase text-gray-500 hover:bg-gray-200 transition-all">Cancelar</motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={async () => {
-                    const n = Number(String(tempLimit).replace(/[^0-9.,]/g, '').replace(',', '.'));
-                    if (!Number.isNaN(n) && n >= 0 && editingCat) {
-                      const { data: userData } = await supabase.auth.getUser();
-                      const user = userData?.user;
-                      if (user) {
-                        await supabase
-                          .from('user_budgets')
-                          .upsert({ user_id: user.id, year: selectedYear, month: selectedMonth, category: editingCat, limit_amount: n }, { onConflict: 'user_id,year,month,category' });
-                      }
-                      setBudgets((b) => ({ ...b, [editingCat]: n }));
-                      setEditingCat(null);
-                      setTempLimit('');
-                    }
-                  }}
-                  className="flex-1 rounded-xl bg-primary py-3 font-bold text-white uppercase shadow-lg shadow-primary/30 transition-all"
-                >
-                  Salvar
-                </motion.button>
-              </div>
-            </motion.div>
+            </div>
+
+            {/* Divisor Visual Suave */}
+            <div className="h-[1px] w-full bg-gray-200/50 dark:bg-white/5" />
+
+            {/* Lista das Categorias com Barras de Progresso de Vidro (Glassmorphic) */}
+            <div className="flex flex-col gap-4 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+              {(statTab === 'expense' ? categories : incomeCategories).length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">
+                  Nenhuma categoria registrada este mês
+                </p>
+              ) : (
+                (statTab === 'expense' ? categories : incomeCategories).map((c, i) => {
+                  const total = statTab === 'expense' ? monthTotal : incomeTotal;
+                  const percent = total > 0 ? Math.round((c.amount / total) * 100) : 0;
+                  const catColor = (statTab === 'expense' ? expenseColors : incomeColors)[i % (statTab === 'expense' ? expenseColors : incomeColors).length];
+
+                  return (
+                    <div key={c.name} className="flex flex-col gap-1.5 select-none py-1 group">
+                      {/* Texto descritivo da Categoria */}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          {/* Pílula de ícone redonda pequena com a cor da categoria */}
+                          <div
+                            className="w-3.5 h-3.5 rounded-full border shadow-sm flex-shrink-0"
+                            style={{
+                              backgroundColor: `${catColor}15`,
+                              borderColor: `${catColor}30`,
+                            }}
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full m-auto" style={{ backgroundColor: catColor }} />
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            {c.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-gray-900 dark:text-white">
+                            {fmtBRL(c.amount)}
+                          </span>
+                          <span
+                            className="text-[9px] font-black px-2 py-0.5 rounded-md border"
+                            style={{
+                              color: catColor,
+                              backgroundColor: `${catColor}10`,
+                              borderColor: `${catColor}20`,
+                            }}
+                          >
+                            {percent}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Barra de Progresso Fina Glassmorphic correspondente à proporção */}
+                      <div className="h-1 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            backgroundColor: catColor,
+                            boxShadow: `0 0 10px ${catColor}50`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </motion.div>
-        )}
+        </div>
       </section>
 
       {/* AI FAB */}
@@ -673,127 +637,6 @@ const Reports: React.FC = () => {
       >
         <span className="material-symbols-outlined !text-2xl">auto_awesome</span>
       </motion.button>
-
-      <section>
-        <div className="flex items-center justify-between mb-6 px-2">
-          <h2 className="text-xl font-bold uppercase text-gray-900">Projeção</h2>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/projecao-futura')}
-            className="rounded-full p-2 bg-white/50 hover:bg-white/80 border border-white/20 transition-all"
-          >
-            <span className="material-symbols-outlined text-gray-900">arrow_forward</span>
-          </motion.button>
-        </div>
-        <div className="bg-white/60 rounded-3xl p-6 border border-white/40 shadow-glass backdrop-blur-xl">
-          <div className="flex min-w-72 flex-1 flex-col gap-4">
-            <div className="border-b border-gray-200/50 pb-4">
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-widest text-center mb-1">Saldo Projetado</p>
-              <p className="text-primary text-4xl font-black text-center tracking-tight">{fmtBRL(projection.total)}</p>
-            </div>
-
-            <div className="flex justify-center gap-2 items-center bg-white/40 border border-white/20 rounded-xl p-2 backdrop-blur-sm">
-              <p className="text-gray-500 text-[10px] font-bold uppercase">Próximos 3 meses</p>
-              <p className={`${projection.percent >= 0 ? 'text-secondary' : 'text-danger'} text-xs font-black bg-white/80 px-2 py-0.5 rounded-md`}>{`${projection.percent >= 0 ? '+' : ''}${projection.percent.toFixed(1)}%`}</p>
-            </div>
-
-            <div className="flex min-h-[180px] flex-1 flex-col gap-4 py-4 relative">
-              <svg
-                fill="none"
-                height="150"
-                preserveAspectRatio="none"
-                viewBox="-5 0 482 150"
-                width="100%"
-                xmlns="http://www.w3.org/2000/svg"
-                className="overflow-visible"
-                onMouseLeave={() => !clickedPoint && setHoveredPoint(null)}
-              >
-                <defs>
-                  <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#20BF55" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#20BF55" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                {/* Area preenchida */}
-                <path d={`M0 149 ${linePath.replace(/^M[^ ]+ [^ ]+/, '')} L 475 149 Z`} fill="url(#chartGradient)" />
-
-                {/* Linha principal */}
-                <path d={linePath} stroke="#20BF55" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" filter="url(#glow)" />
-
-                {/* Pontos */}
-                {projection.values.map((v, i) => {
-                  if (!linePath) return null;
-                  const min = Math.min(...projection.values);
-                  const max = Math.max(...projection.values);
-                  const rng = max - min || 1;
-                  const w = 478 - 2;
-                  const h = 150 - 2;
-                  const x = (i / (projection.values.length - 1)) * w;
-                  const y = h - ((v - min) / rng) * h;
-                  const isHovered = hoveredPoint === i;
-                  const isClicked = clickedPoint === i;
-                  const isActive = isHovered || isClicked;
-                  const isProj = projection.isProjected[i];
-
-                  return (
-                    <g
-                      key={i}
-                      onMouseEnter={() => setHoveredPoint(i)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setClickedPoint(isClicked ? null : i);
-                      }}
-                      className="cursor-pointer transition-all duration-300"
-                    >
-                      {/* Hit area larger than visual point */}
-                      <rect x={x - 10} y={y - 10} width="20" height="20" fill="transparent" />
-
-                      <circle
-                        cx={x}
-                        cy={y}
-                        r={isActive ? 6 : 4}
-                        className={`${isProj ? 'fill-gray-200' : 'fill-white'} stroke-primary transition-all duration-300`}
-                        strokeWidth={2}
-                      />
-
-                      {isActive && (
-                        <g pointerEvents="none">
-                          <foreignObject x={x - 60} y={y - 50} width="120" height="40" className="overflow-visible">
-                            <div className="flex flex-col items-center justify-center">
-                              <div className="bg-black/80 text-white text-[10px] font-bold uppercase py-1 px-2 rounded-lg backdrop-blur-md whitespace-nowrap z-50 shadow-lg">
-                                {isProj ? 'Projeção: ' : 'Real: '}{fmtBRL(v)}
-                              </div>
-                              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-black/80"></div>
-                            </div>
-                          </foreignObject>
-                        </g>
-                      )}
-                    </g>
-                  );
-                })}
-              </svg>
-              <div className="flex justify-between px-2 border-t border-gray-200/50 pt-3">
-                {projection.labels.map((l, i) => {
-                  const isActive = hoveredPoint === i || clickedPoint === i;
-                  return (
-                    <p
-                      key={l}
-                      className={`text-[10px] font-bold uppercase cursor-pointer transition-colors ${isActive ? 'text-primary scale-110' : 'text-gray-500'}`}
-                      onMouseEnter={() => setHoveredPoint(i)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setClickedPoint(clickedPoint === i ? null : i);
-                      }}
-                    >
-                      {l}
-                    </p>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
     </motion.div>
   );
