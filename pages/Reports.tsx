@@ -377,8 +377,8 @@ const Reports: React.FC = () => {
     const maxVal = rawMax || 1000;
     
     const width = 720;
-    const height = 180;
-    const paddingTop = 42; // Aumentado para dar espaço confortável para as pílulas de valores acima de todos os pontos
+    const height = 210; // Aumentado para dar espaço para pílulas em múltiplos níveis sem cortar no topo
+    const paddingTop = 65; // Aumentado para acomodar os níveis de colisão (até 65px de elevação)
     const paddingBottom = 30;
     const paddingLeft = 20;
     const paddingRight = 20;
@@ -390,7 +390,39 @@ const Reports: React.FC = () => {
       const x = paddingLeft + (i / (days - 1)) * chartWidth;
       const ratio = rawMax > 0 ? (v.value / maxVal) : 0;
       const y = height - paddingBottom - ratio * chartHeight;
-      return { day: v.day, value: v.value, x, y };
+      return { day: v.day, value: v.value, x, y, labelOffsetY: 25 }; // 25 é o valor padrão
+    });
+
+    // Algoritmo dinâmico de resolução de colisões horizontais para rótulos de valores ativos
+    points.forEach((p, idx) => {
+      if (p.value === 0) return;
+      
+      const levels = [25, 45, 65]; // Níveis de altura (afastamento vertical) para pílulas
+      let chosenLevel = 25;
+      
+      for (const lvl of levels) {
+        let hasCollision = false;
+        
+        // Compara com os pontos anteriores com movimentação ativa para evitar sobreposição horizontal
+        for (let i = Math.max(0, idx - 3); i < idx; i++) {
+          const prevP = points[i];
+          if (prevP.value > 0) {
+            const distX = p.x - prevP.x;
+            // Se as pílulas estão muito próximas horizontalmente (menos de 52px) e no mesmo nível
+            if (distX < 52 && prevP.labelOffsetY === lvl) {
+              hasCollision = true;
+              break;
+            }
+          }
+        }
+        
+        if (!hasCollision) {
+          chosenLevel = lvl;
+          break;
+        }
+      }
+      
+      p.labelOffsetY = chosenLevel;
     });
     
     // Caminho da linha
@@ -408,7 +440,7 @@ const Reports: React.FC = () => {
       peakPoint = sorted[0];
     }
       
-    return { points, linePath, fillPath, maxVal, rawMax, width, height, paddingBottom, peakPoint };
+    return { points, linePath, fillPath, maxVal, rawMax, width, height, paddingTop, paddingBottom, peakPoint };
   }, [daysInMonth, dailyTab, monthlyTransactions, adjustmentCatId]);
 
   // Efeito de scroll automático para os últimos dias (fim do contêiner) ao carregar ou alternar filtros
@@ -874,7 +906,7 @@ const Reports: React.FC = () => {
 
                 {/* Linhas guia horizontais de fundo (Grid) */}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-                  const y = 35 + ratio * (dailyChartData.height - 35 - dailyChartData.paddingBottom);
+                  const y = dailyChartData.paddingTop + ratio * (dailyChartData.height - dailyChartData.paddingTop - dailyChartData.paddingBottom);
                   return (
                     <line
                       key={ratio}
@@ -960,13 +992,14 @@ const Reports: React.FC = () => {
                   const formatted = p.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
                   const pillWidth = Math.max(48, formatted.length * 5.2);
                   const pillX = p.x - (pillWidth / 2);
+                  const offsetY = p.labelOffsetY || 25;
                   
                   return (
                     <g key={`val-${p.day}`}>
                       {/* Retângulo/Pílula de fundo do texto do Valor */}
                       <rect
                         x={pillX}
-                        y={p.y - 25}
+                        y={p.y - offsetY}
                         width={pillWidth}
                         height="15"
                         rx="5"
@@ -975,7 +1008,7 @@ const Reports: React.FC = () => {
                       />
                       <text
                         x={p.x}
-                        y={p.y - 14}
+                        y={p.y - offsetY + 11}
                         textAnchor="middle"
                         fill="#FFFFFF"
                         className="text-[8px] font-black tracking-tight select-none font-display"
@@ -985,7 +1018,7 @@ const Reports: React.FC = () => {
                       {/* Pequena linha conectando a pílula ao circulo */}
                       <line
                         x1={p.x}
-                        y1={p.y - 10}
+                        y1={p.y - offsetY + 15}
                         x2={p.x}
                         y2={p.y - 5}
                         stroke={dailyTab === 'expense' ? '#FF6B6B' : '#20BF55'}
