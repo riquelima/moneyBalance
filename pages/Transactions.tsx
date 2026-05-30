@@ -48,6 +48,7 @@ const Transactions: React.FC = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (yearFilter !== 'all') {
@@ -101,6 +102,32 @@ const Transactions: React.FC = () => {
       setIsDeleting(false);
       setShowDeleteConfirmModal(false);
       setTransactionToDelete(null);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkMarkPaid = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      const { error } = await supabase
+        .from('user_transactions')
+        .update({ is_paid: true })
+        .in('id', selectedIds);
+      if (!error) {
+        setItems(prev =>
+          prev.map(item =>
+            selectedIds.includes(item.id) ? { ...item, is_paid: true } : item
+          )
+        );
+        setSelectedIds([]);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -595,6 +622,7 @@ const Transactions: React.FC = () => {
                   {(groupItems as any[]).map((t: any) => {
                     const cat = t.category_id ? catMap[t.category_id] : null;
                     const catName = cat?.name || 'Sem Categoria';
+                    const isSelected = selectedIds.includes(t.id);
                     const isIncome = t.type === 'income';
 
                     const cardBgClass = isIncome 
@@ -620,6 +648,10 @@ const Transactions: React.FC = () => {
                     const textAmountClass = isIncome
                       ? 'text-[#20BF55]'
                       : 'text-[#FF6B6B]';
+
+                    const selectBorderClass = isSelected
+                      ? (isIncome ? '!border-[#20BF55] ring-2 ring-[#20BF55]/20' : '!border-[#FF6B6B] ring-2 ring-[#FF6B6B]/20')
+                      : '';
 
                     return (
                       <motion.div
@@ -680,14 +712,19 @@ const Transactions: React.FC = () => {
                           onDragStart={() => setOpenId(null)}
                           onDragEnd={(e, info) => setOpenId(info.offset.x < -50 ? t.id : null)}
                           animate={{ x: openId === t.id ? -120 : 0 }}
-                          className={`relative z-10 flex items-center gap-4 p-5 rounded-[24px] border active:scale-[0.98] ${cardBgClass}`}
+                          onTap={() => toggleSelect(t.id)}
+                          className={`relative z-10 flex items-center gap-4 p-5 rounded-[24px] border cursor-pointer active:scale-[0.98] ${cardBgClass} ${selectBorderClass}`}
                         >
-                          {/* Icon */}
+                          {/* Icon / Checkbox Indicator */}
                           <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors ${iconBgClass}`}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                              isSelected
+                                ? (isIncome ? 'bg-[#20BF55] text-white shadow-lg shadow-[#20BF55]/20' : 'bg-[#FF6B6B] text-white shadow-lg shadow-[#FF6B6B]/20')
+                                : iconBgClass
+                            }`}
                           >
-                            <span className="material-symbols-outlined text-2xl">
-                              {t.type === 'income' ? 'arrow_upward' : 'arrow_downward'}
+                            <span className="material-symbols-outlined text-2xl transition-all">
+                              {isSelected ? 'check' : (t.type === 'income' ? 'arrow_upward' : 'arrow_downward')}
                             </span>
                           </div>
 
@@ -919,6 +956,46 @@ const Transactions: React.FC = () => {
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Barra de Ações em Lote Flutuante */}
+      <AnimatePresence>
+        {selectedIds.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+            className="fixed bottom-6 left-4 right-4 z-50 p-4 max-w-md mx-auto bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-glass-lg rounded-2xl flex items-center justify-between gap-4 font-display select-none"
+          >
+            <div className="flex flex-col items-start gap-0.5">
+              <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Lote selecionado</span>
+              <p className="text-sm font-black text-gray-950 dark:text-white leading-none">
+                {selectedIds.length} {selectedIds.length === 1 ? 'transação' : 'transações'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedIds([])}
+                className="px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold text-xs uppercase transition-all flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+                <span>Limpar</span>
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBulkMarkPaid}
+                className="px-4 py-2.5 rounded-xl bg-primary text-white font-black text-xs uppercase shadow-md shadow-primary/25 hover:shadow-primary/45 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                <span>Pagar todas</span>
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
