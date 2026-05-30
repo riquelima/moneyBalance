@@ -12,13 +12,17 @@ interface StyledPieChartProps {
     size?: number;
     donut?: boolean;
     thickness?: number;
+    hideLegend?: boolean;
+    hideCenterText?: boolean;
 }
 
 const StyledPieChart: React.FC<StyledPieChartProps> = ({
     data,
     size = 220,
     donut = true,
-    thickness = 40
+    thickness = 40,
+    hideLegend = false,
+    hideCenterText = false
 }) => {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -148,7 +152,7 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
                 </svg>
 
                 {/* Center Info (Overlay) */}
-                {donut && (
+                {donut && !hideCenterText && (
                     <div
                         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-20"
                         style={{ width: innerRadius * 2, height: innerRadius * 2 }}
@@ -199,28 +203,30 @@ const StyledPieChart: React.FC<StyledPieChartProps> = ({
             </div>
 
             {/* Legend Below - Grid Layout (2 Columns) */}
-            <div className="mt-6 w-full max-h-60 overflow-y-auto custom-scrollbar px-1">
-                <div className="grid grid-cols-2 gap-3 w-full">
-                    {processedData.map((item, index) => (
-                        <motion.div
-                            key={index}
-                            className={`flex items-center gap-2 p-2 px-3 rounded-xl border transition-all cursor-pointer ${activeIndex === index ? 'bg-white shadow-lg scale-105 border-transparent' : 'bg-transparent border-transparent hover:bg-white/40'}`}
-                            onClick={() => setActiveIndex(index === activeIndex ? null : index)}
-                            whileHover={{ scale: 1.02 }}
-                            style={{
-                                backgroundColor: activeIndex === index ? 'rgba(255,255,255,0.85)' : undefined,
-                                boxShadow: activeIndex === index ? `0 4px 15px -3px ${item.color}40` : undefined
-                            }}
-                        >
-                            <div className="min-w-[12px] h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                            <div className="flex flex-col overflow-hidden">
-                                <span className="text-xs font-bold text-gray-700 truncate w-full">{item.name}</span>
-                                <span className="text-[10px] font-bold text-gray-400 opacity-80">{Math.round(item.percentage * 100)}%</span>
-                            </div>
-                        </motion.div>
-                    ))}
+            {!hideLegend && (
+                <div className="mt-6 w-full max-h-60 overflow-y-auto custom-scrollbar px-1">
+                    <div className="grid grid-cols-2 gap-3 w-full">
+                        {processedData.map((item, index) => (
+                            <motion.div
+                                key={index}
+                                className={`flex items-center gap-2 p-2 px-3 rounded-xl border transition-all cursor-pointer ${activeIndex === index ? 'bg-white shadow-lg scale-105 border-transparent' : 'bg-transparent border-transparent hover:bg-white/40'}`}
+                                onClick={() => setActiveIndex(index === activeIndex ? null : index)}
+                                whileHover={{ scale: 1.02 }}
+                                style={{
+                                    backgroundColor: activeIndex === index ? 'rgba(255,255,255,0.85)' : undefined,
+                                    boxShadow: activeIndex === index ? `0 4px 15px -3px ${item.color}40` : undefined
+                                }}
+                            >
+                                <div className="min-w-[12px] h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="text-xs font-bold text-gray-700 truncate w-full">{item.name}</span>
+                                    <span className="text-[10px] font-bold text-gray-400 opacity-80">{Math.round(item.percentage * 100)}%</span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
         </div>
     );

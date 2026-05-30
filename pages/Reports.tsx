@@ -541,6 +541,8 @@ const Reports: React.FC = () => {
                   }))}
                   size={210}
                   thickness={32}
+                  hideLegend={true}
+                  hideCenterText={true}
                 />
                 {/* Valor Centralizado Dinâmico com Legenda Interna */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
