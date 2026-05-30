@@ -682,7 +682,7 @@ const Dashboard: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="flex w-full overflow-x-auto snap-x snap-mandatory gap-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] -mx-4 px-4 pb-2">
+      <div className="flex w-full overflow-x-auto snap-x snap-mandatory gap-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pb-2">
         {/* Saldo Total Card */}
         {/* Altura reduzida para min-h-[120px] e padding reduzido para p-4 para um design super compacto */}
         <motion.section
