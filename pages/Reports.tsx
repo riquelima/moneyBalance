@@ -554,18 +554,18 @@ const Reports: React.FC = () => {
                 />
                 {/* Valor Centralizado Dinâmico com Legenda Interna - Maior Diâmetro Útil & Auto-Scaling */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                  <div className="w-full max-w-[130px] sm:max-w-[155px] flex flex-col items-center justify-center text-center overflow-hidden">
+                  <div className="w-full max-w-[160px] sm:max-w-[190px] flex flex-col items-center justify-center text-center overflow-hidden">
                     {activeCatIndex === null ? (
                       (() => {
                         const valStr = (statTab === 'expense' ? monthTotal : incomeTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
                         const valFontClass = valStr.length <= 8
-                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-none'
+                          ? 'text-2xl sm:text-3xl font-black tracking-tight leading-none'
                           : valStr.length <= 12
-                          ? 'text-lg sm:text-xl font-black tracking-tight leading-none'
-                          : 'text-base sm:text-lg font-black tracking-tight leading-none';
+                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-none'
+                          : 'text-lg sm:text-xl font-black tracking-tight leading-none';
                         return (
                           <>
-                            <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-1.5 w-full truncate px-1">
+                            <p className="text-[11px] sm:text-[12px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-2 w-full truncate px-1">
                               {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
                             </p>
                             <p className={`w-full truncate px-1 font-display ${valFontClass} ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
@@ -587,17 +587,17 @@ const Reports: React.FC = () => {
                         
                         const nameLen = activeItem.name.length;
                         const catFontClass = nameLen <= 8
-                          ? 'text-[12px] sm:text-[13px] font-black uppercase tracking-[0.15em] mb-1'
+                          ? 'text-[14px] sm:text-[16px] font-black uppercase tracking-[0.15em] mb-1.5'
                           : nameLen <= 14
-                          ? 'text-[10px] sm:text-[11px] font-black uppercase tracking-[0.12em] mb-1'
-                          : 'text-[9px] sm:text-[10px] font-black uppercase tracking-[0.08em] mb-1';
+                          ? 'text-[11px] sm:text-[13px] font-black uppercase tracking-[0.12em] mb-1.5'
+                          : 'text-[10px] sm:text-[11px] font-black uppercase tracking-[0.08em] mb-1.5';
 
                         const valStr = activeItem.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
                         const valFontClass = valStr.length <= 8
-                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-none mb-1'
+                          ? 'text-2xl sm:text-3xl font-black tracking-tight leading-none mb-1.5'
                           : valStr.length <= 12
-                          ? 'text-lg sm:text-xl font-black tracking-tight leading-none mb-1'
-                          : 'text-base sm:text-lg font-black tracking-tight leading-none mb-1';
+                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-none mb-1.5'
+                          : 'text-lg sm:text-xl font-black tracking-tight leading-none mb-1.5';
 
                         return (
                           <>
@@ -613,7 +613,7 @@ const Reports: React.FC = () => {
                             >
                               {valStr}
                             </p>
-                            <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 dark:text-gray-500 leading-none w-full truncate px-1">
+                            <p className="text-[11px] sm:text-[12px] font-bold text-gray-400 dark:text-gray-500 leading-none w-full truncate px-1">
                               {percent}% do total
                             </p>
                           </>
