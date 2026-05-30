@@ -834,7 +834,7 @@ const Dashboard: React.FC = () => {
           {loading ? (
             <Skeleton width={120} height={20} className="mx-auto" />
           ) : (
-            <p className={`text-xl font-black text-[#007AFF] tracking-tight text-center w-full leading-none ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+            <p className={`text-xl font-black text-[#FF6B6B] tracking-tight text-center w-full leading-none ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
               {formatBRL(todayExpense)}
             </p>
           )}
@@ -862,7 +862,7 @@ const Dashboard: React.FC = () => {
           {loading ? (
             <Skeleton width={120} height={20} className="mx-auto" />
           ) : (
-            <p className={`text-xl font-black text-[#8854D0] tracking-tight text-center w-full leading-none ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+            <p className={`text-xl font-black text-[#FF6B6B] tracking-tight text-center w-full leading-none ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
               {formatBRL(yesterdayExpense)}
             </p>
           )}
