@@ -1063,7 +1063,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 {!entriesCollapsed && (
-                  <div className="divide-y divide-gray-200/50 dark:divide-white/5 max-h-[295px] overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+                  <div 
+                    className="divide-y divide-gray-200/50 dark:divide-white/5 max-h-[295px] overflow-y-auto overflow-x-hidden overscroll-contain pr-1 custom-scrollbar select-none"
+                    style={{ touchAction: 'pan-y' }}
+                  >
                     {incomeItems.length === 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma entrada registrada</p>
                     )}
@@ -1096,7 +1099,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 {!expensesCollapsed && (
-                  <div className="divide-y divide-gray-200/50 dark:divide-white/5 max-h-[295px] overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+                  <div 
+                    className="divide-y divide-gray-200/50 dark:divide-white/5 max-h-[295px] overflow-y-auto overflow-x-hidden overscroll-contain pr-1 custom-scrollbar select-none"
+                    style={{ touchAction: 'pan-y' }}
+                  >
                     {expenseItems.length === 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma saída registrada</p>
                     )}

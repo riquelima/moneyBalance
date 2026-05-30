@@ -717,7 +717,10 @@ const Reports: React.FC = () => {
             <div className="h-[1px] w-full bg-gray-200/50 dark:bg-white/5" />
 
             {/* Lista das Categorias com Barras de Progresso de Vidro (Glassmorphic) */}
-            <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+            <div 
+              className="flex flex-col gap-3 max-h-[360px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar select-none"
+              style={{ touchAction: 'pan-y' }}
+            >
               {(statTab === 'expense' ? categories : incomeCategories).length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">
                   Nenhuma categoria registrada este mês
