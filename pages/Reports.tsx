@@ -49,216 +49,223 @@ const Reports: React.FC = () => {
     return { name: n, amount: (src.find(c => c.name === n)?.amount || 0) };
   }), [categories, incomeCategories]);
 
+  const loadReportsData = React.useCallback(async (signal?: AbortSignal) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) { setHasData(false); return; }
+
+    // Carregar avatar do perfil do cache local
+    try {
+      const cached = localStorage.getItem(`dashboard_cache_profile_${user.id}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.data?.avatarUrl) {
+          setAvatarUrl(parsed.data.avatarUrl);
+        }
+      } else {
+        const { data: prof } = await supabase.from('user_profiles').select('avatar_url').eq('id', user.id).maybeSingle();
+        if (prof?.avatar_url) {
+          setAvatarUrl(prof.avatar_url);
+        }
+      }
+    } catch (e) { /* ignore */ }
+    const fmt = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    };
+
+    // FETCH ADJUSTMENT ID
+    let adjustmentCatIdLocal: string | null = null;
+    try {
+      const query = supabase
+        .from('user_categories')
+        .select('id')
+        .eq('user_id', user.id)
+        .ilike('name', 'Ajuste de Saldo');
+      
+      const { data: adjCat } = signal ? await query.abortSignal(signal).maybeSingle() : await query.maybeSingle();
+      if (adjCat) {
+        adjustmentCatIdLocal = adjCat.id;
+        setAdjustmentCatId(adjCat.id);
+      }
+    } catch (e) { /* ignore */ }
+
+
+    const startCur = new Date(selectedYear, selectedMonth, 1);
+    const endCur = new Date(selectedYear, selectedMonth + 1, 0);
+    const startPrev = new Date(selectedYear, selectedMonth - 1, 1);
+    const endPrev = new Date(selectedYear, selectedMonth, 0);
+
+    const curTxQuery = supabase
+      .from('user_transactions')
+      .select('amount, type, date, category_id, is_paid')
+      .eq('user_id', user.id)
+      .gte('date', fmt(startCur))
+      .lte('date', fmt(endCur));
+
+    const { data: curTx } = signal ? await curTxQuery.abortSignal(signal) : await curTxQuery;
+
+    const prevTxQuery = supabase
+      .from('user_transactions')
+      .select('amount, type, date, category_id') // Added category_id
+      .eq('user_id', user.id)
+      .gte('date', fmt(startPrev))
+      .lte('date', fmt(endPrev));
+
+    const { data: prevTx } = signal ? await prevTxQuery.abortSignal(signal) : await prevTxQuery;
+
+    // --- EXPENSES (no change) ---
+    const expCur = (curTx || []).filter((t: any) => t.type === 'expense');
+    const totalCur = expCur.reduce((acc: number, t: any) => acc + Number(t.amount), 0);
+    const totalPrev = (prevTx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
+    setMonthTotal(totalCur);
+    setLastMonthTotal(totalPrev);
+
+    const paidCur = expCur.filter((t: any) => t.is_paid).reduce((acc: number, t: any) => acc + Number(t.amount), 0);
+    const pendingCur = expCur.filter((t: any) => !t.is_paid).reduce((acc: number, t: any) => acc + Number(t.amount), 0);
+    setPaidTotal(paidCur);
+    setPendingTotal(pendingCur);
+
+    const map = new Map<string, number>();
+    expCur.forEach((t: any) => {
+      const key = t.category_id || 'none';
+      map.set(key, (map.get(key) || 0) + Number(t.amount));
+    });
+    const ids = Array.from(map.keys()).filter(k => k !== 'none');
+    let catsById: Record<string, string> = {};
+    if (ids.length) {
+      const { data: cats } = await supabase
+        .from('user_categories')
+        .select('id, name')
+        .in('id', ids);
+      (cats || []).forEach((c: any) => { catsById[c.id as string] = String(c.name || 'Categoria'); });
+    }
+    const arr = Array.from(map.entries()).map(([id, amt]) => ({ name: id === 'none' ? 'Sem Categoria' : (catsById[id] || 'Categoria'), amount: amt }));
+    arr.sort((a, b) => b.amount - a.amount);
+    setCategories(arr);
+
+    // --- INCOME (Exclude Adjustment) ---
+    const incomeCurRaw = (curTx || []).filter((x: any) => x.type === 'income');
+    const incomePrevRaw = (prevTx || []).filter((x: any) => x.type === 'income');
+
+    // Filter Logic
+    const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatIdLocal && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
+    const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatIdLocal && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
+
+    const incomeCur = incomeCurFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
+    const incomePrev = incomePrevFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
+
+    const expenseCur = totalCur;
+    const expensePrev = totalPrev;
+
+    const totalNet = incomeCur - expenseCur; // This net excludes adjustment
+    const prevNet = incomePrev - expensePrev;
+    const percent = prevNet ? ((totalNet - prevNet) / prevNet) * 100 : 0;
+
+    // Fetch Year Data for Annual Projection
+    const startYear = new Date(selectedYear, 0, 1);
+    const endYear = new Date(selectedYear, 11, 31);
+    const yearTxQuery = supabase
+      .from('user_transactions')
+      .select('amount, type, date, category_id') // Added category_id
+      .eq('user_id', user.id)
+      .gte('date', fmt(startYear))
+      .lte('date', fmt(endYear));
+
+    const { data: yearTx } = signal ? await yearTxQuery.abortSignal(signal) : await yearTxQuery;
+
+    // Process Year Data
+    const monthlyNet = Array(12).fill(0);
+    const monthlyDataExists = Array(12).fill(false);
+
+    (yearTx || []).forEach((t: any) => {
+      // Exclude Adjustment and transfer from annual projection data as well
+      if (t.type === 'income' && (t.category_id === adjustmentCatIdLocal || t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return;
+
+      const parts = String(t.date || '').split('-');
+      const m = parseInt(parts[1], 10) - 1; // 0-11
+      if (m >= 0 && m <= 11) {
+        const val = Number(t.amount);
+        if (t.type === 'income') monthlyNet[m] += val;
+        else monthlyNet[m] -= val;
+        monthlyDataExists[m] = true;
+      }
+    });
+
+    // Calculate Projection
+    const projectedValues = [...monthlyNet];
+    const isProjected = Array(12).fill(false);
+
+    let lastVal = totalNet;
+
+    for (let i = selectedMonth + 1; i < 12; i++) {
+      if (!monthlyDataExists[i]) {
+        const nextVal = lastVal * (1 + percent / 100);
+        projectedValues[i] = nextVal;
+        isProjected[i] = true;
+        lastVal = nextVal;
+      }
+    }
+
+    setProjection({
+      labels: monthNames,
+      values: projectedValues,
+      total: totalNet,
+      percent,
+      isProjected
+    });
+
+    setIncomeTotal(incomeCur);
+    setLastIncomeTotal(incomePrev);
+
+    // --- INCOME CATEGORIES (Exclude Adjustment) ---
+    const mapInc = new Map<string, number>();
+    incomeCurFiltered.forEach((t: any) => {
+      const key = t.category_id || 'none';
+      mapInc.set(key, (mapInc.get(key) || 0) + Number(t.amount));
+    });
+    const idsInc = Array.from(mapInc.keys()).filter(k => k !== 'none');
+    let catsByIdInc: Record<string, string> = {};
+    if (idsInc.length) {
+      const { data: catsInc } = await supabase
+        .from('user_categories')
+        .select('id, name')
+        .in('id', idsInc);
+      (catsInc || []).forEach((c: any) => { catsByIdInc[c.id as string] = String(c.name || 'Categoria'); });
+    }
+    const arrInc = Array.from(mapInc.entries()).map(([id, amt]) => ({ name: id === 'none' ? 'Sem Categoria' : (catsByIdInc[id] || 'Categoria'), amount: amt }));
+    arrInc.sort((a, b) => b.amount - a.amount);
+    setIncomeCategories(arrInc);
+    setMonthlyTransactions(curTx || []);
+
+    setHasData(((curTx || []).length + (prevTx || []).length) > 0);
+  }, [selectedYear, selectedMonth]);
+
   useEffect(() => {
     const ac = new AbortController();
-    let tid: number | undefined;
-    const load = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (!user) { setHasData(false); return; }
-
-      // Carregar avatar do perfil do cache local
-      try {
-        const cached = localStorage.getItem(`dashboard_cache_profile_${user.id}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.data?.avatarUrl) {
-            setAvatarUrl(parsed.data.avatarUrl);
-          }
-        } else {
-          const { data: prof } = await supabase.from('user_profiles').select('avatar_url').eq('id', user.id).maybeSingle();
-          if (prof?.avatar_url) {
-            setAvatarUrl(prof.avatar_url);
-          }
-        }
-      } catch (e) { /* ignore */ }
-      const fmt = (d: Date) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dd}`;
-      };
-
-      // FETCH ADJUSTMENT ID
-      let adjustmentCatIdLocal: string | null = null;
-      try {
-        const { data: adjCat } = await supabase
-          .from('user_categories')
-          .select('id')
-          .eq('user_id', user.id)
-          .ilike('name', 'Ajuste de Saldo')
-          .abortSignal(ac.signal)
-          .maybeSingle();
-        if (adjCat) {
-          adjustmentCatIdLocal = adjCat.id;
-          setAdjustmentCatId(adjCat.id);
-        }
-      } catch (e) { /* ignore */ }
-
-
-      const startCur = new Date(selectedYear, selectedMonth, 1);
-      const endCur = new Date(selectedYear, selectedMonth + 1, 0);
-      const startPrev = new Date(selectedYear, selectedMonth - 1, 1);
-      const endPrev = new Date(selectedYear, selectedMonth, 0);
-
-      const { data: curTx } = await supabase
-        .from('user_transactions')
-        .select('amount, type, date, category_id, is_paid')
-        .eq('user_id', user.id)
-        .gte('date', fmt(startCur))
-        .lte('date', fmt(endCur))
-        .abortSignal(ac.signal);
-
-      const { data: prevTx } = await supabase
-        .from('user_transactions')
-        .select('amount, type, date, category_id') // Added category_id
-        .eq('user_id', user.id)
-        .gte('date', fmt(startPrev))
-        .lte('date', fmt(endPrev))
-        .abortSignal(ac.signal);
-
-      // --- EXPENSES (no change) ---
-      const expCur = (curTx || []).filter((t: any) => t.type === 'expense');
-      const totalCur = expCur.reduce((acc: number, t: any) => acc + Number(t.amount), 0);
-      const totalPrev = (prevTx || []).filter((t: any) => t.type === 'expense').reduce((a: number, t: any) => a + Number(t.amount), 0);
-      setMonthTotal(totalCur);
-      setLastMonthTotal(totalPrev);
-
-      const paidCur = expCur.filter((t: any) => t.is_paid).reduce((acc: number, t: any) => acc + Number(t.amount), 0);
-      const pendingCur = expCur.filter((t: any) => !t.is_paid).reduce((acc: number, t: any) => acc + Number(t.amount), 0);
-      setPaidTotal(paidCur);
-      setPendingTotal(pendingCur);
-
-      const map = new Map<string, number>();
-      expCur.forEach((t: any) => {
-        const key = t.category_id || 'none';
-        map.set(key, (map.get(key) || 0) + Number(t.amount));
-      });
-      const ids = Array.from(map.keys()).filter(k => k !== 'none');
-      let catsById: Record<string, string> = {};
-      if (ids.length) {
-        const { data: cats } = await supabase
-          .from('user_categories')
-          .select('id, name')
-          .in('id', ids);
-        (cats || []).forEach((c: any) => { catsById[c.id as string] = String(c.name || 'Categoria'); });
-      }
-      const arr = Array.from(map.entries()).map(([id, amt]) => ({ name: id === 'none' ? 'Sem Categoria' : (catsById[id] || 'Categoria'), amount: amt }));
-      arr.sort((a, b) => b.amount - a.amount);
-      setCategories(arr);
-
-      // --- INCOME (Exclude Adjustment) ---
-      const incomeCurRaw = (curTx || []).filter((x: any) => x.type === 'income');
-      const incomePrevRaw = (prevTx || []).filter((x: any) => x.type === 'income');
-
-      // Filter Logic
-      const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatIdLocal && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
-      const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatIdLocal && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
-
-      const incomeCur = incomeCurFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
-      const incomePrev = incomePrevFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
-
-      // For Net Calculation (Projection), should we exclude adjustment?
-      // "Ajuste de Saldo" is artificial. Excluding it gives a better "real" net.
-      // But BALANCE requires it.
-      // However, Projection is about specific monthly performance.
-      // Let's exclude it from Net for projection purposes to avoid spikes.
-      const expenseCur = totalCur;
-      const expensePrev = totalPrev;
-
-      const totalNet = incomeCur - expenseCur; // This net excludes adjustment
-      const prevNet = incomePrev - expensePrev;
-      const percent = prevNet ? ((totalNet - prevNet) / prevNet) * 100 : 0;
-
-      // Fetch Year Data for Annual Projection
-      const startYear = new Date(selectedYear, 0, 1);
-      const endYear = new Date(selectedYear, 11, 31);
-      const { data: yearTx } = await supabase
-        .from('user_transactions')
-        .select('amount, type, date, category_id') // Added category_id
-        .eq('user_id', user.id)
-        .gte('date', fmt(startYear))
-        .lte('date', fmt(endYear))
-        .abortSignal(ac.signal);
-
-      // Process Year Data
-      const monthlyNet = Array(12).fill(0);
-      const monthlyDataExists = Array(12).fill(false);
-
-      (yearTx || []).forEach((t: any) => {
-        // Exclude Adjustment and transfer from annual projection data as well
-        if (t.type === 'income' && (t.category_id === adjustmentCatIdLocal || t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return;
-
-        const parts = String(t.date || '').split('-');
-        const m = parseInt(parts[1], 10) - 1; // 0-11
-        if (m >= 0 && m <= 11) {
-          const val = Number(t.amount);
-          if (t.type === 'income') monthlyNet[m] += val;
-          else monthlyNet[m] -= val;
-          monthlyDataExists[m] = true;
-        }
-      });
-
-      // Calculate Projection
-      // Use actuals up to the selected month (or all actuals if year is past/fully present)
-      // Project future months based on the trend calculated (percent)
-      const projectedValues = [...monthlyNet];
-      const isProjected = Array(12).fill(false);
-
-      // Determine cutoff for projection. We project starting from selectedMonth + 1
-      let lastVal = monthlyNet[selectedMonth];
-      // If selected month has no data (e.g. future), try to find last month with data?
-      // Or just use the totalNet calculated earlier (which is incomeCur - expenseCur)
-      // totalNet effectively IS monthlyNet[selectedMonth] but computed from fresh curTx data.
-      lastVal = totalNet;
-
-      for (let i = selectedMonth + 1; i < 12; i++) {
-        if (!monthlyDataExists[i]) { // Only project if no actual data? Or always project future?
-          // Always project for "future" relative to selected context
-          const nextVal = lastVal * (1 + percent / 100);
-          projectedValues[i] = nextVal;
-          isProjected[i] = true;
-          lastVal = nextVal;
-        }
-      }
-
-      setProjection({
-        labels: monthNames,
-        values: projectedValues,
-        total: totalNet,
-        percent,
-        isProjected
-      });
-
-      setIncomeTotal(incomeCur);
-      setLastIncomeTotal(incomePrev);
-
-      // --- INCOME CATEGORIES (Exclude Adjustment) ---
-      const mapInc = new Map<string, number>();
-      incomeCurFiltered.forEach((t: any) => {
-        const key = t.category_id || 'none';
-        mapInc.set(key, (mapInc.get(key) || 0) + Number(t.amount));
-      });
-      const idsInc = Array.from(mapInc.keys()).filter(k => k !== 'none');
-      let catsByIdInc: Record<string, string> = {};
-      if (idsInc.length) {
-        const { data: catsInc } = await supabase
-          .from('user_categories')
-          .select('id, name')
-          .in('id', idsInc);
-        (catsInc || []).forEach((c: any) => { catsByIdInc[c.id as string] = String(c.name || 'Categoria'); });
-      }
-      const arrInc = Array.from(mapInc.entries()).map(([id, amt]) => ({ name: id === 'none' ? 'Sem Categoria' : (catsByIdInc[id] || 'Categoria'), amount: amt }));
-      arrInc.sort((a, b) => b.amount - a.amount);
-      setIncomeCategories(arrInc);
-      setMonthlyTransactions(curTx || []);
-
-      setHasData(((curTx || []).length + (prevTx || []).length) > 0);
+    const tid = window.setTimeout(() => {
+      loadReportsData(ac.signal).catch(() => {});
+    }, 250);
+    return () => {
+      clearTimeout(tid);
+      ac.abort();
     };
-    // debounce para reduzir aborts ao alternar mês/ano rapidamente
-    tid = window.setTimeout(() => { load().catch(() => { }); }, 250);
-    return () => { if (tid) clearTimeout(tid); ac.abort(); };
-  }, [selectedYear, selectedMonth]);
+  }, [loadReportsData]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('reports_transactions_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_transactions' }, () => {
+        loadReportsData().catch(() => {});
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadReportsData]);
 
   useEffect(() => {
     let cancelled = false;
