@@ -30,6 +30,12 @@ const Reports: React.FC = () => {
   const [statTab, setStatTab] = useState<'expense' | 'income'>('expense');
   const [activeCatIndex, setActiveCatIndex] = useState<number | null>(null);
 
+  // Estados para o Gráfico Linear Diário ("Fluxo Diário")
+  const [monthlyTransactions, setMonthlyTransactions] = useState<any[]>([]);
+  const [dailyTab, setDailyTab] = useState<'expense' | 'income'>('expense');
+  const [adjustmentCatId, setAdjustmentCatId] = useState<string | null>(null);
+  const dailyScrollRef = React.useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setActiveCatIndex(null);
   }, [statTab]);
@@ -73,7 +79,7 @@ const Reports: React.FC = () => {
       };
 
       // FETCH ADJUSTMENT ID
-      let adjustmentCatId: string | null = null;
+      let adjustmentCatIdLocal: string | null = null;
       try {
         const { data: adjCat } = await supabase
           .from('user_categories')
@@ -82,7 +88,10 @@ const Reports: React.FC = () => {
           .ilike('name', 'Ajuste de Saldo')
           .abortSignal(ac.signal)
           .maybeSingle();
-        if (adjCat) adjustmentCatId = adjCat.id;
+        if (adjCat) {
+          adjustmentCatIdLocal = adjCat.id;
+          setAdjustmentCatId(adjCat.id);
+        }
       } catch (e) { /* ignore */ }
 
 
@@ -142,8 +151,8 @@ const Reports: React.FC = () => {
       const incomePrevRaw = (prevTx || []).filter((x: any) => x.type === 'income');
 
       // Filter Logic
-      const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
-      const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
+      const incomeCurFiltered = incomeCurRaw.filter((t: any) => t.category_id !== adjustmentCatIdLocal && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
+      const incomePrevFiltered = incomePrevRaw.filter((t: any) => t.category_id !== adjustmentCatIdLocal && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558');
 
       const incomeCur = incomeCurFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
       const incomePrev = incomePrevFiltered.reduce((s: number, x: any) => s + Number(x.amount), 0);
@@ -177,7 +186,7 @@ const Reports: React.FC = () => {
 
       (yearTx || []).forEach((t: any) => {
         // Exclude Adjustment and transfer from annual projection data as well
-        if (t.type === 'income' && (t.category_id === adjustmentCatId || t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return;
+        if (t.type === 'income' && (t.category_id === adjustmentCatIdLocal || t.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return;
 
         const parts = String(t.date || '').split('-');
         const m = parseInt(parts[1], 10) - 1; // 0-11
@@ -241,6 +250,7 @@ const Reports: React.FC = () => {
       const arrInc = Array.from(mapInc.entries()).map(([id, amt]) => ({ name: id === 'none' ? 'Sem Categoria' : (catsByIdInc[id] || 'Categoria'), amount: amt }));
       arrInc.sort((a, b) => b.amount - a.amount);
       setIncomeCategories(arrInc);
+      setMonthlyTransactions(curTx || []);
 
       setHasData(((curTx || []).length + (prevTx || []).length) > 0);
     };
@@ -336,6 +346,80 @@ const Reports: React.FC = () => {
   };
   const incomeColors = useMemo(() => makeIncomeColors(incomeCategories), [incomeCategories]);
   const expenseColors = useMemo(() => makeExpenseColors(categories), [categories]);
+
+  // Quantidade de dias do mês selecionado
+  const daysInMonth = useMemo(() => {
+    return new Date(selectedYear, selectedMonth + 1, 0).getDate();
+  }, [selectedYear, selectedMonth]);
+
+  // Dados diários calculados para o gráfico linear
+  const dailyChartData = useMemo(() => {
+    const days = daysInMonth;
+    const tab = dailyTab; // 'expense' | 'income'
+    
+    const values = Array.from({ length: days }, (_, i) => {
+      const dayNum = i + 1;
+      const txs = monthlyTransactions.filter((tx: any) => {
+        if (!tx.date || tx.type !== tab) return false;
+        if (!tx.is_paid) return false; // Exibe apenas saídas e entradas marcadas como JÁ PAGAS!
+        if (tab === 'income' && (tx.category_id === adjustmentCatId || tx.category_id === 'd7956754-9a58-487d-9636-2cd59c2f4558')) return false;
+        
+        // Tratar formato YYYY-MM-DD
+        const parts = tx.date.split('-');
+        return parseInt(parts[2], 10) === dayNum;
+      });
+      const sum = txs.reduce((acc: number, tx: any) => acc + (Number(tx.amount) || 0), 0);
+      return { day: dayNum, value: sum };
+    });
+
+    const rawMax = Math.max(...values.map(v => v.value), 0);
+    const maxVal = rawMax || 1000;
+    
+    const width = 720;
+    const height = 180;
+    const paddingTop = 42; // Aumentado para dar espaço confortável para as pílulas de valores acima de todos os pontos
+    const paddingBottom = 30;
+    const paddingLeft = 20;
+    const paddingRight = 20;
+    
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+    
+    const points = values.map((v, i) => {
+      const x = paddingLeft + (i / (days - 1)) * chartWidth;
+      const ratio = rawMax > 0 ? (v.value / maxVal) : 0;
+      const y = height - paddingBottom - ratio * chartHeight;
+      return { day: v.day, value: v.value, x, y };
+    });
+    
+    // Caminho da linha
+    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    
+    // Caminho da área preenchida
+    const fillPath = points.length > 0 
+      ? `${linePath} L${points[points.length - 1].x.toFixed(1)} ${(height - paddingBottom).toFixed(1)} L${points[0].x.toFixed(1)} ${(height - paddingBottom).toFixed(1)} Z`
+      : '';
+      
+    // Encontrar o ponto de maior pico com valor > 0
+    let peakPoint = null;
+    if (rawMax > 0) {
+      const sorted = [...points].sort((a, b) => b.value - a.value);
+      peakPoint = sorted[0];
+    }
+      
+    return { points, linePath, fillPath, maxVal, rawMax, width, height, paddingBottom, peakPoint };
+  }, [daysInMonth, dailyTab, monthlyTransactions, adjustmentCatId]);
+
+  // Efeito de scroll automático para os últimos dias (fim do contêiner) ao carregar ou alternar filtros
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (dailyScrollRef.current) {
+        const el = dailyScrollRef.current;
+        el.scrollLeft = el.scrollWidth - el.clientWidth;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [dailyTab, monthlyTransactions, selectedYear, selectedMonth]);
 
 
 
@@ -708,6 +792,228 @@ const Reports: React.FC = () => {
           </motion.div>
         </div>
 
+      </section>
+
+      <section className="mt-4">
+        {/* Título de Fluxo Diário simétrico com Estatísticas */}
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 flex items-center justify-center shadow-sm">
+              <span className="material-symbols-outlined text-[24px] text-gray-900 dark:text-white leading-none select-none">timeline</span>
+            </div>
+            <h3 className="text-xl font-black uppercase text-gray-900 dark:text-white tracking-tight">Fluxo Diário</h3>
+          </div>
+        </div>
+
+        {/* Toggle Premium SAÍDAS DIÁRIAS / ENTRADAS DIÁRIAS */}
+        <div className="flex items-center justify-center mb-6 px-1">
+          <div className="bg-gray-100 dark:bg-white/5 p-1.5 rounded-2xl flex items-center shadow-inner border border-black/5 dark:border-white/10 w-full max-w-xs">
+            <button
+              onClick={() => setDailyTab('expense')}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${dailyTab === 'expense' ? 'bg-[#FF6B6B] text-white shadow-lg shadow-[#FF6B6B]/20 scale-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white scale-95 hover:scale-100'}`}
+            >
+              SAÍDAS DIÁRIAS
+            </button>
+            <button
+              onClick={() => setDailyTab('income')}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${dailyTab === 'income' ? 'bg-[#20BF55] text-white shadow-lg shadow-[#20BF55]/20 scale-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white scale-95 hover:scale-100'}`}
+            >
+              ENTRADAS DIÁRIAS
+            </button>
+          </div>
+        </div>
+
+        {/* Card do Gráfico Linear Diário com Scroll Horizontal */}
+        <div className="w-full">
+          <motion.div
+            layout
+            key={dailyTab}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-gradient-to-br from-white/70 to-white/40 dark:from-[#1C1C1E]/60 dark:to-black/60 p-4 sm:p-6 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-[2.5rem] backdrop-blur-2xl flex flex-col gap-3 overflow-hidden"
+          >
+            {/* Div de Scroll Horizontal do SVG */}
+            <div 
+              ref={dailyScrollRef}
+              className="overflow-x-auto select-none no-scrollbar flex cursor-grab active:cursor-grabbing pb-2 scroll-smooth active:scale-[0.99] transition-transform w-full"
+            >
+              <svg 
+                width={dailyChartData.width} 
+                height={dailyChartData.height} 
+                className="overflow-visible"
+              >
+                <defs>
+                  {/* Gradiente da linha principal */}
+                  <linearGradient id="line-grad-expense" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#FF6B6B" />
+                    <stop offset="100%" stopColor="#FF8E8E" />
+                  </linearGradient>
+                  <linearGradient id="line-grad-income" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#20BF55" />
+                    <stop offset="100%" stopColor="#4CD137" />
+                  </linearGradient>
+                  
+                  {/* Gradiente da área de preenchimento */}
+                  <linearGradient id="fill-grad-expense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FF6B6B" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#FF6B6B" stopOpacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="fill-grad-income" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#20BF55" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#20BF55" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+
+                {/* Linhas guia horizontais de fundo (Grid) */}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+                  const y = 35 + ratio * (dailyChartData.height - 35 - dailyChartData.paddingBottom);
+                  return (
+                    <line
+                      key={ratio}
+                      x1="0"
+                      y1={y}
+                      x2={dailyChartData.width}
+                      y2={y}
+                      stroke="currentColor"
+                      className="text-gray-200/40 dark:text-white/5"
+                      strokeWidth="1"
+                      strokeDasharray="4 4"
+                    />
+                  );
+                })}
+
+                {/* Área preenchida com gradiente translucido */}
+                {dailyChartData.rawMax > 0 && (
+                  <path
+                    d={dailyChartData.fillPath}
+                    fill={dailyTab === 'expense' ? 'url(#fill-grad-expense)' : 'url(#fill-grad-income)'}
+                  />
+                )}
+
+                {/* Linha principal com gradiente neon */}
+                {dailyChartData.rawMax > 0 ? (
+                  <path
+                    d={dailyChartData.linePath}
+                    fill="none"
+                    stroke={dailyTab === 'expense' ? 'url(#line-grad-expense)' : 'url(#line-grad-income)'}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : (
+                  // Linha reta padrão caso todos sejam zero
+                  <line
+                    x1="20"
+                    y1={dailyChartData.height - dailyChartData.paddingBottom}
+                    x2={dailyChartData.width - 20}
+                    y2={dailyChartData.height - dailyChartData.paddingBottom}
+                    stroke="currentColor"
+                    className="text-gray-300 dark:text-white/10"
+                    strokeWidth="2.5"
+                  />
+                )}
+
+                {/* Pontos de destaque (círculos) nos dias com transações */}
+                {dailyChartData.points.map((p) => {
+                  if (p.value === 0) return null;
+                  const color = dailyTab === 'expense' ? '#FF6B6B' : '#20BF55';
+                  return (
+                    <g key={p.day} className="cursor-pointer">
+                      {/* Círculo externo de glow/sombra */}
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r="8"
+                        fill={color}
+                        opacity="0.25"
+                      />
+                      {/* Círculo externo de borda */}
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r="5"
+                        fill={color}
+                      />
+                      {/* Centro branco do ponto */}
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r="2"
+                        fill="#FFFFFF"
+                      />
+                    </g>
+                  );
+                })}
+
+                {/* Rótulo de valores acima de cada pontinho ativo */}
+                {dailyChartData.points.map((p) => {
+                  if (p.value === 0) return null;
+                  
+                  const formatted = p.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+                  const pillWidth = Math.max(48, formatted.length * 5.2);
+                  const pillX = p.x - (pillWidth / 2);
+                  
+                  return (
+                    <g key={`val-${p.day}`}>
+                      {/* Retângulo/Pílula de fundo do texto do Valor */}
+                      <rect
+                        x={pillX}
+                        y={p.y - 25}
+                        width={pillWidth}
+                        height="15"
+                        rx="5"
+                        fill={dailyTab === 'expense' ? '#FF6B6B' : '#20BF55'}
+                        className="shadow-sm"
+                      />
+                      <text
+                        x={p.x}
+                        y={p.y - 14}
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        className="text-[8px] font-black tracking-tight select-none font-display"
+                      >
+                        {formatted}
+                      </text>
+                      {/* Pequena linha conectando a pílula ao circulo */}
+                      <line
+                        x1={p.x}
+                        y1={p.y - 10}
+                        x2={p.x}
+                        y2={p.y - 5}
+                        stroke={dailyTab === 'expense' ? '#FF6B6B' : '#20BF55'}
+                        strokeWidth="1.2"
+                        opacity="0.8"
+                      />
+                    </g>
+                  );
+                })}
+
+                {/* Eixo X: Legenda com o número de cada dia do mês */}
+                {dailyChartData.points.map((p) => {
+                  const hasVal = p.value > 0;
+                  return (
+                    <text
+                      key={p.day}
+                      x={p.x}
+                      y={dailyChartData.height - 8}
+                      textAnchor="middle"
+                      className={`text-[9px] font-black select-none ${hasVal ? (dailyTab === 'expense' ? 'fill-[#FF6B6B]' : 'fill-[#20BF55]') : 'fill-gray-400 dark:fill-gray-500'}`}
+                    >
+                      {p.day}
+                    </text>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {dailyChartData.rawMax === 0 && (
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 font-bold py-2 text-center italic leading-none mt-1">
+                Sem movimentações diárias registradas este mês
+              </p>
+            )}
+          </motion.div>
+        </div>
       </section>
 
       {/* AI FAB */}

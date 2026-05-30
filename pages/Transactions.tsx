@@ -43,6 +43,11 @@ const Transactions: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [tempYear, setTempYear] = useState<number>(new Date().getFullYear());
 
+  // Estados para exclusão de transações recorrentes (Regra 2)
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     if (yearFilter !== 'all') {
       setTempYear(yearFilter);
@@ -51,6 +56,52 @@ const Transactions: React.FC = () => {
 
   // --- Helpers ---
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // Função assíncrona para deletar transação simples ou em lote (Regra 2)
+  const handleDeleteTransaction = async (deleteAllRecurring: boolean) => {
+    if (!transactionToDelete) return;
+    setIsDeleting(true);
+    
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) {
+        setIsDeleting(false);
+        return;
+      }
+      
+      let delError = null;
+      if (deleteAllRecurring && transactionToDelete.description) {
+        const { error } = await supabase
+          .from('user_transactions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('description', transactionToDelete.description);
+        delError = error;
+      } else {
+        const { error } = await supabase
+          .from('user_transactions')
+          .delete()
+          .eq('id', transactionToDelete.id);
+        delError = error;
+      }
+      
+      if (!delError) {
+        if (deleteAllRecurring && transactionToDelete.description) {
+          setItems(prev => prev.filter(x => x.description !== transactionToDelete.description));
+        } else {
+          setItems(prev => prev.filter(x => x.id !== transactionToDelete.id));
+        }
+        setOpenId(null);
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirmModal(false);
+      setTransactionToDelete(null);
+    }
+  };
 
   // --- Data Fetching ---
   const fetchTransactions = useCallback(async (pageToLoad: number, shouldReset: boolean = false) => {
@@ -586,10 +637,32 @@ const Transactions: React.FC = () => {
                           </button>
                           <button
                             onClick={async () => {
-                              const { error } = await supabase.from('user_transactions').delete().eq('id', t.id);
-                              if (!error) {
-                                setItems(prev => prev.filter(x => x.id !== t.id));
-                                setOpenId(null);
+                              try {
+                                const { data: userData } = await supabase.auth.getUser();
+                                const user = userData?.user;
+                                if (!user) return;
+                                
+                                if (t.description) {
+                                  const { data: occurrences } = await supabase
+                                    .from('user_transactions')
+                                    .select('id')
+                                    .eq('user_id', user.id)
+                                    .eq('description', t.description);
+                                  
+                                  if (occurrences && occurrences.length > 1) {
+                                    setTransactionToDelete(t);
+                                    setShowDeleteConfirmModal(true);
+                                    return;
+                                  }
+                                }
+                                
+                                const { error } = await supabase.from('user_transactions').delete().eq('id', t.id);
+                                if (!error) {
+                                  setItems(prev => prev.filter(x => x.id !== t.id));
+                                  setOpenId(null);
+                                }
+                              } catch (e) {
+                                // ignore
                               }
                             }}
                             className="h-[80%] w-12 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-transform ml-2"
@@ -780,6 +853,66 @@ const Transactions: React.FC = () => {
                 >
                   Fechar
                 </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Exclusão (Regra 2) */}
+      <AnimatePresence>
+        {showDeleteConfirmModal && transactionToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-[2rem] border border-white/40 dark:border-white/10 shadow-glass-lg max-w-sm w-full flex flex-col gap-4 text-center select-none"
+            >
+              <div className="w-12 h-12 rounded-full bg-danger/15 flex items-center justify-center mx-auto text-danger">
+                <span className="material-symbols-outlined text-2xl">delete</span>
+              </div>
+              <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Excluir Recorrência</h4>
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 leading-relaxed">
+                Esta é uma transação recorrente. Deseja excluir apenas esta ocorrência específica ou remover todas as recorrências com o nome <span className="text-gray-900 dark:text-white font-extrabold">"{transactionToDelete.description}"</span>?
+              </p>
+              <div className="flex flex-col gap-2 mt-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    await handleDeleteTransaction(true);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-danger text-white font-black text-xs uppercase shadow-md shadow-danger/20 transition-all font-display"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Excluindo...' : 'Excluir todas as recorrências'}
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    await handleDeleteTransaction(false);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black text-xs uppercase hover:bg-gray-200 dark:hover:bg-white/10 transition-all font-display"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Excluindo...' : 'Excluir apenas esta'}
+                </motion.button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirmModal(false);
+                    setTransactionToDelete(null);
+                  }}
+                  className="text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 py-1 transition-colors outline-none font-display"
+                  disabled={isDeleting}
+                >
+                  Cancelar
+                </button>
               </div>
             </motion.div>
           </motion.div>

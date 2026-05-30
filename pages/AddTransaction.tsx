@@ -37,6 +37,13 @@ const AddTransaction: React.FC = () => {
   const [reminderPhone, setReminderPhone] = useState('');
   const [existingPhone, setExistingPhone] = useState<string | null>(null);
 
+  // Rastreamento e Modais para Transações Recorrentes
+  const [originalDescription, setOriginalDescription] = useState<string>('');
+  const [originalCategoryName, setOriginalCategoryName] = useState<string>('');
+  const [isOriginalRecurring, setIsOriginalRecurring] = useState(false);
+  const [showCategoryConfirmModal, setShowCategoryConfirmModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+
   // Colors based on type
   const activeColor = type === 'expense' ? '#FF455F' : '#00D68F'; // Pink/Red for expense, Green for income
   const activeClass = type === 'expense' ? 'bg-[#FF455F]' : 'bg-[#00D68F]';
@@ -80,7 +87,9 @@ const AddTransaction: React.FC = () => {
           .maybeSingle();
         if (data) {
           setType(data.type as any);
-          setDescription(data.description || '');
+          const desc = data.description || '';
+          setDescription(desc);
+          setOriginalDescription(desc);
           setIsPaid(!!data.is_paid);
           setAmount(String(Number(data.amount)).replace('.', ','));
           if (typeof data.date === 'string' && data.date) {
@@ -94,8 +103,26 @@ const AddTransaction: React.FC = () => {
               .select('name')
               .eq('id', data.category_id)
               .maybeSingle();
-            setCategoryName((cat as any)?.name || '');
+            const catName = (cat as any)?.name || '';
+            setCategoryName(catName);
+            setOriginalCategoryName(catName);
           }
+
+          // Verificar assincronamente se é uma transação recorrente
+          (async () => {
+            const { data: userData } = await supabase.auth.getUser();
+            const user = userData?.user;
+            if (user && desc) {
+              const { data: occurrences } = await supabase
+                .from('user_transactions')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('description', desc);
+              if (occurrences && occurrences.length > 1) {
+                setIsOriginalRecurring(true);
+              }
+            }
+          })();
           if ((data as any).reminder_at) {
             const rAt = new Date((data as any).reminder_at);
             setHasReminder(true);
@@ -162,6 +189,192 @@ const AddTransaction: React.FC = () => {
   const allCategories = useMemo(() => {
     return Array.from(new Set([...categories, ...userCategories]));
   }, [userCategories]);
+
+  // Função auxiliar assíncrona para salvar transação com lógica de recorrência
+  const handleSave = async (updateAllCategories: boolean) => {
+    setSaving(true);
+    const normalized = amount
+      .replace(/\./g, '')
+      .replace(/,/g, '.')
+      .trim();
+    const value = Number(normalized);
+    if (!value || value <= 0) {
+      setError('Informe um valor válido');
+      setSaving(false);
+      return;
+    }
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) {
+      setError('Faça login para salvar a transação');
+      setSaving(false);
+      return;
+    }
+    const dateStr = toLocalISO(selectedDate);
+    const formattedPhone = reminderPhone ? '55' + reminderPhone.replace(/\D/g, '') : null;
+
+    if (hasReminder && reminderPhone && !existingPhone) {
+      await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          whatsapp: formattedPhone,
+          username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'user'
+        });
+    }
+
+    let reminderAt: string | null = null;
+    if (hasReminder) {
+      const [h, m] = reminderTime.split(':').map(Number);
+      const rDate = new Date(reminderDate);
+      rDate.setHours(h, m, 0, 0);
+      reminderAt = toLocalISODateTime(rDate);
+    }
+
+    let categoryId: string | null = null;
+    if (categoryName) {
+      const { data: catData, error: catErr } = await supabase
+        .from('user_categories')
+        .upsert({ user_id: user.id, name: categoryName, type }, { onConflict: 'user_id,name' })
+        .select('id')
+        .maybeSingle();
+      if (!catErr) categoryId = (catData as any)?.id ?? null;
+    }
+
+    let dbError = null as any;
+    if (editId) {
+      // Regra 3: se a transação for recorrente e mudou a descrição (nome), atualiza todas
+      const descriptionChanged = description !== originalDescription;
+      if (isOriginalRecurring && descriptionChanged && originalDescription) {
+        const { error: renameError } = await supabase
+          .from('user_transactions')
+          .update({ description: description || null })
+          .eq('user_id', user.id)
+          .eq('description', originalDescription);
+        if (renameError) dbError = renameError;
+      }
+
+      if (!dbError) {
+        const { error: updateError } = await supabase
+          .from('user_transactions')
+          .update({
+            amount: value,
+            type,
+            description: description || null,
+            date: dateStr,
+            is_paid: isPaid,
+            category_id: categoryId,
+            reminder_at: reminderAt,
+            reminder_phone: hasReminder ? (formattedPhone || existingPhone) : null
+          })
+          .eq('id', editId);
+        dbError = updateError;
+      }
+
+      // Regra 1: se o usuário escolheu atualizar em massa a categoria
+      if (!dbError && updateAllCategories && originalDescription) {
+        const targetDesc = descriptionChanged ? description : originalDescription;
+        const { error: bulkError } = await supabase
+          .from('user_transactions')
+          .update({ category_id: categoryId })
+          .eq('user_id', user.id)
+          .eq('description', targetDesc);
+        if (bulkError) dbError = bulkError;
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from('user_transactions')
+        .insert({
+          user_id: user.id,
+          amount: value,
+          type,
+          description: description || null,
+          date: dateStr,
+          is_paid: isPaid,
+          category_id: categoryId,
+          reminder_at: reminderAt,
+          reminder_phone: hasReminder ? (formattedPhone || existingPhone) : null
+        });
+      dbError = insertError;
+
+      if (!dbError && isRecurring) {
+        const baseDay = selectedDate.getDate();
+        const start = new Date(selectedDate);
+        start.setMonth(start.getMonth() + 1);
+        const recurringEndYear = 2026;
+        const rows: any[] = [];
+        for (let yr = start.getFullYear(); yr <= recurringEndYear; yr++) {
+          const monthStart = yr === start.getFullYear() ? start.getMonth() : 0;
+          for (let m = monthStart; m < 12; m++) {
+            const daysInMonth = new Date(yr, m + 1, 0).getDate();
+            const day = Math.min(baseDay, daysInMonth);
+            const d = new Date(yr, m, day);
+            rows.push({
+              user_id: user.id,
+              amount: value,
+              type,
+              description: description || null,
+              date: toLocalISO(d),
+              is_paid: false,
+              category_id: categoryId,
+              reminder_at: reminderAt,
+              reminder_phone: hasReminder && reminderPhone ? '55' + reminderPhone.replace(/\D/g, '') : null
+            });
+          }
+        }
+        if (rows.length) {
+          const { error: recErr } = await supabase
+            .from('user_transactions')
+            .insert(rows);
+          if (recErr) dbError = recErr;
+        }
+      }
+    }
+
+    setSaving(false);
+    if (dbError) {
+      setError(dbError.message);
+      return;
+    }
+    navigate(-1);
+  };
+
+  // Função auxiliar assíncrona para deletar transação
+  const handleDelete = async (deleteAllRecurring: boolean) => {
+    if (!editId) return;
+    setSaving(true);
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) {
+      setError('Faça login para excluir a transação');
+      setSaving(false);
+      return;
+    }
+
+    let delError = null;
+    if (deleteAllRecurring && originalDescription) {
+      // Regra 2: Deleta todas as transações correspondentes ao mesmo nome
+      const { error } = await supabase
+        .from('user_transactions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('description', originalDescription);
+      delError = error;
+    } else {
+      const { error } = await supabase
+        .from('user_transactions')
+        .delete()
+        .eq('id', editId);
+      delError = error;
+    }
+
+    setSaving(false);
+    if (delError) {
+      setError(delError.message);
+      return;
+    }
+    navigate(-1);
+  };
 
   return (
     <motion.div
@@ -563,134 +776,14 @@ const AddTransaction: React.FC = () => {
             onClick={async () => {
               if (saving) return;
               setError(null);
-              const normalized = amount
-                .replace(/\./g, '')
-                .replace(/,/g, '.')
-                .trim();
-              const value = Number(normalized);
-              if (!value || value <= 0) {
-                setError('Informe um valor válido');
+              
+              // Regra 1: se for transação recorrente e mudou de categoria, exibe modal de confirmação
+              if (editId && isOriginalRecurring && categoryName !== originalCategoryName) {
+                setShowCategoryConfirmModal(true);
                 return;
               }
-              setSaving(true);
-              const { data: userData } = await supabase.auth.getUser();
-              const user = userData?.user;
-              if (!user) {
-                setError('Faça login para salvar a transação');
-                setSaving(false);
-                return;
-              }
-              const dateStr = toLocalISO(selectedDate);
 
-              const formattedPhone = reminderPhone ? '55' + reminderPhone.replace(/\D/g, '') : null;
-
-              // If we have a new phone, update the profile
-              if (hasReminder && reminderPhone && !existingPhone) {
-                await supabase
-                  .from('profiles')
-                  .upsert({
-                    id: user.id,
-                    whatsapp: formattedPhone,
-                    username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'user'
-                  });
-              }
-
-              let reminderAt: string | null = null;
-              if (hasReminder) {
-                const [h, m] = reminderTime.split(':').map(Number);
-                const rDate = new Date(reminderDate);
-                rDate.setHours(h, m, 0, 0);
-                reminderAt = toLocalISODateTime(rDate);
-              }
-
-              let categoryId: string | null = null;
-              if (categoryName) {
-                const { data: catData, error: catErr } = await supabase
-                  .from('user_categories')
-                  .upsert({ user_id: user.id, name: categoryName, type }, { onConflict: 'user_id,name' })
-                  .select('id')
-                  .maybeSingle();
-                if (!catErr) categoryId = (catData as any)?.id ?? null;
-              }
-              let dbError = null as any;
-              if (editId) {
-                const { error: updateError } = await supabase
-                  .from('user_transactions')
-                  .update({
-                    amount: value,
-                    type,
-                    description: description || null,
-                    date: dateStr,
-                    is_paid: isPaid,
-                    category_id: categoryId,
-                    reminder_at: reminderAt,
-                    reminder_phone: hasReminder ? (formattedPhone || existingPhone) : null
-                  })
-                  .eq('id', editId);
-                dbError = updateError;
-                if (!dbError && description) {
-                  const { error: bulkError } = await supabase
-                    .from('user_transactions')
-                    .update({ category_id: categoryId })
-                    .eq('user_id', user.id)
-                    .eq('description', description);
-                  if (bulkError) dbError = bulkError;
-                }
-              } else {
-                const { error: insertError } = await supabase
-                  .from('user_transactions')
-                  .insert({
-                    user_id: user.id,
-                    amount: value,
-                    type,
-                    description: description || null,
-                    date: dateStr,
-                    is_paid: isPaid,
-                    category_id: categoryId,
-                    reminder_at: reminderAt,
-                    reminder_phone: hasReminder ? (formattedPhone || existingPhone) : null
-                  });
-                dbError = insertError;
-
-                if (!dbError && isRecurring) {
-                  const baseDay = selectedDate.getDate();
-                  const start = new Date(selectedDate);
-                  start.setMonth(start.getMonth() + 1);
-                  const recurringEndYear = 2026;
-                  const rows: any[] = [];
-                  for (let yr = start.getFullYear(); yr <= recurringEndYear; yr++) {
-                    const monthStart = yr === start.getFullYear() ? start.getMonth() : 0;
-                    for (let m = monthStart; m < 12; m++) {
-                      const daysInMonth = new Date(yr, m + 1, 0).getDate();
-                      const day = Math.min(baseDay, daysInMonth);
-                      const d = new Date(yr, m, day);
-                      rows.push({
-                        user_id: user.id,
-                        amount: value,
-                        type,
-                        description: description || null,
-                        date: toLocalISO(d),
-                        is_paid: false,
-                        category_id: categoryId,
-                        reminder_at: reminderAt,
-                        reminder_phone: hasReminder && reminderPhone ? '55' + reminderPhone.replace(/\D/g, '') : null
-                      });
-                    }
-                  }
-                  if (rows.length) {
-                    const { error: recErr } = await supabase
-                      .from('user_transactions')
-                      .insert(rows);
-                    if (recErr) dbError = recErr;
-                  }
-                }
-              }
-              setSaving(false);
-              if (dbError) {
-                setError(dbError.message);
-                return;
-              }
-              navigate(-1);
+              await handleSave(false);
             }}
             className={`w-full h-14 rounded-2xl font-bold text-lg shadow-lg text-white transition-all ${type === 'expense' ? 'bg-danger shadow-danger/30 hover:bg-danger/90' : 'bg-secondary shadow-secondary/30 hover:bg-secondary/90'}`}
             disabled={saving}
@@ -702,12 +795,12 @@ const AddTransaction: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               onClick={async () => {
                 if (!editId) return;
-                const { error: delError } = await supabase
-                  .from('user_transactions')
-                  .delete()
-                  .eq('id', editId);
-                if (delError) { setError(delError.message); return; }
-                navigate(-1);
+                // Regra 2: se for transação recorrente, exibe modal de exclusão
+                if (isOriginalRecurring) {
+                  setShowDeleteConfirmModal(true);
+                } else {
+                  await handleDelete(false);
+                }
               }}
               className="mt-3 w-full h-12 rounded-2xl font-bold text-sm bg-white/5 text-danger-light hover:bg-danger/10 transition-colors"
             >Excluir</motion.button>
@@ -717,6 +810,117 @@ const AddTransaction: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modais de Confirmação Premium */}
+      <AnimatePresence>
+        {/* Modal de Categoria (Regra 1) */}
+        {showCategoryConfirmModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-[2rem] border border-white/40 dark:border-white/10 shadow-glass-lg max-w-sm w-full flex flex-col gap-4 text-center select-none"
+            >
+              <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center mx-auto text-secondary">
+                <span className="material-symbols-outlined text-2xl">category</span>
+              </div>
+              <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Atualizar Categorias</h4>
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 leading-relaxed">
+                Você alterou a categoria desta transação. Deseja aplicar essa nova categoria a todas as outras transações com o nome <span className="text-gray-900 dark:text-white font-extrabold">"{originalDescription}"</span>?
+              </p>
+              <div className="flex flex-col gap-2 mt-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    setShowCategoryConfirmModal(false);
+                    await handleSave(true);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-secondary text-white font-black text-xs uppercase shadow-md shadow-secondary/20 transition-all"
+                >
+                  Mudar todas as transações
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    setShowCategoryConfirmModal(false);
+                    await handleSave(false);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black text-xs uppercase hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
+                >
+                  Mudar apenas esta
+                </motion.button>
+                <button
+                  onClick={() => setShowCategoryConfirmModal(false)}
+                  className="text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 py-1 transition-colors outline-none"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Modal de Exclusão (Regra 2) */}
+        {showDeleteConfirmModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-[2rem] border border-white/40 dark:border-white/10 shadow-glass-lg max-w-sm w-full flex flex-col gap-4 text-center select-none"
+            >
+              <div className="w-12 h-12 rounded-full bg-danger/15 flex items-center justify-center mx-auto text-danger">
+                <span className="material-symbols-outlined text-2xl">delete</span>
+              </div>
+              <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Excluir Recorrência</h4>
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 leading-relaxed">
+                Esta é uma transação recorrente. Deseja excluir apenas esta ocorrência específica ou remover todas as recorrências com o nome <span className="text-gray-900 dark:text-white font-extrabold">"{originalDescription}"</span>?
+              </p>
+              <div className="flex flex-col gap-2 mt-2">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    setShowDeleteConfirmModal(false);
+                    await handleDelete(true);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-danger text-white font-black text-xs uppercase shadow-md shadow-danger/20 transition-all"
+                >
+                  Excluir todas as recorrências
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    setShowDeleteConfirmModal(false);
+                    await handleDelete(false);
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black text-xs uppercase hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
+                >
+                  Excluir apenas esta
+                </motion.button>
+                <button
+                  onClick={() => setShowDeleteConfirmModal(false)}
+                  className="text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 py-1 transition-colors outline-none"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
