@@ -549,8 +549,8 @@ const Reports: React.FC = () => {
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 leading-none mb-1">
                     {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
                   </p>
-                  <p className={`text-2xl font-black font-display tracking-tight leading-none ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
-                    {fmtBRL(statTab === 'expense' ? monthTotal : incomeTotal)}
+                  <p className={`text-lg sm:text-xl font-black font-display tracking-tight leading-none ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
+                    {(statTab === 'expense' ? monthTotal : incomeTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
                   </p>
                 </div>
               </div>
