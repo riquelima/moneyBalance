@@ -165,6 +165,57 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+// Main Horizontal Tabs Container for SPA Slider
+const MainTabsView: React.FC = () => {
+  const location = useLocation();
+
+  const pathToIndex: Record<string, number> = {
+    '/': 0,
+    '/reports': 1,
+    '/transactions': 2,
+    '/calendar': 3
+  };
+
+  const activeTab = pathToIndex[location.pathname] !== undefined ? pathToIndex[location.pathname] : 0;
+
+  return (
+    <div className="w-full h-screen overflow-hidden relative flex flex-col">
+      {/* View Slider (O coração da SPA horizontal) */}
+      <div 
+        className="flex h-full w-[400vw] relative will-change-transform"
+        style={{
+          transform: `translate3d(-${activeTab * 100}vw, 0px, 0px)`,
+          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
+        {/* Aba 0: Início (Dashboard) */}
+        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+          <Dashboard />
+        </section>
+
+        {/* Aba 1: Gastos (Reports) */}
+        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+          <Reports />
+        </section>
+
+        {/* Aba 2: Transações (Transactions) */}
+        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+          <Transactions />
+        </section>
+
+        {/* Aba 3: Agenda (CalendarPage) */}
+        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+          <CalendarPage />
+        </section>
+      </div>
+
+      {/* Elementos flutuantes persistentes fora do slider */}
+      <BottomNav />
+      <OnboardingOverlay />
+    </div>
+  );
+};
+
 // Wrapper to handle animations
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
@@ -177,12 +228,14 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/success" element={<Success />} />
 
-        {/* App Routes */}
-        <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-        <Route path="/transactions" element={<AppLayout><Transactions /></AppLayout>} />
-        <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
+        {/* App Routes principais unificadas no slider SPA horizontal */}
+        <Route path="/" element={<MainTabsView />} />
+        <Route path="/reports" element={<MainTabsView />} />
+        <Route path="/transactions" element={<MainTabsView />} />
+        <Route path="/calendar" element={<MainTabsView />} />
+
+        {/* Demais rotas secundárias */}
         <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
-        <Route path="/calendar" element={<AppLayout><CalendarPage /></AppLayout>} />
         <Route path="/projecao-futura" element={<AppLayout><ProjecaoFutura /></AppLayout>} />
         
         {/* Detail Routes */}

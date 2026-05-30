@@ -267,7 +267,18 @@ const Dashboard: React.FC = () => {
     const normalize = (vals: number[]) => {
       const max = Math.max(0, ...vals);
       if (max === 0) return vals.map(() => 0);
-      return vals.map(v => (v === 0 ? 0 : Math.max(6, Math.round((v / max) * 100))));
+      
+      const positiveVals = vals.filter(v => v > 0);
+      const min = positiveVals.length > 0 ? Math.min(...positiveVals) : 0;
+      
+      return vals.map(v => {
+        if (v === 0) return 0;
+        if (max === min) return 54; // Altura padrão se todos os valores forem iguais
+        
+        // Mapeamento dinâmico otimizado (20% a 90%) para acomodar com folga os rótulos compactos
+        const ratio = (v - min) / (max - min);
+        return 20 + ratio * 70;
+      });
     };
 
     const processMonthData = async (data: any[]) => {
@@ -517,10 +528,25 @@ const Dashboard: React.FC = () => {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="flex flex-col p-4 pt-6 gap-6 min-h-screen text-gray-900 pb-32"
+      className="flex flex-col p-4 pt-6 gap-6 min-h-screen text-gray-900 dark:text-gray-100 pb-32 bg-transparent"
     >
       <Header
-        title="Visão Geral"
+        title={
+          <div className="flex flex-col items-center gap-1 py-0.5 w-full">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-none select-none">Visão Geral</h1>
+            
+            {/* Filtro global 'Este Mês' no centro do header, abaixo do título */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowMonthPicker(s => !s)}
+              className="h-7 px-2 border border-black/5 dark:border-white/10 bg-white/40 dark:bg-white/5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold text-[10px] transition-all flex items-center justify-center gap-1 shadow-sm backdrop-blur-md select-none mt-1"
+            >
+              <span className="material-symbols-outlined !text-[11px] leading-none">calendar_month</span>
+              <span className="leading-none">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+            </motion.button>
+          </div>
+        }
+        className="!pt-4 !pb-1.5"
         leftAction={
           avatarUrl ? (
             <motion.img
@@ -541,125 +567,196 @@ const Dashboard: React.FC = () => {
           )
         }
         rightAction={
-          <div className="flex items-center gap-2">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/notifications')}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
-            >
-              <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-1 ring-white"></span>
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/settings')}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-            </motion.button>
-          </div>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/notifications')}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
+          >
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-1 ring-white"></span>
+          </motion.button>
         }
       />
 
-      {showMonthPicker && (
-        <div className="flex justify-center relative z-40 mb-4">
-          <div className="w-full max-w-[340px] rounded-3xl bg-white/90 backdrop-blur-xl p-5 border border-white/40 shadow-glass-lg">
-            <div className="flex items-center justify-between mb-4">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y - 1)} className="p-2 rounded-full hover:bg-black/5 text-gray-900"><span className="material-symbols-outlined">chevron_left</span></motion.button>
-              <span className="text-lg font-bold text-gray-900">{selectedYear}</span>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setSelectedYear(y => y + 1)} className="p-2 rounded-full hover:bg-black/5 text-gray-900"><span className="material-symbols-outlined">chevron_right</span></motion.button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              {[selectedYear - 2, selectedYear - 1, selectedYear].map((y) => (
+      {/* Bottom Sheet de Seleção de Mês - Painel Arrastável com AnimatePresence */}
+      <AnimatePresence>
+        {showMonthPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowMonthPicker(false)}
+          >
+            {/* Painel com animação Spring elástica e suporte a arrastar para fechar (drag="y") */}
+            <motion.div
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 250 }}
+              dragElastic={{ top: 0.05, bottom: 0.6 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 120) {
+                  setShowMonthPicker(false);
+                }
+              }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 26, stiffness: 210 }}
+              className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing"
+              onClick={(e) => e.stopPropagation()} // Impede fechamento ao clicar no painel
+            >
+              {/* Indicador visual de pílula arrastável */}
+              <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-2" />
+
+              {/* Cabeçalho do seletor de Ano */}
+              <div className="flex items-center justify-between border-b border-gray-200/50 dark:border-white/5 pb-4">
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  key={y}
-                  onClick={() => setSelectedYear(y)}
-                  className={y === selectedYear ? 'px-3 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-3 py-2 rounded-xl bg-black/5 text-xs font-medium hover:bg-black/10 text-gray-500'}
-                >{y}</motion.button>
-              ))}
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {monthNames.map((m, idx) => (
+                  onClick={() => setSelectedYear(y => y - 1)}
+                  className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
+                >
+                  <span className="material-symbols-outlined">chevron_left</span>
+                </motion.button>
+                
+                <div className="px-6">
+                  <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none">{selectedYear}</p>
+                </div>
+
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  key={m}
-                  onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
-                  className={idx === selectedMonth ? 'px-2 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg shadow-primary/30' : 'px-2 py-2.5 rounded-xl bg-black/5 text-xs font-medium hover:bg-black/10 text-gray-500'}
-                >{m}</motion.button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+                  onClick={() => setSelectedYear(y => y + 1)}
+                  className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
+                >
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </motion.button>
+              </div>
+
+              {/* Seletor rápido de anos (Últimos 3 Anos) */}
+              <div className="grid grid-cols-3 gap-2">
+                {[selectedYear - 2, selectedYear - 1, selectedYear].map((y) => (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    key={y}
+                    onClick={() => setSelectedYear(y)}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${y === selectedYear ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                  >
+                    {y}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Grade de meses (Botões grandes e confortáveis) */}
+              <div className="grid grid-cols-4 gap-2">
+                {monthNames.map((m, idx) => (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    key={m}
+                    onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
+                    className={`px-2 py-3.5 rounded-xl text-xs font-black uppercase transition-all ${idx === selectedMonth ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                  >
+                    {m}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Botões de Ação na Base */}
+              <div className="flex gap-3 mt-4">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }}
+                  className="flex-1 rounded-2xl bg-black/5 dark:bg-white/5 py-3.5 text-xs font-black uppercase text-gray-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
+                >
+                  Mês Atual
+                </motion.button>
+                
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowMonthPicker(false)}
+                  className="flex-1 rounded-2xl bg-secondary py-3.5 text-xs font-black uppercase text-white shadow-lg shadow-secondary/30 hover:shadow-secondary/50 transition-all"
+                >
+                  Fechar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex w-full overflow-x-auto snap-x snap-mandatory gap-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] -mx-4 px-4 pb-2">
         {/* Saldo Total Card */}
+        {/* Altura reduzida para min-h-[120px] e padding reduzido para p-4 para um design super compacto */}
         <motion.section
           variants={itemVariants}
-          className="min-w-full snap-center rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
+          className="min-w-full snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#8854D0]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(136,84,208,0.12)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
           data-onboarding="saldo-total"
         >
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-primary via-secondary to-primary opacity-80"></div>
 
-          {/* Hide Values Button - Top Left */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={togglePrivacy}
-            aria-label={isPrivacyEnabled ? 'Mostrar valores' : 'Ocultar valores'}
-            className="absolute top-6 left-6 p-0 border-0 bg-transparent cursor-pointer hover:opacity-70 transition-opacity"
-          >
-            <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-5 w-5 opacity-70" />
-          </motion.button>
+          {/* Top Bar Actions with Perfect Alignment */}
+          <div className="flex items-center justify-between w-full relative z-10">
+            {/* Hide Values Button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={togglePrivacy}
+              aria-label={isPrivacyEnabled ? 'Mostrar valores' : 'Ocultar valores'}
+              className="w-9 h-9 border border-black/5 dark:border-white/10 bg-white/40 dark:bg-white/5 rounded-xl cursor-pointer hover:bg-white/60 dark:hover:bg-white/10 transition-all flex items-center justify-center"
+            >
+              <img src="https://cdn-icons-png.flaticon.com/512/6423/6423885.png" alt="Ocultar valores" className="h-4 w-4 opacity-75 dark:opacity-90 dark:invert" />
+            </motion.button>
 
-          {/* 'Este Mês' Button - Top Right */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowMonthPicker(s => !s)}
-            className="absolute top-6 right-6 p-0 border-0 bg-transparent text-gray-500 hover:text-gray-900 font-bold text-sm transition-colors"
-          >
-            {selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}
-          </motion.button>
+            {/* Title Centered dynamically */}
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] select-none leading-none">Saldo Total</p>
 
-          <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Saldo Total</p>
+            {/* Div invisível de w-9 para manter simetria perfeita com o botão de ocultar valor da esquerda */}
+            <div className="w-9 h-9" />
+          </div>
+
+          {/* Margens e tamanho de fonte otimizados (text-3xl e mt-3) para encaixe e alinhamento milimétrico */}
           {summaryLoading ? (
-            <div className="flex justify-center">
-              <Skeleton width={200} height={48} />
+            <div className="flex justify-center mt-3">
+              <Skeleton width={200} height={32} />
             </div>
           ) : (
-            <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
+            <h2 className={`text-3xl font-black font-display tracking-tight text-gray-900 dark:text-white text-center mt-3 mb-0.5 ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(summary.balance)}</h2>
           )}
         </motion.section>
 
-        {/* Saldo Atual Card (Já Recebido) */}
+        {/* Saldo Já Recebido Card */}
+        {/* Altura reduzida para min-h-[120px] e padding reduzido para p-4 para um design super compacto */}
         <motion.section
           variants={itemVariants}
-          className="min-w-full snap-center rounded-3xl bg-white/60 backdrop-blur-xl p-6 border border-white/40 shadow-glass relative overflow-hidden"
+          className="min-w-full snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#20BF55]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(32,199,89,0.1)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
           data-onboarding="saldo-atual"
         >
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-secondary via-primary to-secondary opacity-80"></div>
 
-          <p className="text-xs font-bold text-gray-500 mb-2 text-center uppercase tracking-widest">Já Recebido</p>
+          <div className="flex items-center justify-between w-full relative z-10">
+            <div className="w-9" /> {/* Visual Balance Spacing */}
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] select-none leading-none">Já Recebido</p>
+            <div className="w-9" />
+          </div>
+
+          {/* Margens e tamanho de fonte otimizados (text-3xl e mt-3) para encaixe e alinhamento milimétrico */}
           {summaryLoading ? (
-            <div className="flex justify-center">
-              <Skeleton width={200} height={48} />
+            <div className="flex justify-center mt-3">
+              <Skeleton width={200} height={32} />
             </div>
           ) : (
-            <h2 className={`text-5xl font-black tracking-tighter text-gray-900 text-center ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(saldoAtual)}</h2>
+            <h2 className={`text-3xl font-black font-display tracking-tight text-gray-900 dark:text-white text-center mt-3 mb-0.5 ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(saldoAtual)}</h2>
           )}
         </motion.section>
       </div>
 
       <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-secondary', bg: 'bg-secondary/10 dark:bg-secondary/20' },
-          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-danger', bg: 'bg-danger/10 dark:bg-danger/20' },
-          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'check_circle', color: 'text-secondary', bg: 'bg-secondary/10 dark:bg-secondary/20' },
-          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-danger', bg: 'bg-danger/10 dark:bg-danger/20' },
+          { label: 'Entradas', value: formatBRL(summary.income), icon: 'arrow_downward', color: 'text-[#20BF55]', bg: 'bg-[#20BF55]/15 dark:bg-[#20BF55]/15', border: 'border-[#20BF55]/30 dark:border-[#20BF55]/30', glow: 'hover:shadow-[0_0_25px_rgba(32,191,85,0.25)] hover:border-[#20BF55]/40' },
+          { label: 'Saídas', value: formatBRL(summary.expense), icon: 'arrow_upward', color: 'text-[#FF6B6B]', bg: 'bg-[#FF6B6B]/15 dark:bg-[#FF6B6B]/15', border: 'border-[#FF6B6B]/30 dark:border-[#FF6B6B]/30', glow: 'hover:shadow-[0_0_25px_rgba(255,107,107,0.25)] hover:border-[#FF6B6B]/40' },
+          { label: 'Já pagos', value: formatBRL(summary.paid), icon: 'check_circle', color: 'text-[#20BF55]', bg: 'bg-[#20BF55]/15 dark:bg-[#20BF55]/15', border: 'border-[#20BF55]/30 dark:border-[#20BF55]/30', glow: 'hover:shadow-[0_0_25px_rgba(32,191,85,0.25)] hover:border-[#20BF55]/40' },
+          { label: 'Não Pagos', value: formatBRL(summary.pending), icon: 'hourglass_empty', color: 'text-[#FF6B6B]', bg: 'bg-[#FF6B6B]/15 dark:bg-[#FF6B6B]/15', border: 'border-[#FF6B6B]/30 dark:border-[#FF6B6B]/30', glow: 'hover:shadow-[0_0_25px_rgba(255,107,107,0.25)] hover:border-[#FF6B6B]/40' },
         ].map((item, idx) => (
           <motion.div
             key={idx}
-            className={`rounded-2xl ${item.bg} p-4 border border-white/20 dark:border-white/10 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:-translate-y-1 transition-all cursor-pointer`}
+            className={`rounded-3xl ${item.bg} p-3 border ${item.border} shadow-glass-sm backdrop-blur-md transition-all duration-300 cursor-pointer ${item.glow} flex flex-col items-center justify-center gap-2.5 h-[92px]`}
             whileHover={{ y: -4 }}
             data-onboarding={item.label === 'Entradas' ? 'card-entradas' : (item.label === 'Já pagos' ? 'card-ja-pagos' : (item.label === 'Não Pagos' ? 'card-nao-pagos' : undefined))}
             onClick={() => {
@@ -669,21 +766,23 @@ const Dashboard: React.FC = () => {
               if (item.label === 'Já pagos') navigate('/transactions?status=paid&type=expense');
             }}
           >
-            <div className={`flex items-center gap-2 ${item.color} mb-2`}>
-              <span className="material-symbols-outlined text-xl">{item.icon}</span>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">{item.label}</p>
+            <div className="flex items-center justify-center gap-1.5 w-full">
+              <div className={`w-5 h-5 rounded-full bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 ${item.color} flex items-center justify-center flex-shrink-0`}>
+                <span className="material-symbols-outlined !text-[10px] leading-none">{item.icon}</span>
+              </div>
+              <p className={`text-[9px] font-black uppercase tracking-[0.15em] ${item.color} leading-none`}>{item.label}</p>
             </div>
             {summaryLoading ? (
-              <Skeleton width={100} height={28} />
+              <Skeleton width={100} height={20} className="mx-auto" />
             ) : (
-              <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
+              <p className={`text-xl font-black ${item.color} font-display tracking-tight leading-none text-center w-full ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{item.value}</p>
             )}
           </motion.div>
         ))}
 
         {/* Card Hoje */}
         <motion.div
-          className="rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 p-4 border border-blue-500/20 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:-translate-y-1 transition-all cursor-pointer relative group"
+          className="rounded-3xl bg-[#007AFF]/10 dark:bg-[#007AFF]/10 p-3 border border-[#007AFF]/20 dark:border-[#007AFF]/20 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:shadow-[0_0_25px_rgba(0,122,255,0.25)] hover:border-[#007AFF]/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative group flex flex-col items-center justify-center gap-2.5 h-[92px]"
           whileHover={{ y: -4 }}
           onClick={() => {
             const now = new Date();
@@ -691,59 +790,59 @@ const Dashboard: React.FC = () => {
             navigate(`/transactions?type=expense&date=${todayISO}`);
           }}
         >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-primary-blue">
-              <span className="material-symbols-outlined text-xl">today</span>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Hoje</p>
+          <div className="flex items-center justify-center w-full relative">
+            {/* Indicador de porcentagem premium alinhado à esquerda de forma absoluta e discreta */}
+            <div className="absolute left-0 flex items-center">
+              {!loading && (
+                (() => {
+                  const diff = todayExpense - yesterdayExpense;
+                  if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-[10px] text-gray-400 font-bold leading-none">drag_handle</span>;
+                  if (yesterdayExpense === 0 && todayExpense > 0) return (
+                    <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#20BF55]/10 border border-[#20BF55]/20 text-[#20BF55] text-[7.5px] font-black leading-none uppercase tracking-wider scale-95 select-none">
+                      <span className="material-symbols-outlined !text-[8px] font-bold">arrow_upward</span>
+                      <span>100%</span>
+                    </div>
+                  );
+
+                  const pct = (diff / yesterdayExpense) * 100;
+                  if (diff > 0) return (
+                    <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#20BF55]/10 border border-[#20BF55]/20 text-[#20BF55] text-[7.5px] font-black leading-none uppercase tracking-wider scale-95 select-none">
+                      <span className="material-symbols-outlined !text-[8px] font-bold">arrow_upward</span>
+                      <span>{pct.toFixed(0)}%</span>
+                    </div>
+                  );
+                  if (diff < 0) return (
+                    <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#FF6B6B]/10 border border-[#FF6B6B]/20 text-[#FF6B6B] text-[7.5px] font-black leading-none uppercase tracking-wider scale-95 select-none">
+                      <span className="material-symbols-outlined !text-[8px] font-bold">arrow_downward</span>
+                      <span>{Math.abs(pct).toFixed(0)}%</span>
+                    </div>
+                  );
+                  return <span className="material-symbols-outlined text-[10px] text-gray-400 font-bold leading-none">drag_handle</span>;
+                })()
+              )}
             </div>
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
-              Comparação com ontem
+
+            {/* Ícone e título perfeitamente centralizados sem interferência */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded-full bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 text-[#007AFF] flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined !text-[10px] leading-none">today</span>
+              </div>
+              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#007AFF] leading-none">Hoje</p>
             </div>
           </div>
+          
           {loading ? (
-            <Skeleton width={120} height={28} />
+            <Skeleton width={120} height={20} className="mx-auto" />
           ) : (
-            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+            <p className={`text-xl font-black text-[#007AFF] tracking-tight text-center w-full leading-none ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
               {formatBRL(todayExpense)}
             </p>
           )}
-
-          <div className="flex items-center gap-1 mt-1">
-            {loading ? (
-              <Skeleton width={60} height={20} />
-            ) : (
-              (() => {
-                const diff = todayExpense - yesterdayExpense;
-                if (yesterdayExpense === 0 && todayExpense === 0) return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
-                if (yesterdayExpense === 0 && todayExpense > 0) return (
-                  <>
-                    <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
-                    <span className="text-xs font-bold text-success">100%</span>
-                  </>
-                );
-
-                const pct = (diff / yesterdayExpense) * 100;
-                if (diff > 0) return (
-                  <>
-                    <span className="material-symbols-outlined text-sm text-success font-bold">arrow_upward</span>
-                    <span className="text-xs font-bold text-success">{pct.toFixed(1)}%</span>
-                  </>
-                );
-                if (diff < 0) return (
-                  <>
-                    <span className="material-symbols-outlined text-sm text-danger font-bold">arrow_downward</span>
-                    <span className="text-xs font-bold text-danger">{Math.abs(pct).toFixed(1)}%</span>
-                  </>
-                );
-                return <span className="material-symbols-outlined text-sm text-gray-400 font-bold">drag_handle</span>;
-              })()
-            )}
-          </div>
         </motion.div>
 
         {/* Card Ontem */}
         <motion.div
-          className="rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 p-4 border border-purple-500/20 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:-translate-y-1 transition-all cursor-pointer group relative"
+          className="rounded-3xl bg-[#8854D0]/10 dark:bg-[#8854D0]/10 p-3 border border-[#8854D0]/20 dark:border-[#8854D0]/20 shadow-glass-sm backdrop-blur-md hover:shadow-glass hover:shadow-[0_0_25px_rgba(136,84,208,0.25)] hover:border-[#8854D0]/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative flex flex-col items-center justify-center gap-2.5 h-[92px]"
           whileHover={{ y: -4 }}
           onClick={() => {
             const now = new Date();
@@ -753,40 +852,38 @@ const Dashboard: React.FC = () => {
             navigate(`/transactions?type=expense&date=${yesterdayISO}`);
           }}
         >
-          <div className="flex items-center gap-2 text-primary">
-            <span className="material-symbols-outlined text-xl">calendar_today</span>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-text-primary dark:text-white opacity-80">Ontem</p>
+          <div className="flex items-center justify-center gap-1.5 w-full">
+            <div className="w-5 h-5 rounded-full bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 text-[#8854D0] flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined !text-[10px] leading-none">calendar_today</span>
+            </div>
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#8854D0] leading-none">Ontem</p>
           </div>
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] p-1.5 rounded-lg pointer-events-none z-10 backdrop-blur-md">
-            Total de saídas de ontem
-          </div>
+          
           {loading ? (
-            <Skeleton width={120} height={28} />
+            <Skeleton width={120} height={20} className="mx-auto" />
           ) : (
-            <p className={`text-lg font-black text-text-primary dark:text-white tracking-tight ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
+            <p className={`text-xl font-black text-[#8854D0] tracking-tight text-center w-full leading-none ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
               {formatBRL(yesterdayExpense)}
             </p>
           )}
         </motion.div>
       </motion.section>
 
-
-
       <motion.section variants={itemVariants} className="mt-8">
         <div className="flex items-center justify-between mb-6 px-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-white shadow-sm border border-gray-100">
-              <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-6 h-6" />
+          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setIsChartsOpen(!isChartsOpen)}>
+            <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 flex items-center justify-center shadow-sm">
+              <img src="https://cdn-icons-png.flaticon.com/512/1011/1011528.png" alt="Ícone gráficos" className="w-6 h-6 dark:invert" />
             </div>
-            <h3 className="text-xl font-black uppercase text-gray-900 tracking-tight">Gráficos</h3>
+            <h3 className="text-xl font-black uppercase text-gray-900 dark:text-white tracking-tight">Gráficos</h3>
           </div>
 
           <button
             onClick={() => setIsChartsOpen(!isChartsOpen)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors focus:outline-none text-gray-400 dark:text-gray-300"
           >
             <span
-              className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
+              className={`material-symbols-outlined transition-transform duration-300 ${isChartsOpen ? 'rotate-180' : ''}`}
             >
               expand_more
             </span>
@@ -805,16 +902,16 @@ const Dashboard: React.FC = () => {
               {/* Controls */}
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6 px-1">
                 {/* Period Toggle */}
-                <div className="bg-gray-100 p-1.5 rounded-2xl flex items-center shadow-inner">
+                <div className="bg-gray-100 dark:bg-white/5 p-1.5 rounded-2xl flex items-center shadow-inner border border-black/5 dark:border-white/10">
                   <button
                     onClick={() => setPeriod('day')}
-                    className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${period === 'day' ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-100' : 'text-gray-500 hover:text-gray-900 scale-95 hover:scale-100'}`}
+                    className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${period === 'day' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg shadow-gray-900/20 dark:shadow-white/10 scale-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white scale-95 hover:scale-100'}`}
                   >
                     DIA
                   </button>
                   <button
                     onClick={() => setPeriod('month')}
-                    className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${period === 'month' ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-100' : 'text-gray-500 hover:text-gray-900 scale-95 hover:scale-100'}`}
+                    className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${period === 'month' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg shadow-gray-900/20 dark:shadow-white/10 scale-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white scale-95 hover:scale-100'}`}
                   >
                     MÊS
                   </button>
@@ -823,14 +920,15 @@ const Dashboard: React.FC = () => {
                 {/* Type Toggle */}
                 <button
                   onClick={() => setChartType(prev => prev === 'expense' ? 'income' : 'expense')}
-                  className={`px-6 py-3 rounded-2xl text-xs font-black text-white shadow-lg transition-all active:scale-95 ${chartType === 'expense' ? 'bg-[#FF6B6B] shadow-[#FF6B6B]/30' : 'bg-[#34C759] shadow-[#34C759]/30'}`}
+                  className={`px-6 py-3 rounded-2xl text-xs font-black text-white shadow-lg transition-all active:scale-95 ${chartType === 'expense' ? 'bg-[#FF6B6B] shadow-[#FF6B6B]/30' : 'bg-[#20BF55] shadow-[#20BF55]/30'}`}
                 >
                   {chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}
                 </button>
               </div>
 
               {/* Chart Container */}
-              <div className="w-full bg-white rounded-[2rem] p-6 pb-8 shadow-xl shadow-gray-200/50 border border-gray-100/50 relative overflow-hidden min-h-[360px] flex flex-col justify-end">
+              {/* Padding horizontal reduzido em mobile (px-3.5) para maximizar área disponível para as 12 barras */}
+              <div className="w-full bg-white dark:bg-gradient-to-br dark:from-[#1C1C1E] dark:to-black rounded-[2rem] px-3.5 py-6 sm:p-6 sm:pb-8 shadow-xl dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] border border-gray-100/50 dark:border-white/10 relative overflow-hidden min-h-[360px] flex flex-col justify-end">
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
                     key={`${period}-${chartYear}-${chartType}`}
@@ -846,44 +944,51 @@ const Dashboard: React.FC = () => {
                     onDragEnd={handleChartSwipe}
                   >
                     {/* Bars visualization */}
-                    <div className="flex items-end justify-between gap-2 sm:gap-4 h-[280px] w-full px-2">
+                    {/* Gaps e padding redimensionados para celular (gap-1) garantindo que Dezembro caiba perfeitamente no card */}
+                    <div className="flex items-end justify-between gap-1 sm:gap-3.5 h-[280px] w-full px-1">
                       {current.values.map((h, i) => {
                         const rawVal = (chart.raw || current.raw || [])[i] || 0;
-                        const labelText = formatBRL(rawVal);
+                        
+                        // Formatação localizada compacta em BRL omitindo os centavos para maximizar espaço no gráfico
+                        const labelText = new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        }).format(rawVal);
+                        
                         const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
-                        const showInsideLabel = h > 20 && rawVal > 0;
+                        
+                        // O valor rotacionado passa a ser exibido em todas as barras maiores que zero de forma garantida e limpa
+                        const showInsideLabel = rawVal > 0;
+                        
+                        // Premium holographic gradients for chart bars
+                        // Expense (Saídas) agora usa um vermelho puro neon intenso e elegante
+                        const barGradientClass = chartType === 'expense'
+                          ? 'bg-gradient-to-t from-[#E02020] via-[#FF3B30] to-[#FF5252] dark:from-[#C01010]/90 dark:via-[#FF3B30]/90 dark:to-[#FF5252]/90 shadow-[0_4px_16px_rgba(255,59,48,0.25)] hover:shadow-[0_4px_24px_rgba(255,59,48,0.45)]'
+                          : 'bg-gradient-to-t from-[#20BF55] via-[#24B47E] to-[#10B981] dark:from-[#159A3E]/90 dark:via-[#24B47E]/90 dark:to-[#10B981]/90 shadow-[0_4px_16px_rgba(32,199,89,0.25)] hover:shadow-[0_4px_24px_rgba(32,199,89,0.45)]';
 
                         return (
-                          <div key={i} className="flex flex-col items-center justify-end h-full w-full gap-3 group relative cursor-pointer" onClick={() => {
+                          <div key={i} className="flex flex-col items-center justify-end h-full w-full gap-2 sm:gap-3 group relative cursor-pointer" onClick={() => {
                             if (period === 'month') {
                               setSelectedMonth(i);
                             }
                           }}>
-                            {/* Tooltip/Value (Hover) */}
-                            {rawVal > 0 && !showInsideLabel && (
-                              <div className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-20">
-                                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900 absolute -bottom-1"></div>
-                                <div className={`px-2 py-1.5 rounded-lg text-[10px] font-bold text-white whitespace-nowrap shadow-lg bg-gray-900 ${isPrivacyEnabled ? 'blur-sm' : ''}`}>
-                                  {labelText}
-                                </div>
-                              </div>
-                            )}
-
+                            {/* Visual Bar with Elastic spring animation and Glow */}
+                            {/* Largura da barra otimizada (max-w-[20px]) para não espremer em telas estreitas */}
                             <motion.div
                               layout
                               initial={{ height: 0 }}
                               animate={{ height: `${Math.max(4, h)}%` }}
-                              transition={{ duration: 0.8, delay: i * 0.04, type: "spring", bounce: 0.2 }}
-                              className={`w-full max-w-[48px] rounded-t-xl relative transition-all duration-300 ${isHighlighted || period === 'day' ? 'opacity-100 shadow-md' : 'opacity-40 hover:opacity-80'}`}
-                              style={{
-                                backgroundColor: chartType === 'expense' ? '#FF6B6B' : '#34C759',
-                              }}
+                              transition={{ duration: 0.8, delay: i * 0.04, type: "spring", bounce: 0.1 }}
+                              className={`w-full max-w-[20px] sm:max-w-[32px] rounded-t-2xl rounded-b-md relative overflow-hidden transition-all duration-300 border border-white/5 ${isHighlighted || period === 'day' ? 'opacity-100 scale-105 shadow-xl ring-2 ring-white/30 dark:ring-white/10' : 'opacity-40 hover:opacity-90'} ${barGradientClass}`}
                             >
-                              {/* Rotated Label Inside */}
+                              {/* Rotated Label Inside Only with Perfect Centering */}
                               {showInsideLabel && (
                                 <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
                                   <span
-                                    className={`rotate-[-90deg] text-[10px] font-bold text-white/90 whitespace-nowrap drop-shadow-sm ${isPrivacyEnabled ? 'blur-sm' : ''}`}
+                                    className={`rotate-[-90deg] text-[9px] font-semibold text-white whitespace-nowrap tracking-wide select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] ${isPrivacyEnabled ? 'filter blur-sm select-none' : ''}`}
+                                    style={{ fontFamily: "'Manrope', sans-serif" }}
                                   >
                                     {labelText}
                                   </span>
@@ -892,7 +997,8 @@ const Dashboard: React.FC = () => {
                             </motion.div>
 
                             {/* X-Axis Label */}
-                            <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${isHighlighted ? 'text-gray-900 scale-110' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                            {/* Fonte compacta e espaçamento super slim em mobile (text-[8.5px] tracking-tighter) para alinhamento impecável */}
+                            <span className={`text-[8.5px] sm:text-[10px] font-bold uppercase tracking-tighter sm:tracking-wider transition-colors ${isHighlighted ? 'text-gray-900 dark:text-white scale-105 font-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`}>
                               {current.labels[i]}
                             </span>
                           </div>
@@ -909,23 +1015,25 @@ const Dashboard: React.FC = () => {
       </motion.section>
 
       <motion.section variants={itemVariants}>
-        <button
-          onClick={() => setIsReportOpen(!isReportOpen)}
-          className="w-full flex items-center justify-between group focus:outline-none mb-4"
-          aria-expanded={isReportOpen}
-        >
-          <h3 className="text-lg font-black uppercase text-gray-900 flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-white/50 backdrop-blur-sm border border-white/20">
-              <img src="https://cdn-icons-png.flaticon.com/512/6811/6811275.png" alt="Ícone relatório" className="w-5 h-5" />
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setIsReportOpen(!isReportOpen)}>
+            <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 flex items-center justify-center shadow-sm">
+              <img src="https://cdn-icons-png.flaticon.com/512/6811/6811275.png" alt="Ícone relatório" className="w-6 h-6 dark:invert" />
             </div>
-            RELATÓRIO
-          </h3>
-          <span
-            className={`material-symbols-outlined text-gray-500 transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
+            <h3 className="text-xl font-black uppercase text-gray-900 dark:text-white tracking-tight">Relatório</h3>
+          </div>
+
+          <button
+            onClick={() => setIsReportOpen(!isReportOpen)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors focus:outline-none text-gray-400 dark:text-gray-300"
           >
-            expand_more
-          </span>
-        </button>
+            <span
+              className={`material-symbols-outlined transition-transform duration-300 ${isReportOpen ? 'rotate-180' : ''}`}
+            >
+              expand_more
+            </span>
+          </button>
+        </div>
         <AnimatePresence>
           {isReportOpen && (
             <motion.div
@@ -935,31 +1043,31 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden flex flex-col gap-4"
             >
-              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 p-6 border border-white/40 shadow-glass backdrop-blur-xl" ref={entriesRef}>
+              <motion.section variants={itemVariants} className="rounded-3xl bg-gradient-to-br from-white/70 to-white/40 dark:from-[#1C1C1E]/60 dark:to-black/60 p-6 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-2xl" ref={entriesRef}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3 text-gray-900">
+                  <div className="flex items-center gap-3 text-gray-900 dark:text-white">
                     <span className="material-symbols-outlined text-xl rounded-full p-2 bg-success/20 text-success">arrow_downward</span>
-                    <p className="text-lg font-black text-gray-900 cursor-pointer uppercase tracking-tight" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
+                    <p className="text-lg font-black text-gray-900 dark:text-white cursor-pointer uppercase tracking-tight" onClick={() => setEntriesCollapsed(v => !v)}>Entradas</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-gray-600 bg-white/50 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                    <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400 bg-white/50 dark:bg-white/5 px-3 py-1.5 rounded-full border border-white/20 dark:border-white/10 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
                     {entriesCollapsed && (
-                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEntriesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 hover:bg-white/80">
-                        <span className="material-symbols-outlined text-sm text-gray-900">expand_more</span>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setEntriesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 dark:bg-white/5 hover:bg-white/80 border border-white/20 dark:border-white/10">
+                        <span className="material-symbols-outlined text-sm text-gray-900 dark:text-white">expand_more</span>
                       </motion.button>
                     )}
                   </div>
                 </div>
                 {!entriesCollapsed && (
-                  <div className="divide-y divide-gray-200/50 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+                  <div className="divide-y divide-gray-200/50 dark:divide-white/5 max-h-[295px] overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {incomeItems.length === 0 && (
-                      <p className="text-sm text-gray-500 font-medium py-8 text-center italic">Nenhuma entrada registrada</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma entrada registrada</p>
                     )}
                     {incomeItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 px-2 -mx-2 rounded-lg transition-colors">
+                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 dark:hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
-                          <span className={`text-sm font-bold text-gray-900 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
+                          <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-gray-900 dark:text-gray-100 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
                         <span className={`text-sm font-black text-success bg-success/10 px-3 py-1 rounded-lg border border-success/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>
@@ -968,31 +1076,31 @@ const Dashboard: React.FC = () => {
                 )}
               </motion.section>
 
-              <motion.section variants={itemVariants} className="rounded-3xl bg-white/60 p-6 border border-white/40 shadow-glass backdrop-blur-xl" ref={expensesRef}>
+              <motion.section variants={itemVariants} className="rounded-3xl bg-gradient-to-br from-white/70 to-white/40 dark:from-[#1C1C1E]/60 dark:to-black/60 p-6 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-2xl" ref={expensesRef}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3 text-gray-900">
+                  <div className="flex items-center gap-3 text-gray-900 dark:text-white">
                     <span className="material-symbols-outlined text-xl rounded-full p-2 bg-danger/20 text-danger">arrow_upward</span>
-                    <p className="text-lg font-black text-gray-900 cursor-pointer uppercase tracking-tight" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
+                    <p className="text-lg font-black text-gray-900 dark:text-white cursor-pointer uppercase tracking-tight" onClick={() => setExpensesCollapsed(v => !v)}>Saídas</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-gray-600 bg-white/50 px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
+                    <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400 bg-white/50 dark:bg-white/5 px-3 py-1.5 rounded-full border border-white/20 dark:border-white/10 backdrop-blur-md">{selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() ? 'Este Mês' : `${monthNames[selectedMonth]} ${selectedYear}`}</span>
                     {expensesCollapsed && (
-                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setExpensesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 hover:bg-white/80">
-                        <span className="material-symbols-outlined text-sm text-gray-900">expand_more</span>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setExpensesCollapsed(false)} className="p-1.5 rounded-full bg-white/50 dark:bg-white/5 hover:bg-white/80 border border-white/20 dark:border-white/10 text-gray-900 dark:text-white flex items-center justify-center">
+                        <span className="material-symbols-outlined text-sm text-gray-900 dark:text-white">expand_more</span>
                       </motion.button>
                     )}
                   </div>
                 </div>
                 {!expensesCollapsed && (
-                  <div className="divide-y divide-gray-200/50 max-h-64 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+                  <div className="divide-y divide-gray-200/50 dark:divide-white/5 max-h-[295px] overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
                     {expenseItems.length === 0 && (
-                      <p className="text-sm text-gray-500 font-medium py-8 text-center italic">Nenhuma saída registrada</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-8 text-center italic">Nenhuma saída registrada</p>
                     )}
                     {expenseItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 px-2 -mx-2 rounded-lg transition-colors">
+                      <div key={it.id} className="flex items-center justify-between py-3 hover:bg-white/30 dark:hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
-                          <span className={`text-sm font-bold text-gray-900 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
+                          <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                          <span className={`text-sm font-bold text-gray-900 dark:text-gray-100 ${it.is_paid ? 'line-through opacity-60' : ''}`}>{it.description || 'Sem descrição'}</span>
                         </div>
                         <span className={`text-sm font-black text-danger bg-danger/10 px-3 py-1 rounded-lg border border-danger/20 ${it.is_paid ? 'line-through opacity-60' : ''} ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                       </div>

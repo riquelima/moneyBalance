@@ -395,7 +395,12 @@ const Reports: React.FC = () => {
               >
                 <div className="flex flex-col gap-4 items-center">
                   <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
-                    <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Saídas</p>
+                    <div className="flex items-center justify-center gap-1.5 w-full mb-1">
+                      <div className="w-5 h-5 rounded-full bg-[#FF6B6B]/15 border border-[#FF6B6B]/30 text-[#FF6B6B] flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined !text-[10px] leading-none">arrow_upward</span>
+                      </div>
+                      <p className="text-[#FF6B6B] text-xs font-black uppercase tracking-widest leading-none">Saídas</p>
+                    </div>
                     <p className="text-danger text-4xl font-black text-center tracking-tight">{fmtBRL(monthTotal)}</p>
                   </div>
 
@@ -421,7 +426,12 @@ const Reports: React.FC = () => {
               <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white/40 shadow-glass transition-all hover:-translate-y-1 overflow-hidden relative">
                 <div className="flex flex-col gap-4 items-center">
                   <div className="w-full border-b border-gray-200/50 pb-4 mb-2">
-                    <p className="text-gray-500 text-xs font-bold text-center uppercase tracking-widest mb-1">Entradas</p>
+                    <div className="flex items-center justify-center gap-1.5 w-full mb-1">
+                      <div className="w-5 h-5 rounded-full bg-[#20BF55]/15 border border-[#20BF55]/30 text-[#20BF55] flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined !text-[10px] leading-none">arrow_downward</span>
+                      </div>
+                      <p className="text-[#20BF55] text-xs font-black uppercase tracking-widest leading-none">Entradas</p>
+                    </div>
                     <p className="text-secondary text-4xl font-black text-center tracking-tight">{fmtBRL(incomeTotal)}</p>
                   </div>
 
