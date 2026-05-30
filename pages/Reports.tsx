@@ -559,16 +559,16 @@ const Reports: React.FC = () => {
                       (() => {
                         const valStr = (statTab === 'expense' ? monthTotal : incomeTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
                         const valFontClass = valStr.length <= 8
-                          ? 'text-2xl sm:text-3xl font-black tracking-tight leading-none'
+                          ? 'text-2xl sm:text-3xl font-black tracking-tight leading-tight'
                           : valStr.length <= 12
-                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-none'
-                          : 'text-lg sm:text-xl font-black tracking-tight leading-none';
+                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-tight'
+                          : 'text-lg sm:text-xl font-black tracking-tight leading-tight';
                         return (
                           <>
-                            <p className="text-[16px] sm:text-[18px] font-black uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500 leading-none mb-2.5 w-full truncate px-1">
+                            <p className="text-[16px] sm:text-[18px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-tight mb-2 w-full break-words whitespace-normal px-1">
                               {statTab === 'expense' ? 'Total Gasto' : 'Total Recebido'}
                             </p>
-                            <p className={`w-full truncate px-1 font-display ${valFontClass} ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
+                            <p className={`w-full break-words whitespace-normal px-1 font-display ${valFontClass} ${statTab === 'expense' ? 'text-[#FF6B6B]' : 'text-[#20BF55]'}`}>
                               {valStr}
                             </p>
                           </>
@@ -587,33 +587,33 @@ const Reports: React.FC = () => {
                         
                         const nameLen = activeItem.name.length;
                         const catFontClass = nameLen <= 8
-                          ? 'text-[14px] sm:text-[16px] font-black uppercase tracking-[0.15em] mb-1.5'
+                          ? 'text-[14px] sm:text-[16px] font-black uppercase tracking-[0.1em] mb-1.5 leading-tight'
                           : nameLen <= 14
-                          ? 'text-[11px] sm:text-[13px] font-black uppercase tracking-[0.12em] mb-1.5'
-                          : 'text-[10px] sm:text-[11px] font-black uppercase tracking-[0.08em] mb-1.5';
+                          ? 'text-[11px] sm:text-[13px] font-black uppercase tracking-[0.08em] mb-1.5 leading-tight'
+                          : 'text-[10px] sm:text-[11px] font-black uppercase tracking-[0.05em] mb-1.5 leading-tight';
 
                         const valStr = activeItem.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
                         const valFontClass = valStr.length <= 8
-                          ? 'text-2xl sm:text-3xl font-black tracking-tight leading-none mb-1.5'
+                          ? 'text-2xl sm:text-3xl font-black tracking-tight leading-tight mb-1'
                           : valStr.length <= 12
-                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-none mb-1.5'
-                          : 'text-lg sm:text-xl font-black tracking-tight leading-none mb-1.5';
+                          ? 'text-xl sm:text-2xl font-black tracking-tight leading-tight mb-1'
+                          : 'text-lg sm:text-xl font-black tracking-tight leading-tight mb-1';
 
                         return (
                           <>
                             <p 
-                              className={`w-full truncate px-1 ${catFontClass}`}
+                              className={`w-full break-words whitespace-normal px-1 ${catFontClass}`}
                               style={{ color: activeColor }}
                             >
                               {activeItem.name}
                             </p>
                             <p 
-                              className={`w-full truncate px-1 font-display ${valFontClass}`}
+                              className={`w-full break-words whitespace-normal px-1 font-display ${valFontClass}`}
                               style={{ color: activeColor }}
                             >
                               {valStr}
                             </p>
-                            <p className="text-[11px] sm:text-[12px] font-bold text-gray-400 dark:text-gray-500 leading-none w-full truncate px-1">
+                            <p className="text-[11px] sm:text-[12px] font-bold text-gray-400 dark:text-gray-500 leading-tight w-full break-words whitespace-normal px-1">
                               {percent}% do total
                             </p>
                           </>
