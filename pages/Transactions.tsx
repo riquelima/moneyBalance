@@ -478,9 +478,11 @@ const Transactions: React.FC = () => {
       </div>
 
       {/* --- Filter Modal --- */}
-      <AnimatePresence>
-        {showFilter && (
-          <motion.div
+      {createPortal(
+        <AnimatePresence>
+          {showFilter && (
+            (
+              <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -563,10 +565,12 @@ const Transactions: React.FC = () => {
                   Aplicar Filtros
                 </button>
               </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* --- Transaction List --- */}
       <div className="flex-1 pb-6">
@@ -901,9 +905,11 @@ const Transactions: React.FC = () => {
       )}
 
       {/* Modal de Exclusão (Regra 2) */}
-      <AnimatePresence>
-        {showDeleteConfirmModal && transactionToDelete && (
-          <motion.div
+      {createPortal(
+        <AnimatePresence>
+          {showDeleteConfirmModal && transactionToDelete && (
+            (
+              <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -955,10 +961,12 @@ const Transactions: React.FC = () => {
                   Cancelar
                 </button>
               </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Barra de Ações em Lote Flutuante */}
       {createPortal(
