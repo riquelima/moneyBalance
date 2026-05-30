@@ -39,6 +39,7 @@ const Dashboard: React.FC = () => {
   const [todayExpense, setTodayExpense] = useState(0);
   const [yesterdayExpense, setYesterdayExpense] = useState(0);
   const [saldoAtual, setSaldoAtual] = useState(0);
+  const [saldoAnual, setSaldoAnual] = useState(0);
 
   const getSPDateISO = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -143,6 +144,40 @@ const Dashboard: React.FC = () => {
         ?.filter(t => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558')
         ?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
       setSaldoAtual(totalPaidIncome);
+    })());
+
+    // 1.6 Saldo Anual (Current Year Paid Income)
+    promises.push((async () => {
+      const now = new Date();
+      const y = now.getFullYear();
+      const startYear = `${y}-01-01`;
+      const endYear = `${y}-12-31`;
+
+      const { data: incomeYearData } = await supabase
+        .from('user_transactions')
+        .select('amount, category_id')
+        .eq('user_id', user.id)
+        .eq('type', 'income')
+        .eq('is_paid', true)
+        .gte('date', startYear)
+        .lte('date', endYear);
+
+      // Fetch "Ajuste de Saldo" category ID to exclude it
+      let adjustmentCatId: string | null = null;
+      try {
+        const { data: adjCat } = await supabase
+          .from('user_categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .ilike('name', 'Ajuste de Saldo')
+          .maybeSingle();
+        if (adjCat) adjustmentCatId = adjCat.id;
+      } catch (e) { /* ignore */ }
+
+      const totalPaidYearIncome = incomeYearData
+        ?.filter(t => t.category_id !== adjustmentCatId && t.category_id !== 'd7956754-9a58-487d-9636-2cd59c2f4558')
+        ?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      setSaldoAnual(totalPaidYearIncome);
     })());
 
     // 2. Profile
@@ -747,6 +782,29 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <h2 className={`text-3xl font-black font-display tracking-tight text-gray-900 dark:text-white text-center mt-3 mb-0.5 ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(saldoAtual)}</h2>
+          )}
+        </motion.section>
+
+        {/* Saldo Já Recebido no Ano Card */}
+        {/* Altura reduzida para min-h-[120px] e padding reduzido para p-4 para um design super compacto */}
+        <motion.section
+          variants={itemVariants}
+          className="w-full min-w-full flex-shrink-0 snap-center rounded-3xl bg-gradient-to-br from-white/90 to-white/60 dark:from-[#FD9644]/10 dark:via-black/40 dark:to-black/60 backdrop-blur-2xl p-4 border border-white/50 dark:border-white/10 shadow-glass dark:shadow-[0_8px_32px_0_rgba(253,150,68,0.1)] relative overflow-hidden transition-all duration-300 min-h-[120px] flex flex-col justify-between"
+        >
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#FD9644] via-[#F5A623] to-[#FD9644] opacity-80"></div>
+
+          <div className="flex items-center justify-between w-full relative z-10">
+            <div className="w-9" /> {/* Visual Balance Spacing */}
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] select-none leading-none">Ano ({new Date().getFullYear()})</p>
+            <div className="w-9" />
+          </div>
+
+          {summaryLoading ? (
+            <div className="flex justify-center mt-3">
+              <Skeleton width={200} height={32} />
+            </div>
+          ) : (
+            <h2 className={`text-3xl font-black font-display tracking-tight text-gray-900 dark:text-white text-center mt-3 mb-0.5 ${isPrivacyEnabled ? 'filter blur-md opacity-60 select-none' : ''}`}>{formatBRL(saldoAnual)}</h2>
           )}
         </motion.section>
       </div>
