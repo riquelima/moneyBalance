@@ -60,61 +60,229 @@ const CalendarPage: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col min-h-screen p-4 pb-24 gap-6 font-display text-gray-900 dark:text-white"
+      className="cal-page-container min-h-screen pb-28 flex flex-col"
     >
-      <Header
-        title={
-          <div className="flex flex-col items-center gap-1 py-0.5 w-full">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-none select-none">Agenda</h1>
-            
-            {/* Filtro global 'Este Mês' no centro do header, abaixo do título */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap');
+
+        :root {
+          --cal-bg: #f5f6fa;
+          --cal-surface: #ffffff;
+          --cal-border: #f0f1f5;
+          --cal-fg: #111111;
+          --cal-muted: #aaaaaa;
+          --cal-accent: #8854D0;
+          --cal-success: #2e9e44;
+          --cal-danger: #ff6b6b;
+          --cal-header-bg: #ffffff;
+        }
+
+        .dark {
+          --cal-bg: #0c0c0e;
+          --cal-surface: #1c1c1e;
+          --cal-border: #2c2c2e;
+          --cal-fg: #ffffff;
+          --cal-muted: #777777;
+          --cal-accent: #8854D0;
+          --cal-success: #40c057;
+          --cal-danger: #ff6b6b;
+          --cal-header-bg: #1c1c1e;
+        }
+
+        .cal-page-container {
+          background-color: var(--cal-bg);
+          font-family: 'Poppins', sans-serif !important;
+          color: var(--cal-fg);
+        }
+
+        .cal-page-container *:not(.material-symbols-outlined) {
+          font-family: 'Poppins', sans-serif !important;
+        }
+
+        /* Header */
+        .cal-header {
+          background: var(--cal-header-bg);
+          padding: 16px 20px 14px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: relative;
+          border-bottom: 1px solid var(--cal-border);
+        }
+
+        .cal-header h1 {
+          font-size: 17px;
+          font-weight: 600;
+          color: var(--cal-fg);
+          letter-spacing: -0.2px;
+          margin: 0;
+        }
+
+        .cal-header-left {
+          display: flex;
+          align-items: center;
+          min-width: 44px;
+        }
+
+        .cal-header-center {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          flex: 1;
+        }
+
+        .cal-header-right {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          min-width: 44px;
+        }
+
+        /* Pílula de Data */
+        .cal-period-btn {
+          height: 24px;
+          padding: 0 10px;
+          border: 1px solid var(--cal-border);
+          background: var(--cal-bg);
+          border-radius: 12px;
+          color: var(--cal-fg);
+          font-size: 11px;
+          font-weight: 600;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+        }
+        
+        .cal-period-btn:hover {
+          background: var(--cal-border);
+        }
+
+        .cal-profile-btn {
+          padding: 0;
+          border: none;
+          background: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .cal-profile-img {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: 1.5px solid var(--cal-border);
+          object-fit: cover;
+          transition: opacity 0.2s;
+        }
+        .cal-profile-img:hover {
+          opacity: 0.8;
+        }
+
+        .cal-profile-placeholder {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          background: var(--cal-border);
+          color: var(--cal-fg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1.5px solid var(--cal-border);
+          transition: all 0.2s;
+        }
+        .cal-profile-placeholder:hover {
+          background: var(--cal-bg);
+        }
+
+        .cal-notif-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: var(--cal-fg);
+          padding: 6px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          transition: background 0.2s;
+        }
+        .cal-notif-btn:hover {
+          background: var(--cal-border);
+        }
+        .cal-notif-badge {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 6px;
+          height: 6px;
+          background: var(--cal-danger);
+          border-radius: 50%;
+          box-shadow: 0 0 8px var(--cal-danger);
+        }
+      `}} />
+
+      {/* --- Cabeçalho iOS Luxury --- */}
+      <div className="cal-header">
+        <div className="cal-header-left">
+          {avatarUrl ? (
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => setShowMonthPicker(s => !s)}
-              className="h-7 px-2 border border-black/5 dark:border-white/10 bg-white/40 dark:bg-white/5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold text-[10px] transition-all flex items-center justify-center gap-1 shadow-sm backdrop-blur-md select-none mt-1"
-            >
-              <span className="material-symbols-outlined !text-[11px] leading-none">calendar_month</span>
-              <span className="leading-none">
-                {selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() 
-                  ? 'Este Mês' 
-                  : `${monthNames[selectedMonth]} ${selectedYear}`}
-              </span>
-            </motion.button>
-          </div>
-        }
-        className="!pt-4 !pb-1.5"
-        leftAction={
-          avatarUrl ? (
-            <motion.img
-              whileTap={{ scale: 0.95 }}
-              src={avatarUrl}
-              alt="Profile"
-              className="h-10 w-10 rounded-full border border-white/40 shadow-sm object-cover cursor-pointer hover:opacity-80 transition-all"
               onClick={() => navigate('/settings')}
-            />
+              className="cal-profile-btn"
+            >
+              <img
+                src={avatarUrl}
+                alt="Profile"
+                className="cal-profile-img"
+              />
+            </motion.button>
           ) : (
             <motion.button
               whileTap={{ scale: 0.95 }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm transition-all text-gray-700"
               onClick={() => navigate('/settings')}
+              className="cal-profile-btn"
             >
-              <span className="material-symbols-outlined text-[20px]">person</span>
+              <div className="cal-profile-placeholder">
+                <span className="material-symbols-outlined text-[20px]">person</span>
+              </div>
             </motion.button>
-          )
-        }
-        rightAction={
+          )}
+        </div>
+
+        <div className="cal-header-center">
+          <h1>Agenda</h1>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowMonthPicker(s => !s)}
+            className="cal-period-btn"
+          >
+            <span className="material-symbols-outlined text-[13px] leading-none">calendar_month</span>
+            <span className="leading-none">
+              {selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear() 
+                ? 'Este Mês' 
+                : `${monthNames[selectedMonth]} ${selectedYear}`}
+            </span>
+          </motion.button>
+        </div>
+
+        <div className="cal-header-right">
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/notifications')}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/60 hover:bg-white/90 border border-white/40 shadow-sm backdrop-blur-md transition-all text-gray-700"
+            className="cal-notif-btn"
           >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-1 ring-white"></span>
+            <span className="material-symbols-outlined text-[22px]">notifications</span>
+            <span className="cal-notif-badge"></span>
           </motion.button>
-        }
-      />
+        </div>
+      </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4 pb-24">
         <CalendarView currentDate={currentDate} setCurrentDate={setCurrentDate} />
       </div>
 

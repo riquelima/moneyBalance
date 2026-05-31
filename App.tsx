@@ -243,7 +243,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/chat" element={<Chat />} />
         
         {/* Full Screen Modal Routes */}
-        <Route path="/add-transaction" element={<AddTransaction />} />
+        <Route path="/add-transaction" element={<AppLayout><AddTransaction /></AppLayout>} />
         <Route path="/notifications" element={<Notifications />} />
         
       </Routes>

@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tela Inicial de Finanças</title>
+  <style>
+    :root {
+      --bg: oklch(91% 0.055 230);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(22% 0.055 275);
+      --muted: oklch(45% 0.07 275);
+      --border: oklch(88% 0.035 270);
+      --accent: oklch(72% 0.17 25);
+      --success: oklch(70% 0.15 155);
+      --danger: oklch(68% 0.19 25);
+      --nav: oklch(23% 0.055 275);
+      --card-blue: oklch(33% 0.11 285);
+      --font-display: "Avenir Next", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-body: "Avenir Next", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+      --shadow-soft: 0 20px 44px color-mix(in oklab, var(--fg), transparent 88%);
+      --radius-card: 14px;
+      --screen-w: 393px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--surface); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: color-mix(in oklab, var(--bg), var(--surface) 28%);
+      color: var(--fg);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+    svg { display: block; }
+    p, h1, h2, h3 { margin: 0; }
+
+    .phone {
+      position: relative;
+      width: min(100vw, var(--screen-w));
+      margin-inline: 0;
+      min-height: 1138px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 25% 8%, color-mix(in oklab, var(--surface), transparent 30%) 0 14%, transparent 35%),
+        radial-gradient(circle at 80% 9%, color-mix(in oklab, var(--surface), transparent 55%) 0 8%, transparent 27%),
+        linear-gradient(180deg, var(--bg) 0 29%, var(--surface) 29% 100%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      height: 328px;
+      background:
+        radial-gradient(circle at 76% 45%, color-mix(in oklab, var(--surface), transparent 54%) 0 19%, transparent 39%),
+        radial-gradient(circle at 9% 33%, color-mix(in oklab, var(--surface), transparent 42%) 0 22%, transparent 37%);
+      clip-path: ellipse(88% 73% at 58% 0%);
+      pointer-events: none;
+    }
+
+    .statusbar {
+      position: relative;
+      z-index: 2;
+      height: 43px;
+      padding: 14px 9px 0 30px;
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1;
+      color: color-mix(in oklab, var(--fg), black 28%);
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-right: 5px;
+    }
+
+    .signal {
+      display: inline-grid;
+      grid-template-columns: repeat(4, 3px);
+      align-items: end;
+      gap: 1.5px;
+      height: 12px;
+    }
+    .signal span { width: 3px; border-radius: 2px; background: currentColor; }
+    .signal span:nth-child(1) { height: 4px; }
+    .signal span:nth-child(2) { height: 6px; }
+    .signal span:nth-child(3) { height: 8px; }
+    .signal span:nth-child(4) { height: 11px; }
+
+    .battery {
+      width: 23px;
+      height: 11px;
+      border: 1.6px solid currentColor;
+      border-radius: 2.5px;
+      position: relative;
+      padding: 1.5px;
+    }
+    .battery::before {
+      content: "";
+      position: absolute;
+      right: -3.5px;
+      top: 3px;
+      width: 2px;
+      height: 4px;
+      border-radius: 0 2px 2px 0;
+      background: currentColor;
+    }
+    .battery::after {
+      content: "";
+      display: block;
+      height: 100%;
+      width: 76%;
+      border-radius: 1px;
+      background: currentColor;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 13px 16px 106px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 32% 20%, var(--surface), color-mix(in oklab, var(--border), var(--surface) 30%));
+      border: 1px solid color-mix(in oklab, var(--surface), var(--border) 60%);
+      color: color-mix(in oklab, var(--fg), black 12%);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 21px;
+      box-shadow: 0 3px 8px color-mix(in oklab, var(--muted), transparent 83%);
+      flex: none;
+    }
+
+    .name { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+    .welcome { margin-top: 1px; font-size: 14px; color: var(--muted); }
+
+    .actions {
+      display: flex;
+      gap: 13px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: color-mix(in oklab, var(--surface), transparent 4%);
+      box-shadow: 0 4px 13px color-mix(in oklab, var(--fg), transparent 92%);
+      transition: transform 160ms ease, background 160ms ease;
+    }
+    .icon-btn:hover { transform: translateY(-1px); background: var(--surface); }
+    .icon-btn:active { transform: scale(0.96); }
+    .icon-btn svg { width: 21px; height: 21px; stroke-width: 2; }
+
+    .balance-block { margin-top: 28px; }
+    .balance-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: -0.015em;
+    }
+    .balance-label svg { width: 14px; height: 14px; }
+    .balance-value {
+      margin-top: 3px;
+      font-family: var(--font-display);
+      font-size: 34px;
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .cards-rail {
+      margin-top: 20px;
+      margin-right: -16px;
+      display: flex;
+      gap: 16px;
+      overflow: hidden;
+      padding-bottom: 8px;
+    }
+
+    .visa-card {
+      position: relative;
+      flex: 0 0 340px;
+      height: 196px;
+      overflow: hidden;
+      border-radius: 15px;
+      padding: 27px 24px;
+      color: var(--surface);
+      background:
+        radial-gradient(circle at 82% 42%, color-mix(in oklab, var(--surface), transparent 68%) 0 21%, transparent 21.5%),
+        radial-gradient(circle at 74% 70%, color-mix(in oklab, var(--surface), transparent 75%) 0 16%, transparent 16.5%),
+        radial-gradient(circle at 92% 76%, color-mix(in oklab, var(--surface), transparent 70%) 0 21%, transparent 21.5%),
+        radial-gradient(circle at 101% 35%, color-mix(in oklab, var(--surface), transparent 42%) 0 20%, transparent 20.5%),
+        linear-gradient(135deg, color-mix(in oklab, var(--card-blue), black 8%), var(--card-blue) 52%, color-mix(in oklab, var(--muted), var(--surface) 18%));
+      border: 1px solid color-mix(in oklab, var(--surface), transparent 35%);
+      box-shadow: 0 14px 25px color-mix(in oklab, var(--fg), transparent 84%);
+    }
+
+    .visa-card::before {
+      content: "";
+      position: absolute;
+      inset: -36px;
+      background-image:
+        linear-gradient(90deg, color-mix(in oklab, var(--surface), transparent 94%) 1px, transparent 1px),
+        linear-gradient(0deg, color-mix(in oklab, var(--surface), transparent 95%) 1px, transparent 1px);
+      background-size: 22px 22px;
+      transform: rotate(-8deg);
+      opacity: 0.52;
+      pointer-events: none;
+    }
+
+    .card-top, .card-chip-row, .card-bottom {
+      position: relative;
+      z-index: 1;
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+    }
+    .card-label {
+      font-size: 13px;
+      color: color-mix(in oklab, var(--surface), transparent 25%);
+      margin-bottom: 2px;
+    }
+    .card-amount {
+      font-family: var(--font-mono);
+      font-size: 25px;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+    .visa {
+      margin-top: 5px;
+      font-size: 27px;
+      line-height: 1;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.08em;
+    }
+    .card-chip-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    .chip {
+      width: 24px;
+      height: 18px;
+      border-radius: 4px;
+      background:
+        linear-gradient(90deg, color-mix(in oklab, var(--accent), white 34%) 0 31%, transparent 31% 35%, color-mix(in oklab, var(--accent), white 20%) 35% 100%),
+        var(--accent);
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent), black 10%);
+    }
+    .card-bottom {
+      margin-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 20px;
+    }
+    .digits {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+    .expires {
+      text-align: center;
+      color: color-mix(in oklab, var(--surface), transparent 34%);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .expires strong {
+      display: block;
+      color: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+    }
+
+    .side-card {
+      flex: 0 0 118px;
+      height: 196px;
+      border-radius: 15px 0 0 15px;
+      background:
+        radial-gradient(circle at 30% 48%, color-mix(in oklab, var(--surface), transparent 80%) 0 20%, transparent 21%),
+        linear-gradient(140deg, var(--accent), var(--danger));
+      border: 1px solid color-mix(in oklab, var(--surface), transparent 45%);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 24px;
+    }
+    .summary-card {
+      min-height: 121px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      padding: 17px 15px 14px;
+    }
+    .summary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .summary-value {
+      margin-top: 9px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: color-mix(in oklab, var(--fg), black 4%);
+    }
+    .delta {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .delta.down {
+      color: var(--danger);
+      background: color-mix(in oklab, var(--danger), transparent 84%);
+    }
+    .delta.up {
+      color: color-mix(in oklab, var(--success), black 10%);
+      background: color-mix(in oklab, var(--success), transparent 83%);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 31px;
+      margin-bottom: 16px;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      line-height: 1.2;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .see-all {
+      background: transparent;
+      padding: 4px 0 4px 12px;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .bill-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .bill-card {
+      min-height: 169px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 15px 12px 11px;
+    }
+    .bill-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+    .logo-bubble {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      color: color-mix(in oklab, var(--fg), black 16%);
+      font-weight: 900;
+      background: var(--surface);
+      position: relative;
+    }
+    .logo-bubble.youtube {
+      color: var(--surface);
+      background: var(--surface);
+    }
+    .yt-mark {
+      width: 24px;
+      height: 17px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      background: var(--danger);
+    }
+    .yt-mark::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      border-left: 7px solid var(--surface);
+      margin-left: 2px;
+    }
+    .more {
+      width: 22px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: color-mix(in oklab, var(--fg), black 20%);
+      background: transparent;
+    }
+    .more::before {
+      content: "";
+      width: 3px;
+      height: 16px;
+      background:
+        radial-gradient(circle, currentColor 0 2px, transparent 2.5px) center 0 / 3px 6px repeat-y;
+    }
+    .bill-title {
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: -0.025em;
+      color: color-mix(in oklab, var(--fg), black 8%);
+      font-weight: 600;
+    }
+    .bill-amount {
+      margin-top: 6px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+    }
+    .bill-amount span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .due {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .transaction-list {
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .transaction {
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      align-items: center;
+      min-height: 74px;
+      border-bottom: 1px solid color-mix(in oklab, var(--border), transparent 28%);
+      gap: 8px;
+    }
+    .transaction:last-child { border-bottom: 0; }
+    .tx-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: color-mix(in oklab, var(--fg), black 10%);
+      background: var(--surface);
+    }
+    .tx-logo.paypal {
+      color: color-mix(in oklab, var(--muted), var(--surface) 18%);
+      font-style: italic;
+      font-size: 25px;
+    }
+    .tx-logo.spotify {
+      color: var(--surface);
+      background: var(--success);
+      border-color: color-mix(in oklab, var(--success), white 48%);
+    }
+    .tx-logo.notion {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17px;
+    }
+    .tx-title {
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: color-mix(in oklab, var(--fg), black 8%);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tx-date {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1;
+    }
+    .tx-amount {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: color-mix(in oklab, var(--fg), black 10%);
+      white-space: nowrap;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 9px;
+      z-index: 5;
+      width: min(calc(100vw - 32px), 361px);
+      height: 73px;
+      transform: translateX(-50%);
+      background: var(--nav);
+      color: color-mix(in oklab, var(--surface), transparent 14%);
+      border-radius: 36px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      padding: 8px 17px 6px;
+      box-shadow: 0 18px 30px color-mix(in oklab, var(--nav), transparent 62%);
+    }
+    .nav-item {
+      height: 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      color: color-mix(in oklab, var(--surface), transparent 20%);
+      font-size: 11px;
+      font-weight: 600;
+      transition: color 160ms ease, transform 160ms ease;
+    }
+    .nav-item svg { width: 23px; height: 23px; stroke-width: 1.7; }
+    .nav-item.active { color: var(--surface); }
+    .nav-item:hover { color: var(--surface); transform: translateY(-1px); }
+    .nav-add {
+      width: 43px;
+      height: 43px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      justify-self: center;
+      align-self: center;
+      background: color-mix(in oklab, var(--surface), var(--muted) 12%);
+      color: var(--nav);
+      box-shadow: 0 10px 22px color-mix(in oklab, var(--nav), transparent 55%);
+      transition: transform 160ms ease;
+    }
+    .nav-add:hover { transform: translateY(-2px); }
+    .nav-add:active { transform: scale(0.96); }
+    .nav-add svg { width: 24px; height: 24px; stroke-width: 3; }
+
+    .home-indicator {
+      position: fixed;
+      left: 50%;
+      bottom: 2px;
+      z-index: 6;
+      width: 134px;
+      height: 5px;
+      border-radius: 999px;
+      background: color-mix(in oklab, black, transparent 8%);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    @media (min-width: 520px) {
+      body { padding-block: 24px; }
+      .phone { border-radius: 34px; margin-inline: auto; }
+      .bottom-nav, .home-indicator { position: absolute; }
+      .bottom-nav { left: 50%; bottom: 9px; }
+      .home-indicator { left: 50%; bottom: 2px; }
+    }
+
+    @media (max-width: 360px) {
+      .content { padding-inline: 12px; }
+      .cards-rail { margin-right: -12px; }
+      .visa-card { flex-basis: 320px; }
+      .summary, .bill-grid { gap: 7px; }
+      .summary-card { padding-inline: 12px; }
+      .bill-title { font-size: 16px; }
+      .tx-title { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+   <main class="phone" aria-label="Tela inicial do app de finanças">
+    <div class="statusbar" aria-hidden="true">
+      <span>9:41</span>
+      <div class="status-icons">
+        <span class="signal"><span></span><span></span><span></span><span></span></span>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+          <path d="M2 4.8c3.6-3.1 8.4-3.1 12 0M4.3 7.1c2.2-1.8 5.2-1.8 7.4 0M6.8 9.3c.7-.6 1.7-.6 2.4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <span class="battery"></span>
+      </div>
+    </div>
+
+    <section class="content" data-od-id="homescreen">
+      <div class="topline">
+        <div class="identity">
+          <div class="avatar" aria-hidden="true">JD</div>
+          <div>
+            <p class="name">John Doe</p>
+             <p class="welcome">Bem-vindo de volta</p>
+          </div>
+        </div>
+        <div class="actions">
+           <button class="icon-btn" aria-label="Pesquisar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+          </button>
+           <button class="icon-btn" aria-label="Notificações">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M10 20a2.3 2.3 0 0 0 4 0"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="balance-block">
+         <p class="balance-label">Saldo Atual
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 12s3.5-5 10-5 10 5 10 5-3.5 5-10 5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+        </p>
+        <h1 class="balance-value">$12,458.50</h1>
+      </div>
+
+      <div class="cards-rail" aria-label="Payment cards">
+        <article class="visa-card">
+          <div class="card-top">
+            <div>
+              <p class="card-label">Saldo</p>
+              <p class="card-amount">$423.012.00</p>
+            </div>
+            <p class="visa">VISA</p>
+          </div>
+          <div class="card-chip-row">
+            <span class="chip" aria-hidden="true"></span>
+            <svg width="26" height="24" viewBox="0 0 26 24" fill="none" aria-hidden="true">
+              <path d="M4 9.5c1.2 1.2 1.2 3.8 0 5M8 7.5c2.2 2.2 2.2 6.8 0 9M12 5.5c3.4 3.4 3.4 9.8 0 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="card-bottom">
+            <p class="digits">•••• •••• •••• 1234</p>
+            <p class="expires">Validade<strong>10/24</strong></p>
+          </div>
+        </article>
+        <div class="side-card" aria-label="Next card preview"></div>
+      </div>
+
+      <div class="summary">
+        <article class="summary-card">
+          <div class="summary-head">
+             <span>Total Gasto</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <p class="summary-value">+$5,420.00</p>
+          <span class="delta down">↘ 8%</span>
+        </article>
+        <article class="summary-card">
+          <div class="summary-head">
+            <span>Economizado</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <p class="summary-value">+$5,420.00</p>
+          <span class="delta up">↗ 8%</span>
+        </article>
+      </div>
+
+       <div class="section-head">
+         <h2>Recent Transactions</h2>
+         <button class="see-all">Ver todos</button>
+       </div>
+
+      <div class="bill-grid">
+        <article class="bill-card">
+          <div class="bill-top">
+            <div class="logo-bubble" aria-hidden="true">
+              <svg width="23" height="25" viewBox="0 0 24 26" fill="currentColor"><path d="M16.7 1.6c.1 1.7-.6 3.1-1.6 4.1-1.1 1.1-2.6 1.9-4.1 1.8-.2-1.6.5-3.1 1.5-4.1 1.1-1.2 2.9-2 4.2-1.8ZM21.5 18.8c-.6 1.4-.9 2-1.7 3.3-1.1 1.7-2.7 3.9-4.7 3.9-1.8 0-2.2-1.2-4.6-1.1-2.4 0-2.9 1.1-4.7 1.1-2 0-3.5-2-4.6-3.7-3.2-5-3.5-10.9-1.5-14 1.4-2.2 3.7-3.5 5.8-3.5 2.2 0 3.5 1.2 5.3 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .1 11.2Z"/></svg>
+            </div>
+            <button class="more" aria-label="More options"></button>
+          </div>
+           <h3 class="bill-title">Fatura da Apple #1234</h3>
+          <p class="bill-amount">S$ 20.00 <span>/month</span></p>
+          <p class="due">2 days left</p>
+        </article>
+
+        <article class="bill-card">
+          <div class="bill-top">
+            <div class="logo-bubble youtube" aria-hidden="true"><span class="yt-mark"></span></div>
+            <button class="more" aria-label="More options"></button>
+          </div>
+          <h3 class="bill-title">Youtube Premium</h3>
+          <p class="bill-amount">S$ 20.00 <span>/month</span></p>
+          <p class="due">2 days left</p>
+        </article>
+      </div>
+
+       <div class="section-head" style="margin-top: 27px;">
+         <h2>Transações Recentes</h2>
+         <button class="see-all">Ver todos</button>
+       </div>
+
+      <div class="transaction-list">
+        <article class="transaction">
+          <div class="tx-logo" aria-hidden="true">
+            <svg width="22" height="24" viewBox="0 0 24 26" fill="currentColor"><path d="M16.7 1.6c.1 1.7-.6 3.1-1.6 4.1-1.1 1.1-2.6 1.9-4.1 1.8-.2-1.6.5-3.1 1.5-4.1 1.1-1.2 2.9-2 4.2-1.8ZM21.5 18.8c-.6 1.4-.9 2-1.7 3.3-1.1 1.7-2.7 3.9-4.7 3.9-1.8 0-2.2-1.2-4.6-1.1-2.4 0-2.9 1.1-4.7 1.1-2 0-3.5-2-4.6-3.7-3.2-5-3.5-10.9-1.5-14 1.4-2.2 3.7-3.5 5.8-3.5 2.2 0 3.5 1.2 5.3 1.2 1.7 0 2.8-1.2 5.3-1.2 1.9 0 3.9 1 5.3 2.8-4.6 2.5-3.8 9 .1 11.2Z"/></svg>
+          </div>
+          <div>
+            <p class="tx-title">Fatura da Apple #1234</p>
+            <p class="tx-date">31/12/2025 · 15:00</p>
+          </div>
+          <p class="tx-amount">-$ 20.00</p>
+        </article>
+        <article class="transaction">
+          <div class="tx-logo paypal" aria-hidden="true">P</div>
+          <div>
+            <p class="tx-title">Paypal Invoice #1234</p>
+            <p class="tx-date">31/12/2025 · 15:00</p>
+          </div>
+          <p class="tx-amount">-$ 20.00</p>
+        </article>
+        <article class="transaction">
+          <div class="tx-logo spotify" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6.4 9.5c4.2-1.2 7.7-.8 11 1.1M7.2 13c3.3-.9 6.2-.6 8.8.9M8 16.3c2.3-.6 4.3-.4 6.2.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <p class="tx-title">Fatura da Apple #1234</p>
+            <p class="tx-date">31/12/2025 · 15:00</p>
+          </div>
+          <p class="tx-amount">-$ 20.00</p>
+        </article>
+        <article class="transaction">
+          <div class="tx-logo notion" aria-hidden="true">N</div>
+          <div>
+            <p class="tx-title">Fatura da Apple #1234</p>
+            <p class="tx-date">31/12/2025 · 15:00</p>
+          </div>
+          <p class="tx-amount">-$ 20.00</p>
+        </article>
+      </div>
+    </section>
+
+    <nav class="bottom-nav" aria-label="Primary navigation">
+       <button class="nav-item active" data-tab="Home">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+         <span>Início</span>
+       </button>
+       <button class="nav-item" data-tab="Analytics">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a9 9 0 1 1-9-9v9h9Z"/><path d="M12 3a9 9 0 0 1 9 9"/></svg>
+         <span>Análise</span>
+       </button>
+       <button class="nav-add" aria-label="Adicionar transação">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
+       </button>
+       <button class="nav-item" data-tab="Goals">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+         <span>Metas</span>
+       </button>
+       <button class="nav-item" data-tab="Profile">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.6-4 4.2-6 8-6s6.4 2 8 6"/></svg>
+         <span>Perfil</span>
+       </button>
+    </nav>
+    <div class="home-indicator" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const navItems = document.querySelectorAll(".nav-item");
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        navItems.forEach((nav) => nav.classList.remove("active"));
+        item.classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>
