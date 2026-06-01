@@ -446,6 +446,9 @@ const AddTransaction: React.FC = () => {
         .add-tx-container, .add-tx-container *:not(.material-symbols-outlined) {
           font-family: var(--mb-font-body);
         }
+        .material-symbols-outlined {
+          font-family: 'Material Symbols Outlined' !important;
+        }
         input:focus, button:focus, textarea:focus, select:focus,
         input:active, button:active {
           outline: none !important;

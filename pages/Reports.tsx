@@ -353,7 +353,7 @@ const Reports: React.FC = () => {
     const list = statTab === 'expense' ? categories : incomeCategories;
     const totalAmt = list.reduce((acc, c) => acc + c.amount, 0);
 
-    const C = 2 * Math.PI * 85; // Circunferência total para r=85
+    const C = 2 * Math.PI * 65; // Circunferência total para r=65
     let accumulatedPercent = 0;
 
     const colorsPalette = [
@@ -375,8 +375,14 @@ const Reports: React.FC = () => {
       const offset = -accumulatedPercent * C;
 
       const midAngle = (accumulatedPercent + pct / 2) * 2 * Math.PI - Math.PI / 2;
-      const x = 120 + Math.cos(midAngle) * 85;
-      const y = 120 + Math.sin(midAngle) * 85;
+      
+      // Ponto inicial na fatia do donut (raio 65)
+      const startX = 120 + Math.cos(midAngle) * 65;
+      const startY = 120 + Math.sin(midAngle) * 65;
+
+      // Ponto final da linha indicadora (raio 104)
+      const endX = 120 + Math.cos(midAngle) * 104;
+      const endY = 120 + Math.sin(midAngle) * 104;
 
       accumulatedPercent += pct;
 
@@ -388,8 +394,12 @@ const Reports: React.FC = () => {
         strokeDashArray: `${amplitude.toFixed(2)} ${C.toFixed(2)}`,
         strokeDashOffset: offset.toFixed(2),
         color: colorsPalette[i % colorsPalette.length],
-        emojiX: x,
-        emojiY: y
+        startX,
+        startY,
+        endX,
+        endY,
+        emojiX: endX,
+        emojiY: endY
       };
     });
 
@@ -572,12 +582,12 @@ const Reports: React.FC = () => {
 
         .donut-wrap { position: relative; width: 240px; height: 240px; margin: 6px auto 18px; }
         .donut-icon {
-          position: absolute; width: 32px; height: 32px; border-radius: 50%;
-          background: var(--mb-surface); border: 1.5px solid var(--mb-border);
+          position: absolute; width: 22px; height: 22px;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: var(--mb-shadow-card); transform: translate(-50%, -50%); overflow: hidden;
+          transform: translate(-50%, -50%); pointer-events: none;
+          background: transparent; border: none; box-shadow: none;
         }
-        .donut-icon img { width: 20px; height: 20px; object-fit: contain; }
+        .donut-icon img { width: 22px; height: 22px; object-fit: contain; }
 
         .cat-row { display: flex; align-items: center; padding: 13px 4px; border-bottom: 1px solid var(--mb-border-2); gap: 12px; }
         .cat-row:last-child { border-bottom: none; }
@@ -896,19 +906,20 @@ const Reports: React.FC = () => {
                 {/* Donut Chart com emojis trigonométricos dinâmicos */}
                 <div className="donut-wrap">
                   <svg viewBox="0 0 240 240" width="240" height="240" xmlns="http://www.w3.org/2000/svg">
+                    {/* Fatias do Donut (raio 65, largura 32) */}
                     <g transform="rotate(-90 120 120)">
                       {donutChartData.segments.length === 0 ? (
-                        <circle cx="120" cy="120" r="85" fill="none" stroke="#eef0f7" strokeWidth="44"/>
+                        <circle cx="120" cy="120" r="65" fill="none" stroke="#eef0f7" strokeWidth="32"/>
                       ) : (
                         donutChartData.segments.map((seg) => (
                           <circle
                             key={seg.name}
                             cx="120"
                             cy="120"
-                            r="85"
+                            r="65"
                             fill="none"
                             stroke={seg.color}
-                            strokeWidth="44"
+                            strokeWidth="32"
                             strokeDasharray={seg.strokeDashArray}
                             strokeDashoffset={seg.strokeDashOffset}
                             style={{ transition: 'stroke-dashoffset 0.4s ease' }}
@@ -916,6 +927,32 @@ const Reports: React.FC = () => {
                         ))
                       )}
                     </g>
+                    {/* Setas/linhas finas estilosas apontando para a cor */}
+                    {donutChartData.segments.length > 0 && donutChartData.segments.map((seg) => {
+                      if (seg.pct <= 0) return null;
+                      return (
+                        <g key={`arrow-${seg.name}`}>
+                          {/* Pontinho sutil na fatia do gráfico */}
+                          <circle
+                            cx={seg.startX}
+                            cy={seg.startY}
+                            r="2.2"
+                            fill={seg.color}
+                          />
+                          {/* Linha indicadora fina e estilosa */}
+                          <line
+                            x1={seg.startX}
+                            y1={seg.startY}
+                            x2={seg.endX}
+                            y2={seg.endY}
+                            stroke={seg.color}
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            opacity="0.8"
+                          />
+                        </g>
+                      );
+                    })}
                   </svg>
 
                   {/* Emojis dinamicamente posicionados sobre as fatias da rosca */}

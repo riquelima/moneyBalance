@@ -1172,7 +1172,14 @@ const Transactions: React.FC = () => {
                             <div className={`filter-cat-icon-wrap ${isSelected ? 'selected' : ''}`}>
                               <img src={iconUrl} alt={name} className="w-7 h-7 object-contain" />
                             </div>
-                            <span className={`filter-cat-name ${isSelected ? 'selected' : ''}`}>{name}</span>
+                            <span
+                              className={`filter-cat-name ${isSelected ? 'selected' : ''}`}
+                              style={{
+                                fontSize: name.length > 18 ? '6.8px' : name.length > 12 ? '7.5px' : '8.5px'
+                              }}
+                            >
+                              {name}
+                            </span>
                           </button>
                         );
                       })}
