@@ -194,7 +194,7 @@ const MainTabsView: React.FC = () => {
         </section>
 
         {/* Aba 1: Gastos (Reports) */}
-        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+        <section className="w-screen h-full overflow-hidden flex-shrink-0 no-scrollbar">
           <Reports />
         </section>
 

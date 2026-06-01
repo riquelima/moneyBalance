@@ -11,6 +11,8 @@ import Header from '../components/common/Header';
 
 const getCategoryIconUrl = (name: string): string => {
   const n = name.toLowerCase();
+  if (n.includes('uazapi')) return 'https://cdn-icons-png.flaticon.com/512/2082/2082823.png';
+  if (n.includes('lúcia') || n.includes('dona lúcia')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
   if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
   if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
   if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
@@ -57,6 +59,14 @@ const Dashboard: React.FC = () => {
   const [saldoAtual, setSaldoAtual] = useState(0);
   const [saldoAnual, setSaldoAnual] = useState(0);
   const [catMap, setCatMap] = useState<Record<string, { name: string; type: 'income' | 'expense' }>>({});
+  const [selectedBillMenu, setSelectedBillMenu] = useState<any | null>(null);
+  const [hiddenFakeBillIds, setHiddenFakeBillIds] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const renderCategoryIcon = (description: string, categoryId: string | null) => {
     const cat = categoryId ? catMap[categoryId] : null;
@@ -691,19 +701,34 @@ const Dashboard: React.FC = () => {
 
   const pendingBills = expenseItems.filter(t => !t.is_paid);
 
-  const displayBills = pendingBills.length > 0
-    ? pendingBills.slice(0, 2).map(b => ({
-        id: b.id,
-        title: b.description || 'Fatura Pendente',
-        amount: Number(b.amount),
-        due: getDueLabel(b.date),
-        isReal: true,
-        category_id: b.category_id
-      }))
-    : [
-        { id: 'f1', title: 'Fatura da Apple #1234', amount: 20.00, due: 'Faltam 2 dias', isReal: false },
-        { id: 'f2', title: 'Youtube Premium', amount: 20.00, due: 'Faltam 2 dias', isReal: false }
-      ];
+  const realBills = pendingBills.map(b => ({
+    id: b.id,
+    title: b.description || 'Fatura Pendente',
+    amount: Number(b.amount),
+    due: getDueLabel(b.date),
+    isReal: true,
+    category_id: b.category_id
+  }));
+
+  const fakeBillsPlaceholder = [
+    { id: 'f1', title: 'UazAPI', amount: 138.00, due: 'Faltam 5 dias', isReal: false, category_id: null },
+    { id: 'f2', title: 'Dona Lúcia', amount: 250.00, due: 'Faltam 9 dias', isReal: false, category_id: null },
+    { id: 'f3', title: 'Fatura da Apple', amount: 20.00, due: 'Faltam 12 dias', isReal: false, category_id: null },
+    { id: 'f4', title: 'Youtube Premium', amount: 20.00, due: 'Faltam 15 dias', isReal: false, category_id: null },
+    { id: 'f5', title: 'Netflix', amount: 55.90, due: 'Faltam 18 dias', isReal: false, category_id: null },
+    { id: 'f6', title: 'Spotify Família', amount: 34.90, due: 'Faltam 20 dias', isReal: false, category_id: null },
+    { id: 'f7', title: 'Energia Elétrica', amount: 185.30, due: 'Faltam 22 dias', isReal: false, category_id: null },
+    { id: 'f8', title: 'Internet Banda Larga', amount: 99.90, due: 'Faltam 25 dias', isReal: false, category_id: null },
+    { id: 'f9', title: 'Academia', amount: 110.00, due: 'Faltam 28 dias', isReal: false, category_id: null },
+    { id: 'f10', title: 'Condomínio', amount: 350.00, due: 'Faltam 30 dias', isReal: false, category_id: null }
+  ];
+
+  const combinedBills = [...realBills];
+  if (combinedBills.length < 10) {
+    const needed = 10 - combinedBills.length;
+    combinedBills.push(...fakeBillsPlaceholder.slice(0, needed));
+  }
+  const displayBills = combinedBills.slice(0, 10);
 
   const allTransactions = [...incomeItems, ...expenseItems]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -1143,17 +1168,29 @@ const Dashboard: React.FC = () => {
         }
 
         .summary {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px;
+          display: flex;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          gap: 10px;
           margin-top: 24px;
+          margin-inline: -16px;
+          padding-inline: 16px;
+          padding-bottom: 8px;
+        }
+        .summary::-webkit-scrollbar {
+          display: none;
         }
         .summary-card {
+          flex: 0 0 156px;
+          scroll-snap-align: start;
           min-height: 121px;
           border: 1px solid var(--border);
           border-radius: 14px;
           background: var(--surface);
           padding: 17px 15px 14px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
         }
         .summary-head {
           display: flex;
@@ -1214,11 +1251,20 @@ const Dashboard: React.FC = () => {
         }
 
         .bill-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px;
+          display: flex;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          gap: 12px;
+          padding-bottom: 8px;
+          margin-inline: -16px;
+          padding-inline: 16px;
+        }
+        .bill-grid::-webkit-scrollbar {
+          display: none;
         }
         .bill-card {
+          flex: 0 0 156px;
+          scroll-snap-align: start;
           min-height: 169px;
           border-radius: 14px;
           border: 1px solid var(--border);
@@ -1447,7 +1493,7 @@ const Dashboard: React.FC = () => {
           </div>
  
           {/* Div rolável independente por baixo do cabeçalho fixo */}
-          <div className="flex-1 overflow-y-auto no-scrollbar pb-32" style={{ margin: '0 -16px', padding: '0 16px' }}>
+          <div className="flex-1 overflow-y-auto no-scrollbar pb-32" style={{ margin: '0 -16px', padding: '0 16px 140px 16px' }}>
             <div className="balance-block">
             <p className="balance-label">
               Saldo Atual · <span className="text-[#1a2366] hover:underline cursor-pointer font-extrabold" onClick={() => setShowMonthPicker(true)}>{monthNames[selectedMonth]} {selectedYear}</span>
@@ -1549,17 +1595,15 @@ const Dashboard: React.FC = () => {
             )}
           </div>
 
-          <div className="summary">
+          <div className="summary no-scrollbar">
             {summaryLoading ? (
               <>
-                <div className="summary-card animate-pulse" style={{ height: '121px' }}>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
-                </div>
-                <div className="summary-card animate-pulse" style={{ height: '121px' }}>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
-                </div>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="summary-card animate-pulse" style={{ height: '121px', flex: '0 0 156px' }}>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                  </div>
+                ))}
               </>
             ) : (
               <>
@@ -1583,6 +1627,22 @@ const Dashboard: React.FC = () => {
                     {savingsDelta.class === 'up' ? '↗' : '↘'} {savingsDelta.text.replace('↗ ', '').replace('↘ ', '')}
                   </span>
                 </article>
+                <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense&status=pending')}>
+                  <div className="summary-head">
+                    <span>Não pagos</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.pending)}</p>
+                  <span className="delta down" style={{ background: 'rgba(255,107,107,0.15)', color: '#e03131', fontWeight: 600 }}>A pagar</span>
+                </article>
+                <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense&status=paid')}>
+                  <div className="summary-head">
+                    <span>Já pagos</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
+                  <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.paid)}</p>
+                  <span className="delta up" style={{ background: 'rgba(32,191,85,0.15)', color: '#2e9e44', fontWeight: 600 }}>Pagas</span>
+                </article>
               </>
             )}
           </div>
@@ -1592,29 +1652,21 @@ const Dashboard: React.FC = () => {
             <button className="see-all" onClick={() => navigate('/transactions?status=pending&type=expense')}>Ver todas</button>
           </div>
 
-          <div className="bill-grid">
+          <div className="bill-grid no-scrollbar">
             {summaryLoading ? (
               <>
-                <div className="bill-card animate-pulse">
-                  <div className="bill-top">
-                    <div className="w-[34px] h-[34px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
-                    <div className="w-4 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="bill-card animate-pulse" style={{ flex: '0 0 156px', height: '169px' }}>
+                    <div className="bill-top">
+                      <div className="w-[34px] h-[34px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+                      <div className="w-4 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                    </div>
+                    <div>
+                      <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-2.5"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-2.5"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
-                  </div>
-                </div>
-                <div className="bill-card animate-pulse">
-                  <div className="bill-top">
-                    <div className="w-[34px] h-[34px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
-                    <div className="w-4 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
-                  </div>
-                  <div>
-                    <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-2.5"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
-                  </div>
-                </div>
+                ))}
               </>
             ) : (
               displayBills.map((bill) => (
@@ -1625,7 +1677,14 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="bill-top">
                     {renderCategoryIcon(bill.title, bill.category_id || null)}
-                    <button className="more" aria-label="Mais opções"></button>
+                    <button
+                      className="more"
+                      aria-label="Mais opções"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedBillMenu(bill);
+                      }}
+                    ></button>
                   </div>
                   <div>
                     <h3 className="bill-title">{bill.title}</h3>
@@ -1930,6 +1989,119 @@ const Dashboard: React.FC = () => {
                 </div>
               </motion.div>
             </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {createPortal(
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className="fixed bottom-28 left-4 right-4 z-[120] p-4 max-w-sm mx-auto bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-glass-lg rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-900 dark:text-white"
+            >
+              <span className="material-symbols-outlined text-success">check_circle</span>
+              <span>{toast.message}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {createPortal(
+        <AnimatePresence>
+          {selectedBillMenu && (
+            <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectedBillMenu(null)}>
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                className="w-full max-w-md bg-white dark:bg-[#1C1C1E] p-6 rounded-t-[2rem] shadow-2xl relative flex flex-col gap-3 pb-8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-4" />
+                
+                <div className="mb-2">
+                  <h3 className="text-base font-black text-gray-900 dark:text-white leading-tight">{selectedBillMenu.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">{formatBRL(selectedBillMenu.amount)} /mês · {selectedBillMenu.due}</p>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    const bill = selectedBillMenu;
+                    setSelectedBillMenu(null);
+                    if (bill.isReal) {
+                      try {
+                        const { error } = await supabase.from('transactions').update({ is_paid: true }).eq('id', bill.id);
+                        if (error) throw error;
+                        showToast("Conta marcada como paga!");
+                        fetchAllData();
+                      } catch (e) {
+                        showToast("Erro ao pagar conta", "error");
+                      }
+                    } else {
+                      setHiddenFakeBillIds(prev => [...prev, bill.id]);
+                      showToast("Conta marcada como paga (Demonstração)!");
+                    }
+                  }}
+                  className="w-full py-4 px-4 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-800 dark:text-gray-200 transition-all border-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-success">check_circle</span>
+                  <span>Marcar como pago</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const bill = selectedBillMenu;
+                    setSelectedBillMenu(null);
+                    if (bill.isReal) {
+                      navigate(`/add-transaction?edit=${bill.id}`);
+                    } else {
+                      showToast("Edição indisponível para demonstração", "error");
+                    }
+                  }}
+                  className="w-full py-4 px-4 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-2xl flex items-center gap-3 text-sm font-bold text-gray-800 dark:text-gray-200 transition-all border-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-primary">edit</span>
+                  <span>Editar conta</span>
+                </button>
+
+                <button
+                  onClick={async () => {
+                    const bill = selectedBillMenu;
+                    setSelectedBillMenu(null);
+                    if (bill.isReal) {
+                      try {
+                        const { error } = await supabase.from('transactions').delete().eq('id', bill.id);
+                        if (error) throw error;
+                        showToast("Conta excluída com sucesso!");
+                        fetchAllData();
+                      } catch (e) {
+                        showToast("Erro ao excluir conta", "error");
+                      }
+                    } else {
+                      setHiddenFakeBillIds(prev => [...prev, bill.id]);
+                      showToast("Conta excluída (Demonstração)!");
+                    }
+                  }}
+                  className="w-full py-4 px-4 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-2xl flex items-center gap-3 text-sm font-bold text-red-600 dark:text-red-400 transition-all border-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                  <span>Excluir conta</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedBillMenu(null)}
+                  className="w-full py-4 px-4 mt-2 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 rounded-2xl flex items-center justify-center text-sm font-bold text-gray-800 dark:text-gray-200 transition-all border-0 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>,
         document.body

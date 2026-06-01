@@ -394,8 +394,8 @@ const Reports: React.FC = () => {
           position: relative;
           width: 100%;
           margin-inline: auto;
-          min-height: 100vh;
-          overflow-x: hidden;
+          height: 100%;
+          overflow: hidden;
           background: #eef0f7;
           display: flex;
           flex-direction: column;
@@ -514,8 +514,8 @@ const Reports: React.FC = () => {
           font-size: 22px;
           margin-bottom: 10px;
         }
-        .card-icon.expense { background: #f8d7d7; }
-        .card-icon.income  { background: #d4f0e0; }
+        .card-icon.expense { background: transparent; }
+        .card-icon.income  { background: transparent; }
         .card-type { font-size: 13px; font-weight: 500; color: #888; margin-bottom: 4px; }
         .card-amount { font-size: 20px; font-weight: 600; }
         .card-amount.expense { color: #e03131; }
@@ -719,10 +719,10 @@ const Reports: React.FC = () => {
           background: #1c1c1e;
         }
         .dark .card-icon.expense {
-          background: rgba(255,107,107,0.15);
+          background: transparent;
         }
         .dark .card-icon.income {
-          background: rgba(32,191,85,0.15);
+          background: transparent;
         }
         .dark .card-type {
           color: #888888;
@@ -805,16 +805,16 @@ const Reports: React.FC = () => {
                 <div className="cards-row">
                   <article className="card cursor-pointer" onClick={() => { setActiveTab('details'); setStatTab('expense'); }}>
                     <div className="card-dots">···</div>
-                    <div className="card-icon expense" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="https://cdn-icons-png.flaticon.com/512/2454/2454282.png" alt="Despesa" className="w-6 h-6 object-contain" />
+                    <div className="card-icon expense" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}>
+                      <img src="https://cdn-icons-png.flaticon.com/512/6067/6067145.png" alt="Despesa" className="w-11 h-11 object-contain" />
                     </div>
                     <div className="card-type">Despesa</div>
                     <div className="card-amount expense">{fmtBRL(monthTotal)}</div>
                   </article>
                   <article className="card cursor-pointer" onClick={() => { setActiveTab('details'); setStatTab('income'); }}>
                     <div className="card-dots">···</div>
-                    <div className="card-icon income" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="https://cdn-icons-png.flaticon.com/512/2454/2454269.png" alt="Receita" className="w-6 h-6 object-contain" />
+                    <div className="card-icon income" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}>
+                      <img src="https://cdn-icons-png.flaticon.com/512/6067/6067121.png" alt="Receita" className="w-11 h-11 object-contain" />
                     </div>
                     <div className="card-type">Receita</div>
                     <div className="card-amount income">{fmtBRL(incomeTotal)}</div>
