@@ -441,8 +441,10 @@ const AddTransaction: React.FC = () => {
       className="add-tx-container fixed inset-0 z-40 overflow-y-auto"
     >
       <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
         .add-tx-container, .add-tx-container * {
-          font-family: var(--mb-font-body) !important;
+          font-family: var(--mb-font-body);
         }
         input:focus, button:focus, textarea:focus, select:focus,
         input:active, button:active {
@@ -708,21 +710,20 @@ const AddTransaction: React.FC = () => {
           border: 1px solid var(--mb-border);
         }
         .add-currency-sign {
-          font-family: var(--mb-font-display) !important;
-          font-size: 24px;
-          font-weight: 700;
+          font-family: 'Luckiest Guy', cursive !important;
+          font-size: 28px;
           color: var(--mb-muted);
         }
         .add-amount-input {
-          font-family: var(--mb-font-display) !important;
-          font-size: 40px;
-          font-weight: 700;
+          font-family: 'Luckiest Guy', cursive !important;
+          font-size: 44px;
           color: var(--mb-fg);
           background: transparent;
           border: none;
           outline: none;
           text-align: left;
           width: 200px;
+          letter-spacing: 0.03em;
         }
         .add-amount-input::placeholder {
           color: var(--mb-muted-2);
@@ -922,9 +923,20 @@ const AddTransaction: React.FC = () => {
         <span className="add-currency-sign">R$</span>
         <input
           type="text"
-          inputMode="decimal"
+          inputMode="numeric"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, '');
+            if (!digits) {
+              setAmount('');
+              return;
+            }
+            const value = Number(digits) / 100;
+            setAmount(value.toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }));
+          }}
           placeholder="0,00"
           autoFocus
           className="add-amount-input"
