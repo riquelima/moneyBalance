@@ -583,12 +583,57 @@ const Reports: React.FC = () => {
 
         .donut-wrap { position: relative; width: 240px; height: 240px; margin: 6px auto 18px; }
         .donut-icon {
-          position: absolute; width: 22px; height: 22px;
-          display: flex; align-items: center; justify-content: center;
+          position: absolute; min-width: 65px; height: auto;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
           transform: translate(-50%, -50%); pointer-events: none;
           background: transparent; border: none; box-shadow: none;
+          gap: 1px;
         }
-        .donut-icon img { width: 22px; height: 22px; object-fit: contain; }
+        .donut-icon img { width: 18px; height: 18px; object-fit: contain; }
+        .donut-icon-name {
+          font-size: 7px; font-weight: 700; color: var(--mb-muted);
+          text-transform: uppercase; max-width: 62px;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          line-height: 1.1;
+        }
+        .donut-icon-pct {
+          font-size: 8px; font-weight: 800;
+          line-height: 1;
+        }
+        .donut-center-total {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          pointer-events: none;
+          z-index: 10;
+          width: 90px;
+        }
+        .donut-center-label {
+          font-size: 8px;
+          font-weight: 700;
+          color: var(--mb-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 2px;
+        }
+        .donut-center-value {
+          font-size: 11.5px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          white-space: nowrap;
+        }
+        .donut-center-value.expense {
+          color: var(--mb-danger);
+        }
+        .donut-center-value.income {
+          color: var(--mb-success);
+        }
 
         .cat-row { display: flex; align-items: center; padding: 13px 4px; border-bottom: 1px solid var(--mb-border-2); gap: 12px; }
         .cat-row:last-child { border-bottom: none; }
@@ -906,6 +951,16 @@ const Reports: React.FC = () => {
 
                 {/* Donut Chart com emojis trigonométricos dinâmicos */}
                 <div className="donut-wrap">
+                  {/* Div central com o Total */}
+                  <div className="donut-center-total">
+                    <span className="donut-center-label">
+                      {statTab === 'expense' ? 'Despesas' : 'Receitas'}
+                    </span>
+                    <span className={`donut-center-value ${statTab}`}>
+                      {fmtBRL(donutChartData.totalAmt)}
+                    </span>
+                  </div>
+
                   <svg viewBox="0 0 240 240" width="240" height="240" xmlns="http://www.w3.org/2000/svg">
                     {/* Fatias do Donut (raio 65, largura 32) */}
                     <g transform="rotate(-90 120 120)">
@@ -956,23 +1011,25 @@ const Reports: React.FC = () => {
                     })}
                   </svg>
 
-                  {/* Emojis dinamicamente posicionados sobre as fatias da rosca */}
-                  {donutChartData.segments.map((seg) => (
-                    <div 
-                      key={`emoji-${seg.name}`}
-                      className="donut-icon" 
-                      style={{ 
-                        left: `${seg.emojiX}px`, 
-                        top: `${seg.emojiY}px`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                      title={seg.name}
-                    >
-                      <img src={getCategoryIconUrl(seg.name)} alt={seg.name} className="w-[22px] h-[22px] object-contain" />
-                    </div>
-                  ))}
+                  {/* Emojis, Nomes e Porcentagens dinamicamente posicionados sobre as fatias da rosca */}
+                  {donutChartData.segments.map((seg) => {
+                    if (seg.pct <= 0) return null;
+                    return (
+                      <div 
+                        key={`emoji-${seg.name}`}
+                        className="donut-icon" 
+                        style={{ 
+                          left: `${seg.emojiX}px`, 
+                          top: `${seg.emojiY}px`
+                        }}
+                        title={seg.name}
+                      >
+                        <img src={getCategoryIconUrl(seg.name)} alt={seg.name} className="w-[18px] h-[18px] object-contain" />
+                        <span className="donut-icon-name">{seg.name}</span>
+                        <span className="donut-icon-pct" style={{ color: seg.color }}>{seg.pct}%</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Lista de Categorias do Mês */}
