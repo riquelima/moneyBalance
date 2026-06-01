@@ -521,6 +521,16 @@ const AddTransaction: React.FC = () => {
           color: var(--mb-fg);
           box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
+        .add-toggle-btn.active.expense {
+          background: var(--mb-danger);
+          color: #ffffff;
+          box-shadow: 0 4px 12px color-mix(in oklab, var(--mb-danger), transparent 70%);
+        }
+        .add-toggle-btn.active.income {
+          background: var(--mb-success);
+          color: #ffffff;
+          box-shadow: 0 4px 12px color-mix(in oklab, var(--mb-success), transparent 70%);
+        }
         .add-amount-block {
           padding: 20px 20px 0;
           text-align: center;
@@ -709,21 +719,48 @@ const AddTransaction: React.FC = () => {
           border-radius: var(--mb-radius-lg);
           border: 1px solid var(--mb-border);
         }
+        .add-amount-wrap {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin: 10px 16px;
+          padding: 20px 16px;
+          background: var(--mb-surface-2);
+          border-radius: var(--mb-radius-lg);
+          border: 1px solid var(--mb-border);
+          overflow: hidden;
+        }
         .add-currency-sign {
           font-family: 'Luckiest Guy', cursive !important;
-          font-size: 28px;
-          color: var(--mb-muted);
+          font-size: 32px;
+          transition: color 0.2s ease;
+        }
+        .add-currency-sign.expense {
+          color: var(--mb-danger);
+        }
+        .add-currency-sign.income {
+          color: var(--mb-success);
         }
         .add-amount-input {
           font-family: 'Luckiest Guy', cursive !important;
-          font-size: 44px;
-          color: var(--mb-fg);
+          font-size: 56px;
           background: transparent;
           border: none;
           outline: none;
           text-align: left;
-          width: 200px;
+          width: 100%;
+          max-width: 250px;
           letter-spacing: 0.03em;
+          transition: color 0.2s ease;
+          padding: 0;
+          line-height: 1.1;
+        }
+        .add-amount-input.expense {
+          color: var(--mb-danger);
+        }
+        .add-amount-input.income {
+          color: var(--mb-success);
         }
         .add-amount-input::placeholder {
           color: var(--mb-muted-2);
@@ -905,13 +942,13 @@ const AddTransaction: React.FC = () => {
         <div className="add-toggle">
           <button
             onClick={() => setType('expense')}
-            className={`add-toggle-btn ${type === 'expense' ? 'active' : ''}`}
+            className={`add-toggle-btn ${type === 'expense' ? 'active expense' : ''}`}
           >
             Despesa
           </button>
           <button
             onClick={() => setType('income')}
-            className={`add-toggle-btn ${type === 'income' ? 'active' : ''}`}
+            className={`add-toggle-btn ${type === 'income' ? 'active income' : ''}`}
           >
             Receita
           </button>
@@ -920,7 +957,7 @@ const AddTransaction: React.FC = () => {
 
       {/* Valor */}
       <div className="add-amount-wrap">
-        <span className="add-currency-sign">R$</span>
+        <span className={`add-currency-sign ${type === 'expense' ? 'expense' : 'income'}`}>R$</span>
         <input
           type="text"
           inputMode="numeric"
@@ -939,7 +976,7 @@ const AddTransaction: React.FC = () => {
           }}
           placeholder="0,00"
           autoFocus
-          className="add-amount-input"
+          className={`add-amount-input ${type === 'expense' ? 'expense' : 'income'}`}
         />
       </div>
 
