@@ -102,12 +102,17 @@ const CalendarPage: React.FC = () => {
         /* Header */
         .cal-header {
           background: var(--cal-header-bg);
-          padding: 16px 20px 14px;
+          padding: 0 20px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          position: relative;
+          position: sticky;
+          top: 0;
+          z-index: 50;
           border-bottom: 1px solid var(--cal-border);
+          backdrop-filter: blur(20px);
+          height: 60px;
+          box-sizing: border-box;
         }
 
         .cal-header h1 {

@@ -9,39 +9,20 @@ import { categories } from '../categories';
 import Skeleton from '../components/ui/Skeleton';
 import Header from '../components/common/Header';
 
-const getCategoryEmoji = (categoryName: string, type: 'income' | 'expense'): string => {
-  const name = categoryName.toLowerCase();
-  if (name.includes('salário') || name.includes('salario') || name.includes('renda') || name.includes('trabalho') || name.includes('freelance') || name.includes('job') || name.includes('recebimento')) {
-    return '💼';
-  }
-  if (name.includes('aluguel') || name.includes('casa') || name.includes('moradia') || name.includes('lar') || name.includes('condomínio') || name.includes('condominio') || name.includes('energia') || name.includes('água') || name.includes('agua') || name.includes('luz') || name.includes('internet') || name.includes('lixo') || name.includes('gás') || name.includes('gas')) {
-    return '🏠';
-  }
-  if (name.includes('mercado') || name.includes('feira') || name.includes('alimentação') || name.includes('compras') || name.includes('comida') || name.includes('supermercado') || name.includes('açougue') || name.includes('padaria')) {
-    return '🛍️';
-  }
-  if (name.includes('academia') || name.includes('saúde') || name.includes('saude') || name.includes('medico') || name.includes('médico') || name.includes('farmácia') || name.includes('farmacia') || name.includes('crossfit') || name.includes('treino') || name.includes('dentista') || name.includes('remédio') || name.includes('remedio') || name.includes('hospital') || name.includes('exame')) {
-    return '🏋️';
-  }
-  if (name.includes('freelance') || name.includes('design') || name.includes('desenvolvimento') || name.includes('computador') || name.includes('tecnologia') || name.includes('software') || name.includes('hospedagem') || name.includes('domínio') || name.includes('dominio')) {
-    return '💻';
-  }
-  if (name.includes('café') || name.includes('cafe') || name.includes('padaria') || name.includes('lanche') || name.includes('chá') || name.includes('cha') || name.includes('restaurante') || name.includes('bar') || name.includes('pizzaria') || name.includes('hambúrguer') || name.includes('ifood') || name.includes('delivery')) {
-    return '☕';
-  }
-  if (name.includes('transporte') || name.includes('ônibus') || name.includes('onibus') || name.includes('bus') || name.includes('carro') || name.includes('uber') || name.includes('gasolina') || name.includes('combustível') || name.includes('combustivel') || name.includes('viagem') || name.includes('pedágio') || name.includes('pedagio') || name.includes('estacionamento')) {
-    return '🚌';
-  }
-  if (name.includes('lazer') || name.includes('entretenimento') || name.includes('cinema') || name.includes('show') || name.includes('festa') || name.includes('jogo') || name.includes('game') || name.includes('stream') || name.includes('netflix') || name.includes('spotify') || name.includes('youtube') || name.includes('prime') || name.includes('futebol')) {
-    return '🎉';
-  }
-  if (name.includes('educação') || name.includes('educacao') || name.includes('curso') || name.includes('livro') || name.includes('escola') || name.includes('faculdade') || name.includes('material') || name.includes('estudo')) {
-    return '📚';
-  }
-  if (name.includes('investimento') || name.includes('poupança') || name.includes('poupanca') || name.includes('ações') || name.includes('acoes') || name.includes('tesouro') || name.includes('cripto') || name.includes('cdb')) {
-    return '📈';
-  }
-  return type === 'income' ? '💰' : '💸';
+const getCategoryIconUrl = (name: string): string => {
+  const n = name.toLowerCase();
+  if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
+  if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
+  if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
+  if (n.includes('aluguel') || n.includes('moradia') || n.includes('casa') || n.includes('apartamento') || n.includes('condomínio')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
+  if (n.includes('lazer') || n.includes('social') || n.includes('cinema') || n.includes('filme') || n.includes('pipoca') || n.includes('show') || n.includes('festa') || n.includes('viagem')) return 'https://cdn-icons-png.flaticon.com/512/3588/3588658.png';
+  if (n.includes('saúde') || n.includes('médico') || n.includes('remédio') || n.includes('farmácia') || n.includes('hospital') || n.includes('academia') || n.includes('crossfit') || n.includes('dentista')) return 'https://cdn-icons-png.flaticon.com/512/1142/1142172.png';
+  if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário') || n.includes('roupa')) return 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
+  
+  if (n.includes('salário') || n.includes('pagamento') || n.includes('renda')) return 'https://cdn-icons-png.flaticon.com/512/2454/2454269.png';
+  if (n.includes('invest') || n.includes('economia') || n.includes('poupança')) return 'https://cdn-icons-png.flaticon.com/512/2721/2721614.png';
+  
+  return 'https://cdn-icons-png.flaticon.com/512/5488/5488583.png';
 };
 
 const Transactions: React.FC = () => {
@@ -397,7 +378,7 @@ const Transactions: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="tx-page-container min-h-screen pb-28 flex flex-col"
+      className="tx-page-container h-full flex flex-col overflow-hidden"
     >
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap');
@@ -430,6 +411,11 @@ const Transactions: React.FC = () => {
           background-color: var(--tx-bg);
           font-family: 'Poppins', sans-serif !important;
           color: var(--tx-fg);
+          height: 100%;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
         }
 
         .tx-page-container *:not(.material-symbols-outlined) {
@@ -439,12 +425,17 @@ const Transactions: React.FC = () => {
         /* Header */
         .tx-header {
           background: var(--tx-header-bg);
-          padding: 16px 20px 14px;
+          padding: 0 20px;
           display: flex;
           align-items: center;
           justify-content: center;
           position: relative;
+          z-index: 50;
           border-bottom: 1px solid var(--tx-border);
+          backdrop-filter: blur(20px);
+          height: 60px;
+          box-sizing: border-box;
+          flex-shrink: 0;
         }
 
         .tx-back-btn {
@@ -554,6 +545,7 @@ const Transactions: React.FC = () => {
         .tx-search-wrap {
           background: var(--tx-surface);
           padding: 14px 20px;
+          flex-shrink: 0;
         }
 
         .tx-search-box {
@@ -597,6 +589,7 @@ const Transactions: React.FC = () => {
           gap: 10px;
           border-bottom: 1px solid var(--tx-border);
           overflow-x: auto;
+          flex-shrink: 0;
         }
 
         .tx-filters-bar::-webkit-scrollbar {
@@ -752,6 +745,7 @@ const Transactions: React.FC = () => {
           padding: 8px 0 20px;
           display: flex;
           justify-content: center;
+          flex-shrink: 0;
         }
 
         .tx-home-bar {
@@ -763,92 +757,95 @@ const Transactions: React.FC = () => {
         }
       `}} />
 
-      {/* --- Cabeçalho iOS Luxury Minimalist --- */}
-      <div className="tx-header">
-        <button className="tx-back-btn" onClick={() => navigate('/')} aria-label="Voltar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
+      {/* --- Cabeçalho, Campo de Busca e Filtros Fixados no Topo --- */}
+      <div className="flex flex-col flex-shrink-0" style={{ background: 'var(--tx-bg)' }}>
+        {/* --- Cabeçalho iOS Luxury Minimalist --- */}
+        <div className="tx-header">
+          <button className="tx-back-btn" onClick={() => navigate('/')} aria-label="Voltar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
 
-        <h1>Histórico de Transações</h1>
+          <h1>Histórico de Transações</h1>
 
-        <button className="tx-cal-header-btn" onClick={() => setShowMonthPicker(s => !s)} aria-label="Alterar Período">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-        </button>
-      </div>
+          <button className="tx-cal-header-btn" onClick={() => setShowMonthPicker(s => !s)} aria-label="Alterar Período">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </button>
+        </div>
 
-      {/* --- Busca Oval --- */}
-      <div className="tx-search-wrap">
-        <div className="tx-search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Buscar"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="tx-search-input"
-          />
+        {/* --- Busca Oval --- */}
+        <div className="tx-search-wrap">
+          <div className="tx-search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="tx-search-input"
+            />
+          </div>
+        </div>
+
+        {/* --- Filtros de Chips e Trigger Avançado --- */}
+        <div className="tx-filters-bar">
+          <button className="tx-filter-icon-btn" onClick={() => setShowFilter(true)} aria-label="Filtros Avançados">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+            </svg>
+          </button>
+
+          <button 
+            className={`tx-chip ${typeFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setTypeFilter('all')}
+          >
+            Todos
+          </button>
+          <button 
+            className={`tx-chip ${typeFilter === 'income' ? 'active' : ''}`}
+            onClick={() => setTypeFilter('income')}
+          >
+            Receita
+          </button>
+          <button 
+            className={`tx-chip ${typeFilter === 'expense' ? 'active' : ''}`}
+            onClick={() => setTypeFilter('expense')}
+          >
+            Despesa
+          </button>
+
+          {/* Limpeza rápida de filtros ativos */}
+          {(searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || categoryFilter !== 'all' || dateFilter) && (
+            <button
+              onClick={() => {
+                setStatusFilter('all');
+                setTypeFilter('all');
+                setYearFilter('all');
+                setMonthFilter('all');
+                setCategoryFilter('all');
+                setDateFilter(null);
+                setSearchQuery('');
+                navigate(location.pathname);
+              }}
+              className="tx-chip"
+              style={{ color: '#ff6b6b', borderColor: 'rgba(255, 107, 107, 0.2)', background: 'rgba(255, 107, 107, 0.05)', fontWeight: '600' }}
+            >
+              Limpar
+            </button>
+          )}
         </div>
       </div>
 
-      {/* --- Filtros de Chips e Trigger Avançado --- */}
-      <div className="tx-filters-bar">
-        <button className="tx-filter-icon-btn" onClick={() => setShowFilter(true)} aria-label="Filtros Avançados">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
-          </svg>
-        </button>
-
-        <button 
-          className={`tx-chip ${typeFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setTypeFilter('all')}
-        >
-          Todos
-        </button>
-        <button 
-          className={`tx-chip ${typeFilter === 'income' ? 'active' : ''}`}
-          onClick={() => setTypeFilter('income')}
-        >
-          Receita
-        </button>
-        <button 
-          className={`tx-chip ${typeFilter === 'expense' ? 'active' : ''}`}
-          onClick={() => setTypeFilter('expense')}
-        >
-          Despesa
-        </button>
-
-        {/* Limpeza rápida de filtros ativos */}
-        {(searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || categoryFilter !== 'all' || dateFilter) && (
-          <button
-            onClick={() => {
-              setStatusFilter('all');
-              setTypeFilter('all');
-              setYearFilter('all');
-              setMonthFilter('all');
-              setCategoryFilter('all');
-              setDateFilter(null);
-              setSearchQuery('');
-              navigate(location.pathname);
-            }}
-            className="tx-chip"
-            style={{ color: '#ff6b6b', borderColor: 'rgba(255, 107, 107, 0.2)', background: 'rgba(255, 107, 107, 0.05)', fontWeight: '600' }}
-          >
-            Limpar
-          </button>
-        )}
-      </div>
-
       {/* --- Lista de Transações com Swipe e Seleção em Lote --- */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
         {loading && page === 0 ? (
           <div className="space-y-4 pt-4 px-5">
             {[1, 2, 3, 4].map(i => (
@@ -894,7 +891,7 @@ const Transactions: React.FC = () => {
                     const catName = cat?.name || 'Sem Categoria';
                     const isSelected = selectedIds.includes(t.id);
                     const isIncome = t.type === 'income';
-                    const emoji = getCategoryEmoji(catName, t.type);
+                    const iconUrl = getCategoryIconUrl(catName);
 
                     return (
                       <motion.div
@@ -966,7 +963,7 @@ const Transactions: React.FC = () => {
                             {isSelected ? (
                               <span className="material-symbols-outlined text-base">check</span>
                             ) : (
-                              emoji
+                              <img src={iconUrl} alt={catName} className="w-[30px] h-[30px] object-contain" />
                             )}
                           </div>
 

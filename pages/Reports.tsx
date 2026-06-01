@@ -4,6 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 
+const getCategoryIconUrl = (name: string): string => {
+  const n = name.toLowerCase();
+  if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
+  if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
+  if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
+  if (n.includes('aluguel') || n.includes('moradia') || n.includes('casa') || n.includes('apartamento') || n.includes('condomínio')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
+  if (n.includes('lazer') || n.includes('social') || n.includes('cinema') || n.includes('filme') || n.includes('pipoca') || n.includes('show') || n.includes('festa') || n.includes('viagem')) return 'https://cdn-icons-png.flaticon.com/512/3588/3588658.png';
+  if (n.includes('saúde') || n.includes('médico') || n.includes('remédio') || n.includes('farmácia') || n.includes('hospital') || n.includes('academia') || n.includes('crossfit') || n.includes('dentista')) return 'https://cdn-icons-png.flaticon.com/512/1142/1142172.png';
+  if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário') || n.includes('roupa')) return 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
+  
+  if (n.includes('salário') || n.includes('pagamento') || n.includes('renda')) return 'https://cdn-icons-png.flaticon.com/512/2454/2454269.png';
+  if (n.includes('invest') || n.includes('economia') || n.includes('poupança')) return 'https://cdn-icons-png.flaticon.com/512/2721/2721614.png';
+  
+  return 'https://cdn-icons-png.flaticon.com/512/5488/5488583.png';
+};
+
 const Reports: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'details'>('overview');
@@ -97,6 +113,8 @@ const Reports: React.FC = () => {
     const { data: txs, error } = signal ? await txQuery.abortSignal(signal) : await txQuery;
 
     if (error) {
+      const isAbort = error.name === 'AbortError' || error.message?.includes('aborted') || error.message?.includes('AbortError');
+      if (isAbort) return;
       console.error('Erro ao buscar transações:', error);
       setLoading(false);
       return;
@@ -383,17 +401,26 @@ const Reports: React.FC = () => {
           flex-direction: column;
         }
 
+        .reports-sticky-top {
+          position: sticky;
+          top: 0;
+          z-index: 40;
+          background: #eef0f7;
+          display: flex;
+          flex-direction: column;
+        }
+
         /* ── Header ── */
         .reports-header {
           background: #eef0f7;
-          padding: 24px 20px 0;
+          padding: 0 20px;
           text-align: center;
-          position: sticky;
-          top: 0;
-          z-index: 30;
           display: flex;
           flex-direction: column;
           align-items: center;
+          justify-content: center;
+          height: 60px;
+          box-sizing: border-box;
         }
         .header-title { font-size: 17px; font-weight: 600; color: #111; }
         .header-sub {
@@ -661,29 +688,106 @@ const Reports: React.FC = () => {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
+
+        .dark .phone {
+          background: #0c0c0e;
+        }
+        .dark .reports-sticky-top {
+          background: #0c0c0e;
+        }
+        .dark .reports-header {
+          background: #0c0c0e;
+        }
+        .dark .header-title {
+          color: #ffffff;
+        }
+        .dark .header-sub {
+          color: #aaaaaa;
+        }
+        .dark .tabs {
+          background: #0c0c0e;
+          border-bottom-color: rgba(255,255,255,0.06);
+        }
+        .dark .tab {
+          color: #888888;
+        }
+        .dark .tab.active {
+          color: #8854D0;
+          border-bottom-color: #8854D0;
+        }
+        .dark .card {
+          background: #1c1c1e;
+        }
+        .dark .card-icon.expense {
+          background: rgba(255,107,107,0.15);
+        }
+        .dark .card-icon.income {
+          background: rgba(32,191,85,0.15);
+        }
+        .dark .card-type {
+          color: #888888;
+        }
+        .dark .chart-card {
+          background: #1c1c1e;
+        }
+        .dark .chart-title {
+          color: #ffffff;
+        }
+        .dark .panel {
+          background: #1c1c1e;
+        }
+        .dark .toggle {
+          background: #1c1c1e;
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+        .dark .toggle-btn {
+          color: #888888;
+        }
+        .dark .toggle-btn.active {
+          background: rgba(255,255,255,0.1);
+          color: #ffffff;
+        }
+        .dark .cat-row {
+          border-bottom-color: rgba(255,255,255,0.05);
+        }
+        .dark .cat-icon {
+          background: rgba(255,255,255,0.05);
+          border-color: rgba(255,255,255,0.05);
+        }
+        .dark .cat-pct {
+          color: #ffffff;
+        }
+        .dark .cat-name {
+          color: #888888;
+        }
+        .dark .cat-value {
+          color: #ffffff;
+        }
       `}} />
 
       <main className="phone">
-        {/* Cabeçalho */}
-        <header className="reports-header">
-          <div className="header-title">Análises</div>
-          <div className="header-sub" onClick={() => setShowMonthPicker(true)}>
-            {monthFullNames[selectedMonth]} {selectedYear}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-        </header>
+        <div className="reports-sticky-top">
+          {/* Cabeçalho */}
+          <header className="reports-header">
+            <div className="header-title">Análises</div>
+            <div className="header-sub" onClick={() => setShowMonthPicker(true)}>
+              {monthFullNames[selectedMonth]} {selectedYear}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </header>
 
-        {/* Abas */}
-        <nav className="tabs" aria-label="Navegação da análise">
-          <button className={`tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Visão Geral
-          </button>
-          <button className={`tab ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-            Detalhamento
-          </button>
-        </nav>
+          {/* Abas */}
+          <nav className="tabs" aria-label="Navegação da análise">
+            <button className={`tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Visão Geral
+            </button>
+            <button className={`tab ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+              Detalhamento
+            </button>
+          </nav>
+        </div>
 
         {/* Conteúdo Rolável */}
         <div className="content-scroll">
@@ -701,13 +805,17 @@ const Reports: React.FC = () => {
                 <div className="cards-row">
                   <article className="card cursor-pointer" onClick={() => { setActiveTab('details'); setStatTab('expense'); }}>
                     <div className="card-dots">···</div>
-                    <div className="card-icon expense">💼</div>
+                    <div className="card-icon expense" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="https://cdn-icons-png.flaticon.com/512/2454/2454282.png" alt="Despesa" className="w-6 h-6 object-contain" />
+                    </div>
                     <div className="card-type">Despesa</div>
                     <div className="card-amount expense">{fmtBRL(monthTotal)}</div>
                   </article>
                   <article className="card cursor-pointer" onClick={() => { setActiveTab('details'); setStatTab('income'); }}>
                     <div className="card-dots">···</div>
-                    <div className="card-icon income">👤</div>
+                    <div className="card-icon income" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="https://cdn-icons-png.flaticon.com/512/2454/2454269.png" alt="Receita" className="w-6 h-6 object-contain" />
+                    </div>
                     <div className="card-type">Receita</div>
                     <div className="card-amount income">{fmtBRL(incomeTotal)}</div>
                   </article>
@@ -986,11 +1094,14 @@ const Reports: React.FC = () => {
                       className="donut-icon" 
                       style={{ 
                         left: `${seg.emojiX}px`, 
-                        top: `${seg.emojiY}px` 
+                        top: `${seg.emojiY}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                       title={seg.name}
                     >
-                      {seg.emoji}
+                      <img src={getCategoryIconUrl(seg.name)} alt={seg.name} className="w-[22px] h-[22px] object-contain" />
                     </div>
                   ))}
                 </div>
@@ -1004,8 +1115,8 @@ const Reports: React.FC = () => {
                   ) : (
                     donutChartData.segments.map((seg) => (
                       <div className="cat-row" key={seg.name}>
-                        <div className="cat-icon" style={{ backgroundColor: `${seg.color}15`, borderColor: `${seg.color}30` }}>
-                          {seg.emoji}
+                        <div className="cat-icon" style={{ backgroundColor: `${seg.color}15`, borderColor: `${seg.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src={getCategoryIconUrl(seg.name)} alt={seg.name} className="w-[26px] h-[26px] object-contain" />
                         </div>
                         <span className="cat-pct">{seg.pct}%</span>
                         <span className="cat-name">{seg.name}</span>

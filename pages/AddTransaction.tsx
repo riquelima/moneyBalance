@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
@@ -6,29 +6,30 @@ import { parseLocalISODate, toLocalISO, toLocalISODateTime } from '../utils/date
 import { categories } from '../categories';
 import Header from '../components/common/Header';
 
-const getCategoryEmoji = (name: string): string => {
+const getCategoryIconUrl = (name: string): string => {
   const n = name.toLowerCase();
-  if (n.includes('mercado') || n.includes('cesta')) return '🧺';
-  if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante')) return '🍽️';
-  if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber')) return '🚌';
-  if (n.includes('aluguel') || n.includes('moradia') || n.includes('casa') || n.includes('apartamento')) return '🏠';
-  if (n.includes('lazer') || n.includes('social') || n.includes('cinema') || n.includes('filme') || n.includes('pipoca') || n.includes('show')) return '🍿';
-  if (n.includes('saúde') || n.includes('médico') || n.includes('remédio') || n.includes('farmácia') || n.includes('hospital')) return '🧰';
-  if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário')) return '🛍️';
-  if (n.includes('salário') || n.includes('pagamento')) return '💰';
-  if (n.includes('rendimento') || n.includes('invest') || n.includes('economia')) return '📈';
-  if (n.includes('extra') || n.includes('bônus')) return '💵';
-  return '🏷️';
+  if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
+  if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
+  if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
+  if (n.includes('aluguel') || n.includes('moradia') || n.includes('casa') || n.includes('apartamento') || n.includes('condomínio')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
+  if (n.includes('lazer') || n.includes('social') || n.includes('cinema') || n.includes('filme') || n.includes('pipoca') || n.includes('show') || n.includes('festa') || n.includes('viagem')) return 'https://cdn-icons-png.flaticon.com/512/3588/3588658.png';
+  if (n.includes('saúde') || n.includes('médico') || n.includes('remédio') || n.includes('farmácia') || n.includes('hospital') || n.includes('academia') || n.includes('crossfit') || n.includes('dentista')) return 'https://cdn-icons-png.flaticon.com/512/1142/1142172.png';
+  if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário') || n.includes('roupa')) return 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
+  
+  if (n.includes('salário') || n.includes('pagamento') || n.includes('renda')) return 'https://cdn-icons-png.flaticon.com/512/2454/2454269.png';
+  if (n.includes('invest') || n.includes('economia') || n.includes('poupança')) return 'https://cdn-icons-png.flaticon.com/512/2721/2721614.png';
+  
+  return 'https://cdn-icons-png.flaticon.com/512/5488/5488583.png';
 };
 
 const primaryCats = [
-  { name: 'Mercado', emoji: '🧺' },
-  { name: 'Refeição', emoji: '🍽️' },
-  { name: 'Transporte', emoji: '🚌' },
-  { name: 'Aluguel', emoji: '🏠' },
-  { name: 'Lazer', emoji: '🍿' },
-  { name: 'Saúde', emoji: '🧰' },
-  { name: 'Compras', emoji: '🛍️' },
+  { name: 'Mercado', iconUrl: 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png' },
+  { name: 'Refeição', iconUrl: 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png' },
+  { name: 'Transporte', iconUrl: 'https://cdn-icons-png.flaticon.com/512/741/741407.png' },
+  { name: 'Aluguel', iconUrl: 'https://cdn-icons-png.flaticon.com/512/619/619153.png' },
+  { name: 'Lazer', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3588/3588658.png' },
+  { name: 'Saúde', iconUrl: 'https://cdn-icons-png.flaticon.com/512/1142/1142172.png' },
+  { name: 'Compras', iconUrl: 'https://cdn-icons-png.flaticon.com/512/743/743007.png' },
 ];
 
 const AddTransaction: React.FC = () => {
@@ -166,8 +167,8 @@ const AddTransaction: React.FC = () => {
     }
   }, [location.search]);
 
-  useEffect(() => {
-    (async () => {
+  const fetchUserCategories = useCallback(async () => {
+    try {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
       if (!user) return;
@@ -175,9 +176,24 @@ const AddTransaction: React.FC = () => {
         .from('user_categories')
         .select('name')
         .eq('user_id', user.id)
+        .eq('type', type)
         .order('name', { ascending: true });
       const names = Array.from(new Set((data || []).map((x: any) => String(x.name || '')).filter(Boolean)));
       setUserCategories(names);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [type]);
+
+  useEffect(() => {
+    fetchUserCategories();
+  }, [fetchUserCategories]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
 
       // Fetch profile phone or check metadata
       let phoneToSet: string | null = null;
@@ -1226,7 +1242,7 @@ const AddTransaction: React.FC = () => {
               className="add-cat-item"
             >
               <div className={`add-cat-icon-wrap ${isSelected ? 'selected' : ''}`}>
-                {cat.emoji}
+                <img src={cat.iconUrl} alt={cat.name} className="w-8 h-8 object-contain" />
               </div>
               <span className="add-cat-name">{cat.name}</span>
             </button>
@@ -1239,12 +1255,20 @@ const AddTransaction: React.FC = () => {
           const hasCustomSelected = categoryName !== '' && !isPrimarySelected;
           return (
             <button
-              onClick={() => setShowCategoryPicker(prev => !prev)}
+              onClick={() => {
+                setShowCategoryPicker(prev => {
+                  const next = !prev;
+                  if (next) {
+                    fetchUserCategories();
+                  }
+                  return next;
+                });
+              }}
               className="add-cat-item"
             >
               <div className={`add-cat-icon-wrap ${hasCustomSelected ? 'selected' : ''}`}>
                 {hasCustomSelected ? (
-                  getCategoryEmoji(categoryName)
+                  <img src={getCategoryIconUrl(categoryName)} alt={categoryName} className="w-8 h-8 object-contain" />
                 ) : (
                   <div className="add-more-dots">
                     <div className="add-dot accent"></div>
@@ -1266,10 +1290,11 @@ const AddTransaction: React.FC = () => {
       <AnimatePresence>
         {showCategoryPicker && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden px-4 mb-6"
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="px-4 mb-6"
           >
             <div className="grid grid-cols-2 gap-2 p-3 bg-white dark:bg-[#171c30] border border-gray-200 dark:border-white/5 rounded-2xl shadow-md">
               {allCategories.map((c) => {
@@ -1282,14 +1307,14 @@ const AddTransaction: React.FC = () => {
                       setCategoryName(c);
                       setShowCategoryPicker(false);
                     }}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold uppercase border transition-all text-center ${
+                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold uppercase border transition-all text-center flex items-center justify-center gap-2 ${
                       isSel
                         ? 'border-[#3b5bdb]/50 dark:border-[#5c7cfa]/50 bg-[#3b5bdb]/10 dark:bg-[#5c7cfa]/10 text-[#3b5bdb] dark:text-[#5c7cfa]'
                         : 'border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
                   >
-                    <span className="mr-1">{getCategoryEmoji(c)}</span>
-                    {c}
+                    <img src={getCategoryIconUrl(c)} alt={c} className="w-5 h-5 object-contain" />
+                    <span>{c}</span>
                   </motion.button>
                 );
               })}

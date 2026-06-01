@@ -189,7 +189,7 @@ const MainTabsView: React.FC = () => {
         }}
       >
         {/* Aba 0: Início (Dashboard) */}
-        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+        <section className="w-screen h-full overflow-hidden flex-shrink-0 no-scrollbar">
           <Dashboard />
         </section>
 
@@ -199,7 +199,7 @@ const MainTabsView: React.FC = () => {
         </section>
 
         {/* Aba 2: Transações (Transactions) */}
-        <section className="w-screen h-full overflow-y-auto flex-shrink-0 no-scrollbar pb-32">
+        <section className="w-screen h-full overflow-hidden flex-shrink-0 no-scrollbar">
           <Transactions />
         </section>
 

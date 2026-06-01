@@ -9,6 +9,22 @@ import Skeleton from '../components/ui/Skeleton';
 import Header from '../components/common/Header';
 
 
+const getCategoryIconUrl = (name: string): string => {
+  const n = name.toLowerCase();
+  if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
+  if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
+  if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
+  if (n.includes('aluguel') || n.includes('moradia') || n.includes('casa') || n.includes('apartamento') || n.includes('condomínio')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
+  if (n.includes('lazer') || n.includes('social') || n.includes('cinema') || n.includes('filme') || n.includes('pipoca') || n.includes('show') || n.includes('festa') || n.includes('viagem')) return 'https://cdn-icons-png.flaticon.com/512/3588/3588658.png';
+  if (n.includes('saúde') || n.includes('médico') || n.includes('remédio') || n.includes('farmácia') || n.includes('hospital') || n.includes('academia') || n.includes('crossfit') || n.includes('dentista')) return 'https://cdn-icons-png.flaticon.com/512/1142/1142172.png';
+  if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário') || n.includes('roupa')) return 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
+  
+  if (n.includes('salário') || n.includes('pagamento') || n.includes('renda')) return 'https://cdn-icons-png.flaticon.com/512/2454/2454269.png';
+  if (n.includes('invest') || n.includes('economia') || n.includes('poupança')) return 'https://cdn-icons-png.flaticon.com/512/2721/2721614.png';
+  
+  return 'https://cdn-icons-png.flaticon.com/512/5488/5488583.png';
+};
+
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const Dashboard: React.FC = () => {
@@ -40,6 +56,19 @@ const Dashboard: React.FC = () => {
   const [yesterdayExpense, setYesterdayExpense] = useState(0);
   const [saldoAtual, setSaldoAtual] = useState(0);
   const [saldoAnual, setSaldoAnual] = useState(0);
+  const [catMap, setCatMap] = useState<Record<string, { name: string; type: 'income' | 'expense' }>>({});
+
+  const renderCategoryIcon = (description: string, categoryId: string | null) => {
+    const cat = categoryId ? catMap[categoryId] : null;
+    const catName = cat?.name || description || 'Sem Categoria';
+    const iconUrl = getCategoryIconUrl(catName);
+
+    return (
+      <div className="logo-bubble" aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src={iconUrl} alt={catName} className="w-[26px] h-[26px] object-contain" />
+      </div>
+    );
+  };
 
   const getSPDateISO = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -226,6 +255,36 @@ const Dashboard: React.FC = () => {
       supabase.removeChannel(channel);
     };
   }, [fetchAllData]);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      const allTxIds = Array.from(new Set([...incomeItems, ...expenseItems].map(t => t.category_id).filter(Boolean)));
+      if (allTxIds.length === 0) return;
+      try {
+        const { data: cats } = await supabase
+          .from('user_categories')
+          .select('id, name, type')
+          .in('id', allTxIds);
+        if (cats) {
+          setCatMap(prev => {
+            const next = { ...prev };
+            cats.forEach((c: any) => {
+              if (c?.id) {
+                next[c.id as string] = {
+                  name: String(c.name || 'Categoria'),
+                  type: (c.type as any) || 'expense'
+                };
+              }
+            });
+            return next;
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchCats();
+  }, [incomeItems, expenseItems]);
 
 
 
@@ -638,7 +697,8 @@ const Dashboard: React.FC = () => {
         title: b.description || 'Fatura Pendente',
         amount: Number(b.amount),
         due: getDueLabel(b.date),
-        isReal: true
+        isReal: true,
+        category_id: b.category_id
       }))
     : [
         { id: 'f1', title: 'Fatura da Apple #1234', amount: 20.00, due: 'Faltam 2 dias', isReal: false },
@@ -666,22 +726,31 @@ const Dashboard: React.FC = () => {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
 
         :root {
-          --bg: oklch(91% 0.055 230);
-          --surface: oklch(100% 0 0);
-          --fg: oklch(22% 0.055 275);
-          --muted: oklch(45% 0.07 275);
-          --border: oklch(88% 0.035 270);
+          --bg: #f5f6fa;
+          --surface: #ffffff;
+          --fg: #111111;
+          --muted: #8e8e93;
+          --border: #e5e5ea;
           --accent: oklch(72% 0.17 25);
           --success: oklch(70% 0.15 155);
           --danger: oklch(68% 0.19 25);
-          --nav: oklch(23% 0.055 275);
+          --nav: #1c1c1e;
           --card-blue: oklch(33% 0.11 285);
           --font-display: 'DM Serif Display', serif;
           --font-body: 'Poppins', sans-serif;
           --font-mono: 'Orbitron', sans-serif;
-          --shadow-soft: 0 20px 44px color-mix(in oklab, var(--fg), transparent 88%);
+          --shadow-soft: 0 20px 44px rgba(0, 0, 0, 0.05);
           --radius-card: 14px;
           --screen-w: 393px;
+        }
+
+        .dark {
+          --bg: #0c0c0e;
+          --surface: #1c1c1e;
+          --fg: #f5f6fa;
+          --muted: #777777;
+          --border: #2c2c2e;
+          --nav: #0c0c0e;
         }
 
         .phone, .phone * {
@@ -736,14 +805,12 @@ const Dashboard: React.FC = () => {
           position: relative;
           width: min(100vw, var(--screen-w));
           margin-inline: auto;
-          min-height: 100vh;
-          overflow-x: hidden;
-          overflow-y: auto;
-          background:
-            radial-gradient(circle at 25% 8%, color-mix(in oklab, var(--surface), transparent 30%) 0 14%, transparent 35%),
-            radial-gradient(circle at 80% 9%, color-mix(in oklab, var(--surface), transparent 55%) 0 8%, transparent 27%),
-            linear-gradient(180deg, var(--bg) 0 29%, var(--surface) 29% 100%);
+          height: 100%;
+          overflow: hidden;
+          background: var(--bg);
           box-shadow: var(--shadow-soft);
+          display: flex;
+          flex-direction: column;
         }
 
         .phone::before {
@@ -822,14 +889,29 @@ const Dashboard: React.FC = () => {
         .content-box {
           position: relative;
           z-index: 1;
-          padding: 13px 16px 140px;
+          padding: 13px 16px 0 16px;
+          height: 100%;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-sizing: border-box;
         }
 
         .topline {
+          position: relative;
+          z-index: 50;
+          background: var(--bg);
+          border-bottom: 1px solid var(--border);
+          padding: 0 20px;
+          margin: -13px -16px 20px -16px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 18px;
+          height: 60px;
+          box-sizing: border-box;
+          flex-shrink: 0;
         }
 
         .identity {
@@ -1340,14 +1422,20 @@ const Dashboard: React.FC = () => {
           <div className="topline">
             <div className="identity">
               <div className="avatar" aria-hidden="true" onClick={() => navigate('/settings')}>
-                {avatarUrl ? (
+                {loading ? (
+                  <div className="w-full h-full animate-pulse bg-gray-200 dark:bg-gray-700/50 rounded-full" />
+                ) : avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                 ) : (
                   displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
                 )}
               </div>
               <div>
-                <p className="name">{displayName}</p>
+                {loading ? (
+                  <Skeleton width={100} height={18} className="mb-1" />
+                ) : (
+                  <p className="name">{displayName}</p>
+                )}
                 <p className="welcome">Bem-vindo de volta</p>
               </div>
             </div>
@@ -1357,8 +1445,10 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           </div>
-
-          <div className="balance-block">
+ 
+          {/* Div rolável independente por baixo do cabeçalho fixo */}
+          <div className="flex-1 overflow-y-auto no-scrollbar pb-32" style={{ margin: '0 -16px', padding: '0 16px' }}>
+            <div className="balance-block">
             <p className="balance-label">
               Saldo Atual · <span className="text-[#1a2366] hover:underline cursor-pointer font-extrabold" onClick={() => setShowMonthPicker(true)}>{monthNames[selectedMonth]} {selectedYear}</span>
               <button
@@ -1381,103 +1471,120 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="cards-rail" style={{ overflow: 'visible', marginRight: 0, paddingRight: 0, justifyContent: 'center', display: 'flex', width: '100%' }} aria-label="Cartões de pagamento">
-            <article className="visa-card cursor-pointer" onClick={() => navigate('/projecao-futura')}>
-              {/* Mastercard */}
-              <div className="mastercard">
-                <div className="mc-circles">
-                  <div className="mc-circle mc-red"></div>
-                  <div className="mc-circle mc-yellow"></div>
-                  <div className="mc-overlap"></div>
+            {summaryLoading ? (
+              <article className="visa-card cursor-pointer animate-pulse" style={{ background: 'linear-gradient(135deg, var(--border) 0%, color-mix(in oklab, var(--border), var(--surface) 80%) 100%)', boxShadow: 'none', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="flex justify-between items-start w-full">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-24"></div>
+                  <div className="w-12 h-8 bg-gray-200 dark:bg-gray-700/50 rounded-md"></div>
                 </div>
-                <div className="mc-text">mastercard<sup>®</sup></div>
-              </div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700/50 rounded w-36 mt-4"></div>
+                <div className="flex gap-4 items-center mt-6">
+                  <div className="w-10 h-7 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                  <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                </div>
+                <div className="flex justify-between items-end w-full mt-auto">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-32"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700/50 rounded w-12"></div>
+                </div>
+              </article>
+            ) : (
+              <article className="visa-card cursor-pointer" onClick={() => navigate('/projecao-futura')}>
+                {/* Mastercard */}
+                <div className="mastercard">
+                  <div className="mc-circles">
+                    <div className="mc-circle mc-red"></div>
+                    <div className="mc-circle mc-yellow"></div>
+                    <div className="mc-overlap"></div>
+                  </div>
+                  <div className="mc-text">mastercard<sup>®</sup></div>
+                </div>
 
-              {/* Card Title & Amount */}
-              <div className="card-top">
-                <div>
-                  <p className="card-label" style={{ fontSize: '13px', opacity: 0.85, fontWeight: 500 }}>Entradas</p>
-                  {summaryLoading ? (
-                    <Skeleton width={120} height={28} />
-                  ) : (
+                {/* Card Title & Amount */}
+                <div className="card-top">
+                  <div>
+                    <p className="card-label" style={{ fontSize: '13px', opacity: 0.85, fontWeight: 500 }}>Entradas</p>
                     <p className={`card-amount ${isPrivacyEnabled ? 'blur-privacy' : ''}`} style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-display)' }}>
                       {formatBRL(summary.income)}
                     </p>
-                  )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Chip & Contactless */}
-              <div className="card-middle">
-                <div className="nu-chip">
-                  <svg viewBox="0 0 66 50" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
-                    <rect x="1" y="1" width="64" height="48" rx="8" fill="none" stroke="#7a5096" strokeWidth="1.2"/>
-                    <ellipse cx="33" cy="25" rx="16" ry="13" fill="#cfc8da" stroke="#9a8fb0" strokeWidth="1"/>
-                    <circle cx="33" cy="12" r="3" fill="#cfc8da" stroke="#9a8fb0" strokeWidth="0.8"/>
-                    <line x1="1" y1="25" x2="17" y2="25" stroke="#9a8fb0" strokeWidth="1.2"/>
-                    <line x1="49" y1="25" x2="65" y2="25" stroke="#9a8fb0" strokeWidth="1.2"/>
-                    <line x1="33" y1="38" x2="33" y2="49" stroke="#9a8fb0" strokeWidth="1.2"/>
-                    <line x1="17" y1="12" x2="17" y2="38" stroke="#9a8fb0" strokeWidth="1.2"/>
-                    <line x1="49" y1="12" x2="49" y2="38" stroke="#9a8fb0" strokeWidth="1.2"/>
-                  </svg>
+                {/* Chip & Contactless */}
+                <div className="card-middle">
+                  <div className="nu-chip">
+                    <svg viewBox="0 0 66 50" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+                      <rect x="1" y="1" width="64" height="48" rx="8" fill="none" stroke="#7a5096" strokeWidth="1.2"/>
+                      <ellipse cx="33" cy="25" rx="16" ry="13" fill="#cfc8da" stroke="#9a8fb0" strokeWidth="1"/>
+                      <circle cx="33" cy="12" r="3" fill="#cfc8da" stroke="#9a8fb0" strokeWidth="0.8"/>
+                      <line x1="1" y1="25" x2="17" y2="25" stroke="#9a8fb0" strokeWidth="1.2"/>
+                      <line x1="49" y1="25" x2="65" y2="25" stroke="#9a8fb0" strokeWidth="1.2"/>
+                      <line x1="33" y1="38" x2="33" y2="49" stroke="#9a8fb0" strokeWidth="1.2"/>
+                      <line x1="17" y1="12" x2="17" y2="38" stroke="#9a8fb0" strokeWidth="1.2"/>
+                      <line x1="49" y1="12" x2="49" y2="38" stroke="#9a8fb0" strokeWidth="1.2"/>
+                    </svg>
+                  </div>
+                  <div className="nu-contactless">
+                    <svg viewBox="0 0 34 38" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+                      <path d="M6 9 a16 16 0 0 1 0 20"/>
+                      <path d="M13 5 a24 24 0 0 1 0 28"/>
+                      <path d="M20 1 a32 32 0 0 1 0 36"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="nu-contactless">
-                  <svg viewBox="0 0 34 38" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
-                    <path d="M6 9 a16 16 0 0 1 0 20"/>
-                    <path d="M13 5 a24 24 0 0 1 0 28"/>
-                    <path d="M20 1 a32 32 0 0 1 0 36"/>
-                  </svg>
-                </div>
-              </div>
 
-              {/* Bottom Row: Nu Logo, Cardholder Name, and Validity */}
-              <div className="card-bottom-row">
-                <div className="nu-bottom-left">
-                  <svg className="nu-logo" viewBox="0 0 74 60" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 54 V18 a12 12 0 0 1 24 0 V54"/>
-                    <path d="M40 6 V42 a12 12 0 0 0 24 0 V6"/>
-                  </svg>
-                  <span className="card-name">HENRIQUE LIMA</span>
+                {/* Bottom Row: Nu Logo, Cardholder Name, and Validity */}
+                <div className="card-bottom-row">
+                  <div className="nu-bottom-left">
+                    <svg className="nu-logo" viewBox="0 0 74 60" fill="none" stroke="#fff" strokeWidth="4.2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 54 V18 a12 12 0 0 1 24 0 V54"/>
+                      <path d="M40 6 V42 a12 12 0 0 0 24 0 V6"/>
+                    </svg>
+                    <span className="card-name">HENRIQUE LIMA</span>
+                  </div>
+                  <p className="card-validity">
+                    Validade<strong> 12/{String(selectedYear).substring(2)}</strong>
+                  </p>
                 </div>
-                <p className="card-validity">
-                  Validade<strong> 12/{String(selectedYear).substring(2)}</strong>
-                </p>
-              </div>
-            </article>
+              </article>
+            )}
           </div>
 
           <div className="summary">
-            <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense')}>
-              <div className="summary-head">
-                <span>Total Gasto</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
-              </div>
-              {summaryLoading ? (
-                <Skeleton width={110} height={20} className="mt-2.5" />
-              ) : (
-                <>
+            {summaryLoading ? (
+              <>
+                <div className="summary-card animate-pulse" style={{ height: '121px' }}>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                </div>
+                <div className="summary-card animate-pulse" style={{ height: '121px' }}>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                </div>
+              </>
+            ) : (
+              <>
+                <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense')}>
+                  <div className="summary-head">
+                    <span>Total Gasto</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
                   <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.expense)}</p>
                   <span className={`delta ${expenseDelta.class}`}>
                     {expenseDelta.class === 'up' ? '↗' : '↘'} {expenseDelta.text.replace('↗ ', '').replace('↘ ', '')}
                   </span>
-                </>
-              )}
-            </article>
-            <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=income')}>
-              <div className="summary-head">
-                <span>Economizado</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
-              </div>
-              {summaryLoading ? (
-                <Skeleton width={110} height={20} className="mt-2.5" />
-              ) : (
-                <>
+                </article>
+                <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=income')}>
+                  <div className="summary-head">
+                    <span>Economizado</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  </div>
                   <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.balance)}</p>
                   <span className={`delta ${savingsDelta.class}`}>
                     {savingsDelta.class === 'up' ? '↗' : '↘'} {savingsDelta.text.replace('↗ ', '').replace('↘ ', '')}
                   </span>
-                </>
-              )}
-            </article>
+                </article>
+              </>
+            )}
           </div>
 
           <div className="section-head">
@@ -1486,25 +1593,50 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="bill-grid">
-            {displayBills.map((bill) => (
-              <article
-                key={bill.id}
-                className="bill-card cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => bill.isReal ? navigate(`/transactions?type=expense&status=pending`) : navigate('/add-transaction')}
-              >
-                <div className="bill-top">
-                  {renderLogoBubble(bill.title)}
-                  <button className="more" aria-label="Mais opções"></button>
+            {summaryLoading ? (
+              <>
+                <div className="bill-card animate-pulse">
+                  <div className="bill-top">
+                    <div className="w-[34px] h-[34px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+                    <div className="w-4 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                  </div>
+                  <div>
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-2.5"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="bill-title">{bill.title}</h3>
-                  <p className="bill-amount">
-                    <span className={isPrivacyEnabled ? 'blur-privacy' : ''}>{formatBRL(bill.amount)}</span> <span>/mês</span>
-                  </p>
-                  <p className="due">{bill.due}</p>
+                <div className="bill-card animate-pulse">
+                  <div className="bill-top">
+                    <div className="w-[34px] h-[34px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+                    <div className="w-4 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                  </div>
+                  <div>
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-2.5"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                  </div>
                 </div>
-              </article>
-            ))}
+              </>
+            ) : (
+              displayBills.map((bill) => (
+                <article
+                  key={bill.id}
+                  className="bill-card cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => bill.isReal ? navigate(`/transactions?type=expense&status=pending`) : navigate('/add-transaction')}
+                >
+                  <div className="bill-top">
+                    {renderCategoryIcon(bill.title, bill.category_id || null)}
+                    <button className="more" aria-label="Mais opções"></button>
+                  </div>
+                  <div>
+                    <h3 className="bill-title">{bill.title}</h3>
+                    <p className="bill-amount">
+                      <span className={isPrivacyEnabled ? 'blur-privacy' : ''}>{formatBRL(bill.amount)}</span> <span>/mês</span>
+                    </p>
+                    <p className="due">{bill.due}</p>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
 
           <div className="section-head" style={{ marginTop: '27px' }}>
@@ -1513,25 +1645,40 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="transaction-list">
-            {displayTransactions.map((tx) => {
-              const isExpense = tx.type === 'expense';
-              return (
-                <article
-                  key={tx.id}
-                  className="transaction cursor-pointer hover:bg-black/5 px-2 rounded-xl transition-colors"
-                  onClick={() => navigate('/transactions')}
-                >
-                  {renderLogoBubble(tx.description)}
-                  <div>
-                    <p className="tx-title">{tx.description}</p>
-                    <p className="tx-date">{formatTxDate(tx.date)}</p>
+            {summaryLoading ? (
+              <>
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="transaction animate-pulse" style={{ gridTemplateColumns: '40px 1fr auto', alignItems: 'center', minHeight: '74px', borderBottom: i === 4 ? '0' : '1px solid var(--border)' }}>
+                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+                    <div className="flex flex-col gap-2 flex-1 ml-2">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700/50 rounded w-1/3"></div>
+                    </div>
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-16"></div>
                   </div>
-                  <p className={`tx-amount ${isExpense ? 'text-gray-700 font-extrabold' : 'text-success font-extrabold'} ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>
-                    {isExpense ? '-' : '+'} {formatBRL(Math.abs(Number(tx.amount)))}
-                  </p>
-                </article>
-              );
-            })}
+                ))}
+              </>
+            ) : (
+              displayTransactions.map((tx) => {
+                const isExpense = tx.type === 'expense';
+                return (
+                  <article
+                    key={tx.id}
+                    className="transaction cursor-pointer hover:bg-black/5 px-2 rounded-xl transition-colors"
+                    onClick={() => navigate('/transactions')}
+                  >
+                    {renderCategoryIcon(tx.description, tx.category_id || null)}
+                    <div>
+                      <p className="tx-title">{tx.description}</p>
+                      <p className="tx-date">{formatTxDate(tx.date)}</p>
+                    </div>
+                    <p className={`tx-amount ${isExpense ? 'text-gray-700 font-extrabold' : 'text-success font-extrabold'} ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>
+                      {isExpense ? '-' : '+'} {formatBRL(Math.abs(Number(tx.amount)))}
+                    </p>
+                  </article>
+                );
+              })
+            )}
           </div>
 
           {/* Gráficos de Fluxo */}
@@ -1565,22 +1712,33 @@ const Dashboard: React.FC = () => {
                       {chartType === 'expense' ? 'SAÍDAS' : 'ENTRADAS'}
                     </button>
                   </div>
-                  <div className="h-[200px] w-full flex items-end justify-between gap-1 sm:gap-2 px-1 relative">
-                    {current.values.map((h, i) => {
-                      const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
-                      return (
-                        <div key={i} className="bar-container cursor-pointer" onClick={() => period === 'month' && setSelectedMonth(i)}>
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: `${Math.max(6, h * 1.2)}%` }}
-                            transition={{ duration: 0.6, delay: i * 0.03 }}
-                            className={`bar-chart-visual ${chartType === 'expense' ? 'expense-bar' : 'income-bar'} ${isHighlighted ? 'ring-2 ring-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
-                          />
-                          <span className="bar-chart-label" style={{ fontSize: '8px' }}>{current.labels[i].substring(0, 3)}</span>
+                  {summaryLoading ? (
+                    <div className="h-[200px] w-full flex items-end justify-between gap-2 px-1 animate-pulse">
+                      {Array.from({ length: period === 'month' ? 12 : 7 }).map((_, i) => (
+                        <div key={i} className="bar-container w-full" style={{ gap: '6px' }}>
+                          <div className="bar-chart-visual bg-gray-200 dark:bg-gray-700/50 w-full" style={{ height: '30%', opacity: 0.4 }} />
+                          <div className="h-2 w-6 bg-gray-200 dark:bg-gray-700/50 rounded mt-1"></div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-[200px] w-full flex items-end justify-between gap-1 sm:gap-2 px-1 relative">
+                      {current.values.map((h, i) => {
+                        const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
+                        return (
+                          <div key={i} className="bar-container cursor-pointer" onClick={() => period === 'month' && setSelectedMonth(i)}>
+                            <motion.div
+                              initial={{ height: 0 }}
+                              animate={{ height: `${Math.max(6, h * 1.2)}%` }}
+                              transition={{ duration: 0.6, delay: i * 0.03 }}
+                              className={`bar-chart-visual ${chartType === 'expense' ? 'expense-bar' : 'income-bar'} ${isHighlighted ? 'ring-2 ring-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+                            />
+                            <span className="bar-chart-label" style={{ fontSize: '8px' }}>{current.labels[i].substring(0, 3)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -1609,16 +1767,31 @@ const Dashboard: React.FC = () => {
                     <span className="text-[9px] font-black text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">{monthNames[selectedMonth]} {selectedYear}</span>
                   </div>
                   <div className="divide-y divide-gray-100/30 max-h-[180px] overflow-y-auto">
-                    {incomeItems.length === 0 && <p className="text-xs text-gray-500 font-medium py-4 text-center italic">Nenhuma entrada registrada</p>}
-                    {incomeItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-2 px-1">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
-                          <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{it.description || 'Sem descrição'}</span>
+                    {summaryLoading ? (
+                      <>
+                        {[1, 2].map((i) => (
+                          <div key={i} className="flex items-center justify-between py-2 px-1 animate-pulse">
+                            <div className="flex flex-col gap-1 w-2/3">
+                              <span className="h-2 bg-gray-200 dark:bg-gray-700/50 rounded w-1/4"></span>
+                              <span className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4"></span>
+                            </div>
+                            <span className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-16"></span>
+                          </div>
+                        ))}
+                      </>
+                    ) : incomeItems.length === 0 ? (
+                      <p className="text-xs text-gray-500 font-medium py-4 text-center italic">Nenhuma entrada registrada</p>
+                    ) : (
+                      incomeItems.map((it) => (
+                        <div key={it.id} className="flex items-center justify-between py-2 px-1">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{it.description || 'Sem descrição'}</span>
+                          </div>
+                          <span className={`text-xs font-black text-success ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                         </div>
-                        <span className={`text-xs font-black text-success ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -1628,21 +1801,37 @@ const Dashboard: React.FC = () => {
                     <span className="text-[9px] font-black text-gray-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">{monthNames[selectedMonth]} {selectedYear}</span>
                   </div>
                   <div className="divide-y divide-gray-100/30 max-h-[180px] overflow-y-auto">
-                    {expenseItems.length === 0 && <p className="text-xs text-gray-500 font-medium py-4 text-center italic">Nenhuma saída registrada</p>}
-                    {expenseItems.map((it) => (
-                      <div key={it.id} className="flex items-center justify-between py-2 px-1">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
-                          <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{it.description || 'Sem descrição'}</span>
+                    {summaryLoading ? (
+                      <>
+                        {[1, 2].map((i) => (
+                          <div key={i} className="flex items-center justify-between py-2 px-1 animate-pulse">
+                            <div className="flex flex-col gap-1 w-2/3">
+                              <span className="h-2 bg-gray-200 dark:bg-gray-700/50 rounded w-1/4"></span>
+                              <span className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4"></span>
+                            </div>
+                            <span className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-16"></span>
+                          </div>
+                        ))}
+                      </>
+                    ) : expenseItems.length === 0 ? (
+                      <p className="text-xs text-gray-500 font-medium py-4 text-center italic">Nenhuma saída registrada</p>
+                    ) : (
+                      expenseItems.map((it) => (
+                        <div key={it.id} className="flex items-center justify-between py-2 px-1">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{labelForDate(it.date)}</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{it.description || 'Sem descrição'}</span>
+                          </div>
+                          <span className={`text-xs font-black text-danger ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
                         </div>
-                        <span className={`text-xs font-black text-danger ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(Number(it.amount || 0))}</span>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </section>
       </main>
 
