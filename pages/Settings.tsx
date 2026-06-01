@@ -197,20 +197,65 @@ const Settings: React.FC = () => {
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
+
                 const { data: userData } = await supabase.auth.getUser();
                 const user = userData?.user;
                 if (!user) return;
-                const ext = file.name.split('.').pop() || 'jpg';
-                const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-                const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' });
-                if (upErr) return;
-                const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
-                const url = pub?.publicUrl || '';
-                const { error: profErr } = await supabase
-                  .from('user_profiles')
-                  .upsert({ id: user.id, avatar_url: url }, { onConflict: 'id' });
-                if (profErr) return;
-                setProfile((p) => p ? { ...p, avatarUrl: url } : p);
+
+                // Alta Resiliência: Redimensiona via Canvas para ~150px e comprime para Base64 leve,
+                // contornando erros de buckets de Supabase Storage e persistindo no banco e cache.
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                  const img = new Image();
+                  img.onload = async () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 150;
+                    const MAX_HEIGHT = 150;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                      if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                      }
+                    } else {
+                      if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                      }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                      ctx.drawImage(img, 0, 0, width, height);
+                      const base64Url = canvas.toDataURL('image/jpeg', 0.7);
+
+                      // 1. Persiste de forma consistente na tabela user_profiles
+                      const { error: profErr } = await supabase
+                        .from('user_profiles')
+                        .upsert({ id: user.id, avatar_url: base64Url }, { onConflict: 'id' });
+
+                      if (profErr) {
+                        console.error('Erro ao salvar avatar no banco de dados:', profErr);
+                        return;
+                      }
+
+                      // 2. Atualiza o estado da tela de Configurações
+                      setProfile((p) => p ? { ...p, avatarUrl: base64Url } : p);
+
+                      // 3. Atualiza o cache local compartilhado com o Dashboard para carregamento instantâneo
+                      const displayName = [profile?.name, profile?.lastName].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Usuário';
+                      localStorage.setItem(`dashboard_cache_profile_${user.id}`, JSON.stringify({
+                        timestamp: Date.now(),
+                        data: { displayName, avatarUrl: base64Url }
+                      }));
+                    }
+                  };
+                  img.src = event.target?.result as string;
+                };
+                reader.readAsDataURL(file);
               }}
             />
             <div className="flex-1">
