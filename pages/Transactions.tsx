@@ -17,7 +17,8 @@ const getCategoryIconUrl = (name: string): string => {
   if (n.includes('imprevisto') || n.includes('urgência') || n.includes('emergência') || n.includes('conserto') || n.includes('reforma')) return 'https://cdn-icons-png.flaticon.com/512/3756/3756712.png';
   if (n.includes('rendimento') || n.includes('invest') || n.includes('economia') || n.includes('poupança') || n.includes('aplicação')) return 'https://cdn-icons-png.flaticon.com/512/10013/10013195.png';
   if (n.includes('dinheiro extra') || n.includes('extra') || n.includes('freela') || n.includes('bico')) return 'https://cdn-icons-png.flaticon.com/512/8283/8283617.png';
-  if (n.includes('back')) return 'https://cdn-icons-png.flaticon.com/512/7182/7182410.png';
+  if (n.includes('intelektus')) return 'https://cdn-icons-png.flaticon.com/512/7747/7747220.png';
+  if (n.includes('back') || n.includes('beck')) return 'https://cdn-icons-png.flaticon.com/512/2160/2160424.png';
   if (n.includes('cartão de crédito') || n.includes('cartão') || n.includes('crédito') || n.includes('limite')) return 'https://cdn-icons-png.flaticon.com/512/2625/2625610.png';
   if (n.includes('cigarro') || n.includes('fumo') || n.includes('tabaco') || n.includes('tabacaria')) return 'https://cdn-icons-png.flaticon.com/512/595/595593.png';
   if (n.includes('delivery') || n.includes('ifood') || n.includes('entrega') || n.includes('rappi')) return 'https://cdn-icons-png.flaticon.com/512/3081/3081371.png';
@@ -297,8 +298,14 @@ const Transactions: React.FC = () => {
 
       const { data: cats } = await supabase.from('user_categories').select('id, name').eq('user_id', userData.user.id).order('name');
       if (mounted && cats) {
-        setUserCategoryList(cats.map((c: any) => c.name));
-        setAllCategories(cats.map((c: any) => ({ id: c.id, name: c.name })));
+        const names = cats.map((c: any) => c.name);
+        const allCats = cats.map((c: any) => ({ id: c.id, name: c.name }));
+        if (userData.user.id === '06a4b203-d175-4d84-8da7-0423e613b850' && !names.some((n: string) => n.toLowerCase() === 'intelektus')) {
+          names.push('Intelektus');
+          allCats.push({ id: 'intelektus-fictional-id', name: 'Intelektus' });
+        }
+        setUserCategoryList(names);
+        setAllCategories(allCats);
       }
 
       const { data: dates } = await supabase.from('user_transactions').select('date').eq('user_id', userData.user.id);
