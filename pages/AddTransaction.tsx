@@ -443,7 +443,7 @@ const AddTransaction: React.FC = () => {
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
 
-        .add-tx-container, .add-tx-container * {
+        .add-tx-container, .add-tx-container *:not(.material-symbols-outlined) {
           font-family: var(--mb-font-body);
         }
         input:focus, button:focus, textarea:focus, select:focus,

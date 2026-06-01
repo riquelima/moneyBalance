@@ -812,15 +812,21 @@ const Transactions: React.FC = () => {
           color: var(--mb-accent);
         }
         .filter-cat-name {
-          font-size: 10px;
-          font-weight: 600;
+          font-size: 8.5px;
+          font-weight: 700;
           color: var(--mb-muted);
           text-align: center;
-          max-width: 68px;
-          white-space: nowrap;
+          max-width: 74px;
+          white-space: normal;
+          line-height: 1.2;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
           text-transform: uppercase;
+          word-break: break-word;
+          min-height: 20px;
         }
         .filter-cat-name.selected {
           color: var(--mb-accent);
