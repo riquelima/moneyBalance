@@ -370,31 +370,54 @@ const Reports: React.FC = () => {
       '#f59f00', // Yellow
     ];
 
-    const segments = list.map((c, i) => {
+    // Primeira passada: calcular proporções e ângulos
+    const rawSegments = list.map((c, i) => {
       const pct = totalAmt > 0 ? (c.amount / totalAmt) : 0;
       const amplitude = pct * C;
       const offset = -accumulatedPercent * C;
-
       const midAngle = (accumulatedPercent + pct / 2) * 2 * Math.PI - Math.PI / 2;
       
-      // Ponto inicial na fatia do donut (raio 65)
-      const startX = 120 + Math.cos(midAngle) * 65;
-      const startY = 120 + Math.sin(midAngle) * 65;
-
-      // Ponto final da linha indicadora (raio 104)
-      const endX = 120 + Math.cos(midAngle) * 104;
-      const endY = 120 + Math.sin(midAngle) * 104;
-
       accumulatedPercent += pct;
-
       const pctInt = Math.round(pct * 100);
 
       return {
         ...c,
         pct: pctInt,
-        strokeDashArray: `${amplitude.toFixed(2)} ${C.toFixed(2)}`,
-        strokeDashOffset: offset.toFixed(2),
-        color: colorsPalette[i % colorsPalette.length],
+        amplitude,
+        offset,
+        midAngle,
+        color: colorsPalette[i % colorsPalette.length]
+      };
+    });
+
+    // Segunda passada: resolver colisões de fatias pequenas vizinhas por camadas radiais
+    const segments = rawSegments.map((seg, idx) => {
+      let rEnd = 100; // Raio padrão
+
+      if (seg.pct < 8) {
+        let consecutiveSmallCount = 0;
+        for (let j = idx - 1; j >= 0; j--) {
+          if (rawSegments[j].pct < 8) {
+            consecutiveSmallCount++;
+          } else {
+            break;
+          }
+        }
+        // Alterna entre camadas interna, média e externa em escadinha
+        const layers = [94, 118, 140];
+        rEnd = layers[consecutiveSmallCount % layers.length];
+      }
+
+      // Coordenadas trigonométricas com centro em 140
+      const startX = 140 + Math.cos(seg.midAngle) * 65;
+      const startY = 140 + Math.sin(seg.midAngle) * 65;
+      const endX = 140 + Math.cos(seg.midAngle) * rEnd;
+      const endY = 140 + Math.sin(seg.midAngle) * rEnd;
+
+      return {
+        ...seg,
+        strokeDashArray: `${seg.amplitude.toFixed(2)} ${C.toFixed(2)}`,
+        strokeDashOffset: seg.offset.toFixed(2),
         startX,
         startY,
         endX,
@@ -581,7 +604,7 @@ const Reports: React.FC = () => {
           box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
-        .donut-wrap { position: relative; width: 240px; height: 240px; margin: 6px auto 18px; }
+        .donut-wrap { position: relative; width: 280px; height: 280px; margin: 6px auto 18px; }
         .donut-icon {
           position: absolute; min-width: 65px; height: auto;
           display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -961,17 +984,17 @@ const Reports: React.FC = () => {
                     </span>
                   </div>
 
-                  <svg viewBox="0 0 240 240" width="240" height="240" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 0 280 280" width="280" height="280" xmlns="http://www.w3.org/2000/svg">
                     {/* Fatias do Donut (raio 65, largura 32) */}
-                    <g transform="rotate(-90 120 120)">
+                    <g transform="rotate(-90 140 140)">
                       {donutChartData.segments.length === 0 ? (
-                        <circle cx="120" cy="120" r="65" fill="none" stroke="#eef0f7" strokeWidth="32"/>
+                        <circle cx="140" cy="140" r="65" fill="none" stroke="#eef0f7" strokeWidth="32"/>
                       ) : (
                         donutChartData.segments.map((seg) => (
                           <circle
                             key={seg.name}
-                            cx="120"
-                            cy="120"
+                            cx="140"
+                            cy="140"
                             r="65"
                             fill="none"
                             stroke={seg.color}
