@@ -1177,60 +1177,82 @@ const Dashboard: React.FC = () => {
           display: flex;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
-          gap: 10px;
+          -webkit-overflow-scrolling: touch;
+          gap: 12px;
           margin-top: 24px;
           margin-inline: -16px;
           padding-inline: 16px;
-          padding-bottom: 8px;
+          padding-bottom: 12px;
+          scroll-behavior: smooth;
         }
         .summary::-webkit-scrollbar {
           display: none;
         }
+        .summary {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
         .summary-card {
-          flex: 0 0 156px;
+          flex: 0 0 160px;
           scroll-snap-align: start;
-          min-height: 121px;
-          border: 1px solid var(--border);
-          border-radius: 14px;
-          background: var(--surface);
-          padding: 17px 15px 14px;
+          min-height: 125px;
+          border-radius: var(--mb-radius-lg);
+          background: linear-gradient(135deg, var(--mb-surface) 0%, color-mix(in oklab, var(--mb-surface), var(--mb-bg) 15%) 100%);
+          border: 1.5px solid color-mix(in oklab, var(--mb-border), transparent 30%);
+          box-shadow: var(--mb-shadow-card);
+          padding: 18px 16px 16px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          transition: transform var(--mb-ease-card), box-shadow var(--mb-ease-ui), border-color var(--mb-ease-ui);
+        }
+        .summary-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--mb-shadow-soft);
+          border-color: var(--mb-accent-2);
+        }
+        .summary-card:active {
+          transform: scale(0.97) translateY(0);
         }
         .summary-head {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 15px;
-          color: var(--muted);
-          font-weight: 800;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--mb-muted);
         }
         .summary-value {
-          margin-top: 9px;
-          font-size: 18px;
-          font-weight: 800;
+          margin-top: 6px;
+          font-family: var(--mb-font-body);
+          font-size: 19px;
+          font-weight: 700;
           letter-spacing: -0.02em;
-          color: var(--fg);
+          color: var(--mb-fg);
         }
         .delta {
           margin-top: 10px;
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          height: 28px;
-          padding: 0 10px;
-          border-radius: 999px;
-          font-size: 14px;
+          height: 24px;
+          padding: 0 8px;
+          border-radius: var(--mb-radius-full);
+          font-size: 11px;
           font-weight: 700;
+          width: fit-content;
         }
         .delta.down {
-          color: var(--danger);
-          background: color-mix(in oklab, var(--danger), transparent 84%);
+          color: var(--mb-danger);
+          background: color-mix(in oklab, var(--mb-danger), transparent 90%);
+          border: 1px solid color-mix(in oklab, var(--mb-danger), transparent 80%);
         }
         .delta.up {
-          color: var(--success);
-          background: color-mix(in oklab, var(--success), transparent 83%);
+          color: var(--mb-success);
+          background: color-mix(in oklab, var(--mb-success), transparent 90%);
+          border: 1px solid color-mix(in oklab, var(--mb-success), transparent 80%);
         }
 
         .section-head {
@@ -1241,123 +1263,150 @@ const Dashboard: React.FC = () => {
           margin-bottom: 16px;
         }
         .section-head h2 {
-          font-family: var(--font-display);
-          font-size: 17px;
-          line-height: 1.2;
-          color: var(--muted);
-          font-weight: 800;
+          font-family: var(--mb-font-body);
+          font-size: 16px;
+          color: var(--mb-muted);
+          font-weight: 700;
           letter-spacing: -0.02em;
         }
         .see-all {
           background: transparent;
+          border: none;
+          cursor: pointer;
           padding: 4px 0 4px 12px;
-          color: var(--muted);
-          font-size: 16px;
+          color: var(--mb-muted);
+          font-size: 14px;
           font-weight: 500;
+          transition: color var(--mb-ease-ui);
+        }
+        .see-all:hover {
+          color: var(--mb-fg);
         }
 
         .bill-grid {
           display: flex;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
           gap: 12px;
-          padding-bottom: 8px;
           margin-inline: -16px;
           padding-inline: 16px;
+          padding-bottom: 12px;
+          scroll-behavior: smooth;
         }
         .bill-grid::-webkit-scrollbar {
           display: none;
         }
+        .bill-grid {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
         .bill-card {
-          flex: 0 0 156px;
+          flex: 0 0 160px;
           scroll-snap-align: start;
-          min-height: 169px;
-          border-radius: 14px;
-          border: 1px solid var(--border);
-          background: var(--surface);
-          padding: 15px 12px 11px;
+          min-height: 180px;
+          border-radius: var(--mb-radius-lg);
+          background: linear-gradient(135deg, var(--mb-surface) 0%, color-mix(in oklab, var(--mb-surface), var(--mb-bg) 15%) 100%);
+          border: 1.5px solid color-mix(in oklab, var(--mb-border), transparent 30%);
+          box-shadow: var(--mb-shadow-card);
+          padding: 16px 14px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          transition: transform var(--mb-ease-card), box-shadow var(--mb-ease-ui), border-color var(--mb-ease-ui);
+        }
+        .bill-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--mb-shadow-soft);
+          border-color: var(--mb-accent-2);
+        }
+        .bill-card:active {
+          transform: scale(0.97) translateY(0);
         }
         .bill-top {
           display: flex;
           justify-content: space-between;
-          align-items: start;
-          margin-bottom: 24px;
+          align-items: center;
+          margin-bottom: 12px;
         }
         .logo-bubble {
-          width: 34px;
-          height: 34px;
-          border-radius: 999px;
-          border: 1px solid var(--border);
-          display: grid;
-          place-items: center;
-          color: var(--fg);
-          font-weight: 900;
-          background: var(--surface);
+          width: 42px;
+          height: 42px;
+          border-radius: var(--mb-radius-full);
+          background: var(--mb-surface-2);
+          border: 1.5px solid var(--mb-border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           position: relative;
+          overflow: hidden;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
         .logo-bubble.youtube {
-          color: var(--surface);
-          background: var(--surface);
+          background: #ffebee;
+          border-color: #ffcdd2;
         }
-        .yt-mark {
-          width: 24px;
-          height: 17px;
-          border-radius: 6px;
-          display: grid;
-          place-items: center;
-          background: var(--danger);
+        .logo-bubble.spotify {
+          background: #e8f5e9;
+          border-color: #c8e6c9;
         }
-        .yt-mark::before {
-          content: "";
-          width: 0;
-          height: 0;
-          border-top: 4px solid transparent;
-          border-bottom: 4px solid transparent;
-          border-left: 7px solid var(--surface);
-          margin-left: 2px;
+        .logo-bubble.paypal {
+          background: #e3f2fd;
+          border-color: #bbdefb;
+          color: #0d47a1;
+          font-weight: 800;
+        }
+        .logo-bubble.notion {
+          background: #f5f5f5;
+          border-color: #e0e0e0;
+          color: #333;
+          font-weight: 800;
         }
         .more {
-          width: 22px;
-          height: 30px;
-          display: grid;
-          place-items: center;
-          color: var(--fg);
+          width: 28px;
+          height: 28px;
+          border-radius: var(--mb-radius-full);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--mb-muted);
           background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: background var(--mb-ease-ui), color var(--mb-ease-ui);
         }
-        .more::before {
-          content: "";
-          width: 3px;
-          height: 16px;
-          background:
-            radial-gradient(circle, currentColor 0 2px, transparent 2.5px) center 0 / 3px 6px repeat-y;
+        .more:hover {
+          background: var(--mb-surface-2);
+          color: var(--mb-fg);
         }
         .bill-title {
-          font-size: 18px;
-          line-height: 1.3;
-          letter-spacing: -0.025em;
-          color: var(--fg);
+          font-size: 13.5px;
+          line-height: 1.25;
+          letter-spacing: -0.01em;
+          color: var(--mb-fg);
           font-weight: 600;
           word-break: break-word;
+          margin-top: 12px;
         }
         .bill-amount {
-          margin-top: 6px;
-          font-size: 16px;
-          font-weight: 800;
-          letter-spacing: -0.015em;
-          color: var(--fg);
+          margin-top: 4px;
+          font-size: 14.5px;
+          font-weight: 700;
+          font-family: var(--mb-font-mono);
+          letter-spacing: -0.02em;
+          color: var(--mb-fg);
         }
         .bill-amount span {
-          color: var(--muted);
-          font-size: 13px;
+          color: var(--mb-muted);
+          font-size: 11px;
           font-weight: 500;
+          font-family: var(--mb-font-body);
         }
         .due {
           margin-top: 4px;
-          color: var(--muted);
-          font-size: 14px;
+          color: var(--mb-muted);
+          font-size: 11px;
+          font-weight: 500;
         }
 
         .transaction-list {
@@ -1605,7 +1654,7 @@ const Dashboard: React.FC = () => {
             {summaryLoading ? (
               <>
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="summary-card animate-pulse" style={{ height: '121px', flex: '0 0 156px' }}>
+                  <div key={i} className="summary-card animate-pulse" style={{ flex: '0 0 160px', minHeight: '125px' }}>
                     <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
                     <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
                   </div>
@@ -1662,13 +1711,13 @@ const Dashboard: React.FC = () => {
             {summaryLoading ? (
               <>
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="bill-card animate-pulse" style={{ flex: '0 0 156px', height: '169px' }}>
+                  <div key={i} className="bill-card animate-pulse" style={{ flex: '0 0 160px', minHeight: '180px' }}>
                     <div className="bill-top">
-                      <div className="w-[34px] h-[34px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
-                      <div className="w-4 h-6 bg-gray-200 dark:bg-gray-700/50 rounded"></div>
+                      <div className="w-[42px] h-[42px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+                      <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700/50 rounded-full"></div>
                     </div>
-                    <div>
-                      <div className="h-5 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-2.5"></div>
+                    <div className="flex flex-col gap-2 mt-auto">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-1"></div>
                       <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
                     </div>
                   </div>
@@ -1690,7 +1739,9 @@ const Dashboard: React.FC = () => {
                         e.stopPropagation();
                         setSelectedBillMenu(bill);
                       }}
-                    ></button>
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(90deg)' }}><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </button>
                   </div>
                   <div>
                     <h3 className="bill-title">{bill.title}</h3>
