@@ -1995,7 +1995,7 @@ const Dashboard: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+              className="mb-sheet-overlay"
               onClick={() => setShowMonthPicker(false)}
             >
               <motion.div
@@ -2011,10 +2011,10 @@ const Dashboard: React.FC = () => {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 26, stiffness: 210 }}
-                className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white"
+                className="mb-sheet-panel select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-2" />
+                <div className="mb-sheet-handle" />
 
                 <div className="flex items-center justify-between border-b border-gray-200/50 dark:border-white/5 pb-4">
                   <motion.button
@@ -2026,7 +2026,7 @@ const Dashboard: React.FC = () => {
                   </motion.button>
                   
                   <div className="px-6">
-                    <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none">{selectedYear}</p>
+                    <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: 'var(--mb-font-body)' }}>{selectedYear}</p>
                   </div>
 
                   <motion.button
@@ -2044,7 +2044,7 @@ const Dashboard: React.FC = () => {
                       whileTap={{ scale: 0.95 }}
                       key={y}
                       onClick={() => setSelectedYear(y)}
-                      className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${y === selectedYear ? 'bg-accent text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                      className={`mb-grid-btn ${y === selectedYear ? 'active' : ''}`}
                     >
                       {y}
                     </motion.button>
@@ -2057,7 +2057,7 @@ const Dashboard: React.FC = () => {
                       whileTap={{ scale: 0.95 }}
                       key={m}
                       onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
-                      className={`px-2 py-3.5 rounded-xl text-xs font-black uppercase transition-all ${idx === selectedMonth ? 'bg-accent text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                      className={`mb-grid-btn ${idx === selectedMonth ? 'active' : ''}`}
                     >
                       {m}
                     </motion.button>
@@ -2068,7 +2068,7 @@ const Dashboard: React.FC = () => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }}
-                    className="flex-1 rounded-2xl bg-black/5 dark:bg-white/5 py-3.5 text-xs font-black uppercase text-gray-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all"
+                    className="flex-1 mb-grid-btn py-3.5"
                   >
                     Mês Atual
                   </motion.button>
@@ -2076,7 +2076,7 @@ const Dashboard: React.FC = () => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowMonthPicker(false)}
-                    className="flex-1 rounded-2xl bg-gray-900 py-3.5 text-xs font-black uppercase text-white shadow-lg hover:shadow-black/20 transition-all"
+                    className="flex-1 mb-grid-btn active py-3.5"
                   >
                     Fechar
                   </motion.button>

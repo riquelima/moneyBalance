@@ -120,12 +120,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
         onClick={() => handleDayClick(day)}
         className={`cal-day-cell aspect-square p-1 sm:p-2 relative cursor-pointer transition-all flex flex-col items-center justify-center gap-1 rounded-xl
           ${!isCurrentMonth ? 'opacity-25' : 'hover:bg-black/5 dark:hover:bg-white/5'}
-          ${isTodayDay ? 'bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/40' : ''}
-          ${isSelectedDay ? 'bg-black/5 dark:bg-white/10 ring-1 ring-black/10 dark:ring-white/20' : ''}
+          ${isTodayDay ? 'bg-[var(--cal-accent)]/10 ring-1 ring-[var(--cal-accent)]/30' : ''}
+          ${isSelectedDay ? 'bg-[var(--cal-accent)]/20 ring-1 ring-[var(--cal-accent)]/50' : ''}
         `}
       >
         <span className={`cal-day-num text-xs sm:text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full transition-all
-          ${isTodayDay ? 'bg-primary text-white shadow-md shadow-primary/30' : 'text-gray-700 dark:text-gray-300'}
+          ${isTodayDay ? 'bg-[var(--cal-accent)] text-white shadow-md' : 'text-gray-700 dark:text-gray-300'}
+          ${isSelectedDay && !isTodayDay ? 'text-[var(--cal-accent)]' : ''}
         `}>
           {format(day, 'd')}
         </span>
@@ -142,9 +143,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
 
   return (
     <div className="flex flex-col h-auto">
-      <div className="cal-card border border-white/40 dark:border-white/10 rounded-3xl shadow-glass bg-white/70 dark:bg-[#1C1C1E]/70 backdrop-blur-xl overflow-hidden">
+      <div className="cal-card border border-[var(--cal-border)] rounded-3xl shadow-lg bg-[var(--cal-surface)] overflow-hidden">
         {/* Header */}
-        <div className="cal-view-header flex items-center justify-between p-4 bg-gradient-to-r from-primary to-[#a55eea] text-white rounded-t-2xl">
+        <div className="cal-view-header flex items-center justify-between p-4 bg-gradient-to-r from-[var(--cal-accent)] to-[var(--mb-accent-2)] text-white rounded-t-2xl">
           <button 
             onClick={() => setCurrentDate(subMonths(currentDate, 1))}
             className="cal-view-nav-btn flex items-center justify-center w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white transition-all active:scale-95 shadow-sm cursor-pointer"
@@ -165,7 +166,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
         </div>
 
         {/* Week Days Header */}
-        <div className="cal-weekdays grid grid-cols-7 border-b border-gray-100 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">
+        <div className="cal-weekdays grid grid-cols-7 border-b border-[var(--cal-border)] bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
             <div key={day} className="cal-weekday-cell py-3 text-center">
               {day}
@@ -174,7 +175,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 p-2 gap-1 bg-white/40 dark:bg-black/25">
+        <div className="grid grid-cols-7 p-2 gap-1 bg-[var(--cal-bg)]">
           {calendarDays.map(renderDay)}
         </div>
       </div>

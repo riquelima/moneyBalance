@@ -65,29 +65,20 @@ const CalendarPage: React.FC = () => {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap');
 
+        /* Remap Calendar Page tokens to global --mb-* design tokens */
         :root {
-          --cal-bg: #f5f6fa;
-          --cal-surface: #ffffff;
-          --cal-border: #f0f1f5;
-          --cal-fg: #111111;
-          --cal-muted: #aaaaaa;
-          --cal-accent: #8854D0;
-          --cal-success: #2e9e44;
-          --cal-danger: #ff6b6b;
-          --cal-header-bg: #ffffff;
+          --cal-bg:        var(--mb-bg);
+          --cal-surface:   var(--mb-surface);
+          --cal-border:    var(--mb-border);
+          --cal-fg:        var(--mb-fg);
+          --cal-muted:     var(--mb-muted);
+          --cal-accent:    var(--mb-accent);
+          --cal-success:   var(--mb-success);
+          --cal-danger:    var(--mb-danger);
+          --cal-header-bg: var(--mb-surface);
         }
 
-        .dark {
-          --cal-bg: #0c0c0e;
-          --cal-surface: #1c1c1e;
-          --cal-border: #2c2c2e;
-          --cal-fg: #ffffff;
-          --cal-muted: #777777;
-          --cal-accent: #8854D0;
-          --cal-success: #40c057;
-          --cal-danger: #ff6b6b;
-          --cal-header-bg: #1c1c1e;
-        }
+        /* .dark handled globally by design-tokens.css */
 
         .cal-page-container {
           background-color: var(--cal-bg);
@@ -296,112 +287,106 @@ const CalendarPage: React.FC = () => {
         <AnimatePresence>
           {showMonthPicker && (
             <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowMonthPicker(false)}
-          >
-            {/* Painel com animação Spring elástica e suporte a arrastar para fechar (drag="y") */}
-            <motion.div
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 250 }}
-              dragElastic={{ top: 0.05, bottom: 0.6 }}
-              onDragEnd={(e, info) => {
-                if (info.offset.y > 120) {
-                  setShowMonthPicker(false);
-                }
-              }}
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 210 }}
-              className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white"
-              onClick={(e) => e.stopPropagation()} // Impede fechamento ao clicar no painel
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="mb-sheet-overlay"
+              onClick={() => setShowMonthPicker(false)}
             >
-              {/* Indicador visual de pílula arrastável */}
-              <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-2" />
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 250 }}
+                dragElastic={{ top: 0.05, bottom: 0.6 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.y > 120) {
+                    setShowMonthPicker(false);
+                  }
+                }}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 26, stiffness: 210 }}
+                className="mb-sheet-panel select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="mb-sheet-handle" />
 
-              {/* Cabeçalho do seletor de Ano */}
-              <div className="flex items-center justify-between border-b border-gray-200/50 dark:border-white/5 pb-4">
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setTempYear(y => y - 1)}
-                  className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
-                >
-                  <span className="material-symbols-outlined">chevron_left</span>
-                </motion.button>
-                
-                <div className="px-6">
-                  <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none">{tempYear}</p>
+                <div className="flex items-center justify-between border-b border-gray-200/50 dark:border-white/5 pb-4">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setTempYear(y => y - 1)}
+                    className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
+                  >
+                    <span className="material-symbols-outlined">chevron_left</span>
+                  </motion.button>
+                  
+                  <div className="px-6">
+                    <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: 'var(--mb-font-body)' }}>{tempYear}</p>
+                  </div>
+
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setTempYear(y => y + 1)}
+                    className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
+                  >
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </motion.button>
                 </div>
 
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setTempYear(y => y + 1)}
-                  className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
-                >
-                  <span className="material-symbols-outlined">chevron_right</span>
-                </motion.button>
-              </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[tempYear - 2, tempYear - 1, tempYear].map((y) => (
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      key={y}
+                      onClick={() => setTempYear(y)}
+                      className={`mb-grid-btn ${y === tempYear ? 'active' : ''}`}
+                    >
+                      {y}
+                    </motion.button>
+                  ))}
+                </div>
 
-              {/* Seletor rápido de anos (Últimos 3 Anos) */}
-              <div className="grid grid-cols-3 gap-2">
-                {[tempYear - 2, tempYear - 1, tempYear].map((y) => (
+                <div className="grid grid-cols-4 gap-2">
+                  {monthNames.map((m, idx) => (
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      key={m}
+                      onClick={() => { 
+                        setSelectedMonth(idx); 
+                        setSelectedYear(tempYear);
+                        setShowMonthPicker(false); 
+                      }}
+                      className={`mb-grid-btn ${idx === selectedMonth && tempYear === selectedYear ? 'active' : ''}`}
+                    >
+                      {m}
+                    </motion.button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 mt-4">
                   <motion.button
                     whileTap={{ scale: 0.95 }}
-                    key={y}
-                    onClick={() => setTempYear(y)}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${y === tempYear ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
-                  >
-                    {y}
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Grade de meses (Botões grandes e confortáveis) */}
-              <div className="grid grid-cols-4 gap-2">
-                {monthNames.map((m, idx) => (
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    key={m}
                     onClick={() => { 
-                      setSelectedMonth(idx); 
-                      setSelectedYear(tempYear);
+                      const d = new Date(); 
+                      setSelectedYear(d.getFullYear()); 
+                      setSelectedMonth(d.getMonth()); 
                       setShowMonthPicker(false); 
                     }}
-                    className={`px-2 py-3.5 rounded-xl text-xs font-black uppercase transition-all ${idx === selectedMonth && tempYear === selectedYear ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
+                    className="flex-1 mb-grid-btn py-3.5"
                   >
-                    {m}
+                    Mês Atual
                   </motion.button>
-                ))}
-              </div>
-
-              {/* Botões de Ação na Base */}
-              <div className="flex gap-3 mt-4">
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => { 
-                    const d = new Date(); 
-                    setSelectedYear(d.getFullYear()); 
-                    setSelectedMonth(d.getMonth()); 
-                    setShowMonthPicker(false); 
-                  }}
-                  className="flex-1 rounded-2xl bg-black/5 dark:bg-white/5 py-3.5 text-xs font-black uppercase text-gray-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-                >
-                  Mês Atual
-                </motion.button>
-                
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowMonthPicker(false)}
-                  className="flex-1 rounded-2xl bg-primary py-3.5 text-xs font-black uppercase text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all"
-                >
-                  Fechar
-                </motion.button>
-              </div>
+                  
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowMonthPicker(false)}
+                    className="flex-1 mb-grid-btn active py-3.5"
+                  >
+                    Fechar
+                  </motion.button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
         )}
         </AnimatePresence>,
         document.body

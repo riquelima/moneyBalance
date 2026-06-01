@@ -212,3 +212,110 @@
   user-select: none;
   pointer-events: none;
 }
+
+/* ═══════════════════════════════════════════════
+   PAINÉIS FLUTUANTES ARRASTÁVEIS (BOTTOM SHEETS)
+   E ELEMENTOS DE FILTRO UNIFICADOS
+   Usados no Dashboard, Transactions e Calendar
+   para dar o mesmo visual luxury-minimal a todos.
+   ═══════════════════════════════════════════════ */
+
+/* Backdrop overlay com desfoque de fundo premium */
+.mb-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Painel de Bottom Sheet arrastável */
+.mb-sheet-panel {
+  width: 100%;
+  max-width: 440px;
+  background: var(--mb-surface);
+  border-top-left-radius: var(--mb-radius-xl);
+  border-top-right-radius: var(--mb-radius-xl);
+  border-top: 1.5px solid color-mix(in oklab, var(--mb-border), transparent 30%);
+  box-shadow: var(--mb-shadow-pop);
+  padding: 24px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* Alça/Pílula de arrasto visual */
+.mb-sheet-handle {
+  width: 44px;
+  height: 5px;
+  background: var(--mb-border);
+  border-radius: var(--mb-radius-full);
+  margin: -10px auto 14px;
+  opacity: 0.6;
+}
+
+/* Títulos internos de sheets */
+.mb-sheet-title {
+  font-family: var(--mb-font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--mb-fg);
+  letter-spacing: -0.02em;
+}
+
+/* Botões da grade do seletor (meses/anos) */
+.mb-grid-btn {
+  padding: 12px 6px;
+  border-radius: var(--mb-radius-md);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--mb-surface-2);
+  color: var(--mb-muted);
+  transition: all var(--mb-ease-ui);
+  text-align: center;
+}
+.mb-grid-btn:hover {
+  background: var(--mb-border);
+  color: var(--mb-fg);
+}
+.mb-grid-btn.active {
+  background: var(--mb-accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--mb-accent), transparent 70%);
+}
+
+/* Filtros rápidos e Chips arrastáveis */
+.mb-filter-chip {
+  padding: 8px 18px;
+  border-radius: var(--mb-radius-full);
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1.5px solid var(--mb-border);
+  background: var(--mb-surface);
+  color: var(--mb-fg);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--mb-ease-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mb-filter-chip:hover {
+  border-color: var(--mb-accent-2);
+  background: var(--mb-surface-2);
+}
+.mb-filter-chip.active {
+  background: var(--mb-accent) !important;
+  border-color: var(--mb-accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px color-mix(in oklab, var(--mb-accent), transparent 75%);
+}
+
