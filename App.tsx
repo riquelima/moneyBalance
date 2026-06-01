@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrivacyProvider } from './src/context/PrivacyContext';
+import { SplashScreen } from './components/common/SplashScreen';
 
 // Pages
 import Login from './pages/Login';
@@ -252,9 +253,17 @@ const AnimatedRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Splash aparece toda vez que a sessão do usuário carrega (refresh, nova aba, reabrir app).
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <PrivacyProvider>
       <HashRouter>
+        <AnimatePresence mode="wait">
+          {showSplash && (
+            <SplashScreen onComplete={() => setShowSplash(false)} />
+          )}
+        </AnimatePresence>
         <AnimatedRoutes />
       </HashRouter>
     </PrivacyProvider>
