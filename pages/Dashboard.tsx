@@ -1195,12 +1195,12 @@ const Dashboard: React.FC = () => {
         .summary-card {
           flex: 0 0 160px;
           scroll-snap-align: start;
-          min-height: 125px;
+          min-height: 180px;
           border-radius: var(--mb-radius-lg);
           background: linear-gradient(135deg, var(--mb-surface) 0%, color-mix(in oklab, var(--mb-surface), var(--mb-bg) 15%) 100%);
           border: 1.5px solid color-mix(in oklab, var(--mb-border), transparent 30%);
           box-shadow: var(--mb-shadow-card);
-          padding: 18px 16px 16px;
+          padding: 16px 14px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -1654,49 +1654,86 @@ const Dashboard: React.FC = () => {
             {summaryLoading ? (
               <>
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="summary-card animate-pulse" style={{ flex: '0 0 160px', minHeight: '125px' }}>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-2/3 mb-4"></div>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                  <div key={i} className="summary-card animate-pulse" style={{ flex: '0 0 160px', minHeight: '180px' }}>
+                    <div className="bill-top">
+                      <div className="w-[42px] h-[42px] rounded-full bg-gray-200 dark:bg-gray-700/50"></div>
+                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700/50 rounded-full"></div>
+                    </div>
+                    <div className="flex flex-col gap-2 mt-auto">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-3/4 mb-1"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700/50 rounded w-1/2"></div>
+                    </div>
                   </div>
                 ))}
               </>
             ) : (
               <>
                 <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense')}>
-                  <div className="summary-head">
-                    <span>Total Gasto</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  <div className="bill-top">
+                    <div className="logo-bubble" style={{ background: 'color-mix(in oklab, var(--mb-danger), transparent 90%)', borderColor: 'color-mix(in oklab, var(--mb-danger), transparent 80%)', color: 'var(--mb-danger)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mb-muted)" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
                   </div>
-                  <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.expense)}</p>
-                  <span className={`delta ${expenseDelta.class}`}>
-                    {expenseDelta.class === 'up' ? '↗' : '↘'} {expenseDelta.text.replace('↗ ', '').replace('↘ ', '')}
-                  </span>
+                  <div>
+                    <h3 className="bill-title" style={{ marginTop: '8px' }}>Total Gasto</h3>
+                    <p className={`bill-amount ${isPrivacyEnabled ? 'blur-privacy' : ''}`} style={{ fontFamily: 'var(--mb-font-body)', fontSize: '18px', fontWeight: '700' }}>
+                      {formatBRL(summary.expense)}
+                    </p>
+                    <span className={`delta ${expenseDelta.class}`} style={{ marginTop: '8px' }}>
+                      {expenseDelta.class === 'up' ? '↗' : '↘'} {expenseDelta.text.replace('↗ ', '').replace('↘ ', '')}
+                    </span>
+                  </div>
                 </article>
+
                 <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=income')}>
-                  <div className="summary-head">
-                    <span>Economizado</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  <div className="bill-top">
+                    <div className="logo-bubble" style={{ background: 'color-mix(in oklab, var(--mb-success), transparent 90%)', borderColor: 'color-mix(in oklab, var(--mb-success), transparent 80%)', color: 'var(--mb-success)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mb-muted)" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
                   </div>
-                  <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.balance)}</p>
-                  <span className={`delta ${savingsDelta.class}`}>
-                    {savingsDelta.class === 'up' ? '↗' : '↘'} {savingsDelta.text.replace('↗ ', '').replace('↘ ', '')}
-                  </span>
+                  <div>
+                    <h3 className="bill-title" style={{ marginTop: '8px' }}>Economizado</h3>
+                    <p className={`bill-amount ${isPrivacyEnabled ? 'blur-privacy' : ''}`} style={{ fontFamily: 'var(--mb-font-body)', fontSize: '18px', fontWeight: '700' }}>
+                      {formatBRL(summary.balance)}
+                    </p>
+                    <span className={`delta ${savingsDelta.class}`} style={{ marginTop: '8px' }}>
+                      {savingsDelta.class === 'up' ? '↗' : '↘'} {savingsDelta.text.replace('↗ ', '').replace('↘ ', '')}
+                    </span>
+                  </div>
                 </article>
+
                 <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense&status=pending')}>
-                  <div className="summary-head">
-                    <span>Não pagos</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  <div className="bill-top">
+                    <div className="logo-bubble" style={{ background: 'color-mix(in oklab, var(--mb-warning), transparent 90%)', borderColor: 'color-mix(in oklab, var(--mb-warning), transparent 80%)', color: 'var(--mb-warning)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mb-muted)" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
                   </div>
-                  <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.pending)}</p>
-                  <span className="delta down" style={{ background: 'rgba(255,107,107,0.15)', color: '#e03131', fontWeight: 600 }}>A pagar</span>
+                  <div>
+                    <h3 className="bill-title" style={{ marginTop: '8px' }}>Não pagos</h3>
+                    <p className={`bill-amount ${isPrivacyEnabled ? 'blur-privacy' : ''}`} style={{ fontFamily: 'var(--mb-font-body)', fontSize: '18px', fontWeight: '700' }}>
+                      {formatBRL(summary.pending)}
+                    </p>
+                    <span className="delta down" style={{ marginTop: '8px' }}>A pagar</span>
+                  </div>
                 </article>
+
                 <article className="summary-card cursor-pointer" onClick={() => navigate('/transactions?type=expense&status=paid')}>
-                  <div className="summary-head">
-                    <span>Já pagos</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                  <div className="bill-top">
+                    <div className="logo-bubble" style={{ background: 'color-mix(in oklab, var(--mb-accent), transparent 90%)', borderColor: 'color-mix(in oklab, var(--mb-accent), transparent 80%)', color: 'var(--mb-accent)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mb-muted)" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
                   </div>
-                  <p className={`summary-value ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>{formatBRL(summary.paid)}</p>
-                  <span className="delta up" style={{ background: 'rgba(32,191,85,0.15)', color: '#2e9e44', fontWeight: 600 }}>Pagas</span>
+                  <div>
+                    <h3 className="bill-title" style={{ marginTop: '8px' }}>Já pagos</h3>
+                    <p className={`bill-amount ${isPrivacyEnabled ? 'blur-privacy' : ''}`} style={{ fontFamily: 'var(--mb-font-body)', fontSize: '18px', fontWeight: '700' }}>
+                      {formatBRL(summary.paid)}
+                    </p>
+                    <span className="delta up" style={{ marginTop: '8px' }}>Pagas</span>
+                  </div>
                 </article>
               </>
             )}
