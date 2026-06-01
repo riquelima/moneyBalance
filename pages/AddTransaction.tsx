@@ -694,6 +694,199 @@ const AddTransaction: React.FC = () => {
           font-family: var(--mb-font-body); flex: 1;
         }
         .add-input::placeholder { color: var(--mb-muted-2); }
+
+        /* Estilização Premium para Elementos Superiores e Toggles */
+        .add-amount-wrap {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 6px;
+          margin: 10px 16px;
+          padding: 16px;
+          background: var(--mb-surface-2);
+          border-radius: var(--mb-radius-lg);
+          border: 1px solid var(--mb-border);
+        }
+        .add-currency-sign {
+          font-family: var(--mb-font-display) !important;
+          font-size: 24px;
+          font-weight: 700;
+          color: var(--mb-muted);
+        }
+        .add-amount-input {
+          font-family: var(--mb-font-display) !important;
+          font-size: 40px;
+          font-weight: 700;
+          color: var(--mb-fg);
+          background: transparent;
+          border: none;
+          outline: none;
+          text-align: left;
+          width: 200px;
+        }
+        .add-amount-input::placeholder {
+          color: var(--mb-muted-2);
+        }
+        .add-description-wrap {
+          margin: 0 16px 14px;
+          background: var(--mb-surface);
+          border-radius: var(--mb-radius-lg);
+          border: 1px solid var(--mb-border);
+          box-shadow: var(--mb-shadow-card);
+          padding: 4px 16px;
+        }
+        .add-description-input {
+          width: 100%;
+          height: 48px;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--mb-fg);
+          font-family: var(--mb-font-body);
+        }
+        .add-description-input::placeholder {
+          color: var(--mb-muted-2);
+        }
+        .add-cards-list {
+          margin: 0 16px 14px;
+          background: var(--mb-surface);
+          border-radius: var(--mb-radius-lg);
+          border: 1px solid var(--mb-border);
+          box-shadow: var(--mb-shadow-card);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+        .add-card-row {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          text-align: left;
+          background: transparent;
+          border: none;
+          padding: 15px 16px;
+          gap: 12px;
+          border-bottom: 1px solid var(--mb-border-2);
+          cursor: pointer;
+          transition: background 0.15s;
+          box-sizing: border-box;
+        }
+        .add-card-row:last-child {
+          border-bottom: none;
+        }
+        .add-card-row:hover {
+          background: var(--mb-surface-2);
+        }
+        .add-card-icon {
+          font-size: 18px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+        }
+        .add-card-label {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--mb-fg);
+          flex: 1;
+        }
+        .add-card-value {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--mb-muted);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .add-card-value svg {
+          width: 16px;
+          height: 16px;
+          color: var(--mb-muted-2);
+          transition: transform 0.2s;
+        }
+        .add-switch {
+          width: 44px;
+          height: 24px;
+          border-radius: 12px;
+          background: var(--mb-border);
+          position: relative;
+          cursor: pointer;
+          transition: background-color 0.2s ease, transform 0.1s;
+          border: none;
+          flex-shrink: 0;
+          padding: 0;
+        }
+        .add-switch.active {
+          background: var(--mb-accent);
+        }
+        .add-switch-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #fff;
+          position: absolute;
+          top: 3px;
+          left: 3px;
+          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .add-switch.active .add-switch-thumb {
+          transform: translateX(20px);
+        }
+        .add-subcard-wrap {
+          background: var(--mb-surface-2);
+          border-top: 1px solid var(--mb-border-2);
+          border-bottom: 1px solid var(--mb-border-2);
+        }
+        .add-subcard-wrap:last-child {
+          border-bottom: none;
+        }
+        .add-subcard-wrap .add-card-row {
+          border-bottom: 1px solid var(--mb-border-2);
+        }
+        .add-subcard-wrap .add-card-row:last-child {
+          border-bottom: none;
+        }
+        .add-subcard-input {
+          display: flex;
+          align-items: center;
+          padding: 12px 16px;
+          gap: 12px;
+          border-bottom: 1px solid var(--mb-border-2);
+        }
+        .add-subcard-input:last-child {
+          border-bottom: none;
+        }
+        .add-subcard-input-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--mb-muted);
+          width: 80px;
+        }
+        .add-subcard-input-field {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--mb-fg);
+          font-family: var(--mb-font-body);
+        }
+        .add-subcard-input-field::placeholder {
+          color: var(--mb-muted-2);
+        }
+        .add-cat-label {
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--mb-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin: 20px 16px 8px;
+        }
       ` }} />
 
       {/* Cabeçalho */}
@@ -1186,7 +1379,7 @@ const AddTransaction: React.FC = () => {
             await handleSave(false);
           }}
           disabled={saving}
-          className="add-save-btn"
+          className={`add-save-btn ${type === 'expense' ? 'expense' : 'income'}`}
         >
           {saving ? 'Salvando...' : (editId ? 'Salvar' : 'Salvar')}
         </button>

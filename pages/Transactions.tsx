@@ -760,6 +760,71 @@ const Transactions: React.FC = () => {
           border-radius: 10px;
           opacity: 0.15;
         }
+
+        /* Estilização Premium para o Grid de Filtros de Categorias */
+        .filter-cat-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+          padding: 10px 0;
+        }
+        .filter-cat-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          transition: transform 0.15s ease;
+          background: transparent;
+          border: none;
+          padding: 4px;
+          border-radius: var(--mb-radius-md);
+        }
+        .filter-cat-item:active {
+          transform: scale(0.93);
+        }
+        .filter-cat-icon-wrap {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: var(--mb-surface-2);
+          border: 1.5px solid var(--mb-border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .filter-cat-icon-wrap.selected {
+          border-color: var(--mb-accent);
+          background: color-mix(in oklab, var(--mb-accent), transparent 88%);
+        }
+        .filter-cat-icon-wrap img {
+          width: 28px;
+          height: 28px;
+          object-fit: contain;
+        }
+        .filter-cat-icon-wrap .filter-all-icon {
+          font-size: 20px;
+          color: var(--mb-muted);
+        }
+        .filter-cat-icon-wrap.selected .filter-all-icon {
+          color: var(--mb-accent);
+        }
+        .filter-cat-name {
+          font-size: 10px;
+          font-weight: 600;
+          color: var(--mb-muted);
+          text-align: center;
+          max-width: 68px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          text-transform: uppercase;
+        }
+        .filter-cat-name.selected {
+          color: var(--mb-accent);
+        }
       `}} />
 
       {/* --- Cabeçalho, Campo de Busca e Filtros Fixados no Topo --- */}
@@ -1076,22 +1141,35 @@ const Transactions: React.FC = () => {
 
                   <div>
                     <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">Categoria</label>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="filter-cat-grid">
+                      {/* Botão "Todas" */}
                       <button
                         onClick={() => setCategoryFilter('all')}
-                        className={`px-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all text-center w-full leading-snug ${categoryFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'}`}
+                        className="filter-cat-item"
                       >
-                        Todas
+                        <div className={`filter-cat-icon-wrap ${categoryFilter === 'all' ? 'selected' : ''}`}>
+                          <span className="material-symbols-outlined filter-all-icon">apps</span>
+                        </div>
+                        <span className={`filter-cat-name ${categoryFilter === 'all' ? 'selected' : ''}`}>Todas</span>
                       </button>
-                      {categoriesForFilter.map(name => (
-                        <button
-                          key={name}
-                          onClick={() => setCategoryFilter(name)}
-                          className={`px-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all text-center w-full leading-snug ${categoryFilter === name ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'}`}
-                        >
-                          {name}
-                        </button>
-                      ))}
+
+                      {/* Botões para as categorias */}
+                      {categoriesForFilter.map(name => {
+                        const isSelected = categoryFilter === name;
+                        const iconUrl = getCategoryIconUrl(name);
+                        return (
+                          <button
+                            key={name}
+                            onClick={() => setCategoryFilter(name)}
+                            className="filter-cat-item"
+                          >
+                            <div className={`filter-cat-icon-wrap ${isSelected ? 'selected' : ''}`}>
+                              <img src={iconUrl} alt={name} className="w-7 h-7 object-contain" />
+                            </div>
+                            <span className={`filter-cat-name ${isSelected ? 'selected' : ''}`}>{name}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
