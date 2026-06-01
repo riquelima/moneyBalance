@@ -392,7 +392,7 @@ const Reports: React.FC = () => {
 
         .phone {
           position: relative;
-          width: min(100vw, 393px);
+          width: 100%;
           margin-inline: auto;
           min-height: 100vh;
           overflow-x: hidden;

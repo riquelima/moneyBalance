@@ -803,7 +803,7 @@ const Dashboard: React.FC = () => {
 
         .phone {
           position: relative;
-          width: min(100vw, var(--screen-w));
+          width: 100%;
           margin-inline: auto;
           height: 100%;
           overflow: hidden;
