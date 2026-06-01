@@ -392,7 +392,7 @@ const Reports: React.FC = () => {
 
     // Segunda passada: resolver colisões de fatias pequenas vizinhas por camadas radiais
     const segments = rawSegments.map((seg, idx) => {
-      let rEnd = 100; // Raio padrão
+      let rEnd = 126; // Raio padrão bem afastado para fatias normais/grandes
 
       if (seg.pct < 8) {
         let consecutiveSmallCount = 0;
@@ -403,16 +403,16 @@ const Reports: React.FC = () => {
             break;
           }
         }
-        // Alterna entre camadas interna, média e externa em escadinha
-        const layers = [94, 118, 140];
+        // Alterna entre camadas radiais externa confortáveis em escadinha
+        const layers = [112, 136, 160];
         rEnd = layers[consecutiveSmallCount % layers.length];
       }
 
-      // Coordenadas trigonométricas com centro em 140
-      const startX = 140 + Math.cos(seg.midAngle) * 65;
-      const startY = 140 + Math.sin(seg.midAngle) * 65;
-      const endX = 140 + Math.cos(seg.midAngle) * rEnd;
-      const endY = 140 + Math.sin(seg.midAngle) * rEnd;
+      // Coordenadas trigonométricas com centro em 160
+      const startX = 160 + Math.cos(seg.midAngle) * 65;
+      const startY = 160 + Math.sin(seg.midAngle) * 65;
+      const endX = 160 + Math.cos(seg.midAngle) * rEnd;
+      const endY = 160 + Math.sin(seg.midAngle) * rEnd;
 
       return {
         ...seg,
@@ -604,18 +604,18 @@ const Reports: React.FC = () => {
           box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
-        .donut-wrap { position: relative; width: 280px; height: 280px; margin: 6px auto 18px; }
+        .donut-wrap { position: relative; width: 320px; height: 320px; margin: 6px auto 18px; }
         .donut-icon {
-          position: absolute; min-width: 65px; height: auto;
+          position: absolute; min-width: 80px; height: auto;
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           transform: translate(-50%, -50%); pointer-events: none;
           background: transparent; border: none; box-shadow: none;
-          gap: 1px;
+          gap: 1px; z-index: 20 !important;
         }
         .donut-icon img { width: 18px; height: 18px; object-fit: contain; }
         .donut-icon-name {
           font-size: 7px; font-weight: 700; color: var(--mb-muted);
-          text-transform: uppercase; max-width: 62px;
+          text-transform: uppercase; max-width: 80px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           line-height: 1.1;
         }
@@ -984,17 +984,17 @@ const Reports: React.FC = () => {
                     </span>
                   </div>
 
-                  <svg viewBox="0 0 280 280" width="280" height="280" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 0 320 320" width="320" height="320" xmlns="http://www.w3.org/2000/svg">
                     {/* Fatias do Donut (raio 65, largura 32) */}
-                    <g transform="rotate(-90 140 140)">
+                    <g transform="rotate(-90 160 160)">
                       {donutChartData.segments.length === 0 ? (
-                        <circle cx="140" cy="140" r="65" fill="none" stroke="#eef0f7" strokeWidth="32"/>
+                        <circle cx="160" cy="160" r="65" fill="none" stroke="#eef0f7" strokeWidth="32"/>
                       ) : (
                         donutChartData.segments.map((seg) => (
                           <circle
                             key={seg.name}
-                            cx="140"
-                            cy="140"
+                            cx="160"
+                            cy="160"
                             r="65"
                             fill="none"
                             stroke={seg.color}
