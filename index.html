@@ -33,87 +33,47 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Money Balance - Sua Gestão Financeira" />
     <style>
+      /* ── Base tokens aliased from design-tokens.css ── */
       :root {
-        --bg: #f5f6fa; /* Beautiful premium light gray */
-        --surface: #ffffff;
-        --fg: #111111;
-        --muted: #8e8e93;
-        --border: #e5e5ea;
-        --accent: oklch(72% 0.17 25);
-        --success: oklch(70% 0.15 155);
-        --danger: oklch(68% 0.19 25);
-        --nav: #1c1c1e;
+        --bg:     var(--mb-bg, #f4f5fb);
+        --surface: var(--mb-surface, #ffffff);
+        --fg:     var(--mb-fg, #0f1117);
+        --muted:  var(--mb-muted, #7a7e91);
+        --border: var(--mb-border, #e2e4ed);
+        --accent: var(--mb-accent, oklch(52% 0.22 290));
+        --success: var(--mb-success, oklch(55% 0.16 155));
+        --danger:  var(--mb-danger, oklch(60% 0.21 25));
+        --nav:    var(--mb-nav, #1c1c1e);
         --card-blue: oklch(33% 0.11 285);
-        --font-display: "Avenir Next", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        --font-body: "Avenir Next", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
-        --shadow-soft: 0 20px 44px rgba(0, 0, 0, 0.05);
-        --radius-card: 14px;
+        --font-display: var(--mb-font-display, 'DM Serif Display', serif);
+        --font-body:    var(--mb-font-body, 'Poppins', sans-serif);
+        --font-mono:    var(--mb-font-mono, 'Orbitron', monospace);
+        --shadow-soft:  var(--mb-shadow-soft, 0 20px 44px rgba(0,0,0,0.05));
+        --radius-card:  var(--mb-radius-md, 14px);
         --screen-w: 393px;
       }
-      .dark {
-        --bg: #0c0c0e; /* Elegant premium dark gray/black */
-        --surface: #1c1c1e;
-        --fg: #f5f6fa;
-        --muted: #777777;
-        --border: #2c2c2e;
-        --nav: #0c0c0e;
-      }
       body {
-        font-family: var(--font-body);
-        background: var(--bg); /* Solid background to fill 100% of the screen */
-        color: var(--fg);
+        font-family: var(--mb-font-body, 'Poppins', sans-serif);
+        background: var(--mb-bg, #f4f5fb);
+        color: var(--mb-fg, #0f1117);
         -webkit-tap-highlight-color: transparent;
         min-height: 100vh;
         padding-bottom: env(safe-area-inset-bottom);
         overscroll-behavior-y: none;
       }
-      .dark body {
-        background: var(--bg);
-        color: var(--fg);
-      }
       .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
       }
-      /* Hide scrollbar for Chrome, Safari and Opera */
-      .no-scrollbar::-webkit-scrollbar {
-          display: none;
-      }
-      /* Hide scrollbar for IE, Edge and Firefox */
-      .no-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-      }
-      .no-callout {
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        user-select: none;
-      }
-      .no-callout * {
-        -webkit-user-select: none !important;
-        user-select: none !important;
-      }
-      /* Custom Scrollbar for list scroll areas */
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 5px;
-        height: 5px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.12);
-        border-radius: 9999px;
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.12);
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.25);
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.25);
-      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .no-callout { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+      .no-callout * { -webkit-user-select: none !important; user-select: none !important; }
+      .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 9999px; }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
     </style>
     <script>
       tailwind.config = {

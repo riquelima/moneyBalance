@@ -399,10 +399,9 @@ const Reports: React.FC = () => {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 
         .phone, .phone * {
-          font-family: 'Poppins', sans-serif !important;
+          font-family: var(--mb-font-body) !important;
         }
 
         .phone {
@@ -411,7 +410,7 @@ const Reports: React.FC = () => {
           margin-inline: auto;
           height: 100%;
           overflow: hidden;
-          background: #eef0f7;
+          background: var(--mb-bg);
           display: flex;
           flex-direction: column;
         }
@@ -420,14 +419,13 @@ const Reports: React.FC = () => {
           position: sticky;
           top: 0;
           z-index: 40;
-          background: #eef0f7;
+          background: var(--mb-bg);
           display: flex;
           flex-direction: column;
         }
 
-        /* ── Header ── */
         .reports-header {
-          background: #eef0f7;
+          background: var(--mb-bg);
           padding: 0 20px;
           text-align: center;
           display: flex;
@@ -437,26 +435,26 @@ const Reports: React.FC = () => {
           height: 60px;
           box-sizing: border-box;
         }
-        .header-title { font-size: 17px; font-weight: 600; color: #111; }
+        .header-title { font-size: 17px; font-weight: 700; color: var(--mb-fg); }
         .header-sub {
           display: inline-flex;
           align-items: center;
           gap: 5px;
           font-size: 13px;
           font-weight: 400;
-          color: #555;
+          color: var(--mb-muted);
           margin-top: 2px;
           cursor: pointer;
+          transition: opacity 0.2s;
         }
         .header-sub:active { opacity: 0.7; }
         .header-sub svg { width: 12px; height: 12px; }
 
-        /* ── Tabs ── */
         .tabs {
           display: flex;
-          padding: 10px 20px 0;
-          background: #eef0f7;
-          border-bottom: 1px solid rgba(0,0,0,0.06);
+          padding: 8px 20px 0;
+          background: var(--mb-bg);
+          border-bottom: 1px solid var(--mb-border);
         }
         .tab {
           display: flex;
@@ -465,7 +463,7 @@ const Reports: React.FC = () => {
           padding: 10px 16px;
           font-size: 14px;
           font-weight: 500;
-          color: #6b7280;
+          color: var(--mb-muted);
           cursor: pointer;
           border: none;
           border-bottom: 2.5px solid transparent;
@@ -477,307 +475,125 @@ const Reports: React.FC = () => {
           box-shadow: none !important;
           opacity: 1 !important;
           -webkit-tap-highlight-color: transparent;
+          margin-bottom: -1px;
         }
         .tab.active {
-          color: #3b5bdb;
-          border-bottom-color: #3b5bdb;
-          font-weight: 600;
+          color: var(--mb-accent);
+          border-bottom-color: var(--mb-accent);
+          font-weight: 700;
         }
         .tab svg { width: 16px; height: 16px; stroke: currentColor; opacity: 1; }
 
-        /* ── Scroll Content ── */
         .content-scroll {
           flex: 1;
           overflow-y: auto;
-          padding: 14px 14px 140px;
+          padding: 16px 16px 140px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 14px;
         }
         .content-scroll::-webkit-scrollbar { display: none; }
 
-        /* ── Cards Despesa / Receita ── */
-        .cards-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
+        .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .card {
-          background: #fff;
-          border-radius: 18px;
-          padding: 14px;
+          background: var(--mb-surface);
+          border-radius: var(--mb-radius-lg);
+          padding: 16px 14px;
           position: relative;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
-        .card-dots {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          font-size: 18px;
-          color: #bbb;
-          letter-spacing: 1px;
-          line-height: 0.6;
-          cursor: pointer;
-        }
-        .card-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 22px;
-          margin-bottom: 10px;
-        }
-        .card-icon.expense { background: transparent; }
-        .card-icon.income  { background: transparent; }
-        .card-type { font-size: 13px; font-weight: 500; color: #888; margin-bottom: 4px; }
-        .card-amount { font-size: 20px; font-weight: 600; }
-        .card-amount.expense { color: #e03131; }
-        .card-amount.income  { color: #2e9e44; }
-
-        /* ── Chart Card ── */
-        .chart-card {
-          background: #fff;
-          border-radius: 18px;
-          padding: 16px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
-        .chart-title { font-size: 15px; font-weight: 600; color: #1a2366; margin-bottom: 16px; }
-
-        /* Bar Chart */
-        .bar-area {
-          display: flex;
-          align-items: stretch;
-          height: 170px;
-        }
-        .bar-y-axis {
+          border: 1px solid var(--mb-border);
+          box-shadow: var(--mb-shadow-card);
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
-          padding-bottom: 24px;
-          margin-right: 6px;
-          flex-shrink: 0;
+          gap: 8px;
         }
-        .bar-y-label {
-          font-size: 10px;
-          font-weight: 400;
-          color: #c0c4d6;
-          text-align: right;
-          line-height: 1;
+        .card-dots { position: absolute; top: 12px; right: 12px; font-size: 18px; color: var(--mb-muted-2); letter-spacing: 1px; line-height: 0.6; cursor: pointer; }
+        .card-icon { width: 44px; height: 44px; border-radius: var(--mb-radius-md); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .card-icon img { width: 36px; height: 36px; object-fit: contain; }
+        .card-icon.expense { background: color-mix(in oklab, var(--mb-danger), transparent 88%); }
+        .card-icon.income  { background: color-mix(in oklab, var(--mb-success), transparent 88%); }
+        .card-type { font-size: 12px; font-weight: 600; color: var(--mb-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .card-amount { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+        .card-amount.expense { color: var(--mb-danger); }
+        .card-amount.income  { color: var(--mb-success); }
+
+        .chart-card {
+          background: var(--mb-surface);
+          border-radius: var(--mb-radius-lg);
+          padding: 18px 16px;
+          border: 1px solid var(--mb-border);
+          box-shadow: var(--mb-shadow-card);
         }
+        .chart-title { font-size: 15px; font-weight: 700; color: var(--mb-fg); margin-bottom: 16px; letter-spacing: -0.01em; }
+
+        .bar-area { display: flex; align-items: stretch; height: 170px; }
+        .bar-y-axis { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 24px; margin-right: 6px; flex-shrink: 0; }
+        .bar-y-label { font-size: 10px; font-weight: 400; color: var(--mb-muted-2); text-align: right; line-height: 1; }
         .bar-svg-wrap { flex: 1; overflow: hidden; }
+        .chart-legend { display: flex; gap: 16px; padding-top: 10px; padding-left: 54px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--mb-muted); }
+        .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+        .line-y-label { font-size: 9px; font-weight: 500; color: var(--mb-muted-2); text-align: right; white-space: nowrap; }
 
-        .chart-legend {
-          display: flex;
-          gap: 16px;
-          padding-top: 10px;
-          padding-left: 54px;
-        }
-        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #555; }
-        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
-
-        /* Line Chart */
-        .line-y-label { font-size: 9px; font-weight: 500; color: #c0c4d6; text-align: right; white-space: nowrap; }
-
-        /* Tooltip */
         .tooltip-box {
-          position: absolute;
-          background: #1a2366;
-          color: #fff;
-          border-radius: 10px;
-          padding: 5px 12px;
-          text-align: center;
-          pointer-events: none;
-          white-space: nowrap;
-          transform: translate(-50%, -100%);
+          position: absolute; background: var(--mb-fg); color: var(--mb-surface);
+          border-radius: 10px; padding: 5px 12px; text-align: center;
+          pointer-events: none; white-space: nowrap;
+          transform: translate(-50%, -100%); box-shadow: var(--mb-shadow-soft);
         }
-        .tooltip-date { font-size: 10px; font-weight: 500; opacity: 0.75; }
-        .tooltip-val  { font-size: 14px; font-weight: 600; }
+        .tooltip-date { font-size: 10px; font-weight: 500; opacity: 0.7; }
+        .tooltip-val  { font-size: 14px; font-weight: 700; }
         .tooltip-arrow {
-          position: absolute;
-          bottom: -6px;
-          left: 50%;
-          transform: translateX(-50%);
+          position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
           width: 0; height: 0;
-          border-left: 6px solid transparent;
-          border-right: 6px solid transparent;
-          border-top: 6px solid #1a2366;
+          border-left: 6px solid transparent; border-right: 6px solid transparent;
+          border-top: 6px solid var(--mb-fg);
         }
 
         .panel {
-          background: #fff;
-          border-radius: 22px;
-          padding: 18px 16px 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+          background: var(--mb-surface); border-radius: var(--mb-radius-lg);
+          padding: 18px 16px 10px; border: 1px solid var(--mb-border);
+          box-shadow: var(--mb-shadow-card);
         }
 
-        /* Toggle Despesa / Receita */
-        .toggle-wrap {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 12px;
-        }
+        .toggle-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
         .toggle {
-          background: #eef0f7;
-          border-radius: 14px;
-          padding: 4px;
-          display: flex;
-          gap: 2px;
+          background: var(--mb-surface-2); border-radius: var(--mb-radius-md);
+          padding: 4px; display: flex; gap: 2px; border: 1px solid var(--mb-border);
         }
         .toggle-btn {
-          padding: 8px 26px;
-          border-radius: 10px;
-          font-size: 14px;
-          font-weight: 600;
-          border: none;
-          cursor: pointer;
-          background: transparent;
-          color: #999;
-          transition: all 0.2s;
+          padding: 8px 26px; border-radius: 10px; font-size: 14px; font-weight: 600;
+          border: none; cursor: pointer; background: transparent; color: var(--mb-muted);
+          transition: all 0.2s ease; font-family: var(--mb-font-body);
         }
         .toggle-btn.active {
-          background: #fff;
-          color: #111;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+          background: var(--mb-surface); color: var(--mb-fg);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
-        /* Donut chart */
-        .donut-wrap {
-          position: relative;
-          width: 240px;
-          height: 240px;
-          margin: 6px auto 16px;
-        }
+        .donut-wrap { position: relative; width: 240px; height: 240px; margin: 6px auto 18px; }
         .donut-icon {
-          position: absolute;
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background: #fff;
-          border: 1px solid #eee;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 15px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          transform: translate(-50%, -50%);
+          position: absolute; width: 32px; height: 32px; border-radius: 50%;
+          background: var(--mb-surface); border: 1.5px solid var(--mb-border);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: var(--mb-shadow-card); transform: translate(-50%, -50%); overflow: hidden;
         }
+        .donut-icon img { width: 20px; height: 20px; object-fit: contain; }
 
-        /* List */
-        .cat-row {
-          display: flex;
-          align-items: center;
-          padding: 13px 4px;
-          border-bottom: 1px solid #f2f3f8;
-        }
+        .cat-row { display: flex; align-items: center; padding: 13px 4px; border-bottom: 1px solid var(--mb-border-2); gap: 12px; }
         .cat-row:last-child { border-bottom: none; }
         .cat-icon {
-          width: 34px;
-          height: 34px;
-          border-radius: 50%;
-          background: #f6f7fb;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-          margin-right: 12px;
-          flex-shrink: 0;
-          border: 1px solid #f0f1f7;
+          width: 36px; height: 36px; border-radius: 50%;
+          background: var(--mb-surface-2); display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0; border: 1px solid var(--mb-border-2); overflow: hidden;
         }
-        .cat-pct { font-size: 15px; font-weight: 600; color: #111; margin-right: 6px; }
-        .cat-name { font-size: 14px; font-weight: 400; color: #8a8fa3; flex: 1; }
-        .cat-value { font-size: 15px; font-weight: 600; color: #111; }
+        .cat-icon img { width: 22px; height: 22px; object-fit: contain; }
+        .cat-pct { font-size: 14px; font-weight: 700; color: var(--mb-fg); min-width: 40px; }
+        .cat-name { font-size: 13px; font-weight: 400; color: var(--mb-muted); flex: 1; }
+        .cat-value { font-size: 14px; font-weight: 700; color: var(--mb-fg); }
 
-        .blur-privacy {
-          filter: blur(8px);
-          opacity: 0.6;
-          user-select: none;
-          pointer-events: none;
-        }
-        
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        .dark .phone {
-          background: #0c0c0e;
-        }
-        .dark .reports-sticky-top {
-          background: #0c0c0e;
-        }
-        .dark .reports-header {
-          background: #0c0c0e;
-        }
-        .dark .header-title {
-          color: #ffffff;
-        }
-        .dark .header-sub {
-          color: #aaaaaa;
-        }
-        .dark .tabs {
-          background: #0c0c0e;
-          border-bottom-color: rgba(255,255,255,0.06);
-        }
-        .dark .tab {
-          color: #888888;
-        }
-        .dark .tab.active {
-          color: #8854D0;
-          border-bottom-color: #8854D0;
-        }
-        .dark .card {
-          background: #1c1c1e;
-        }
-        .dark .card-icon.expense {
-          background: transparent;
-        }
-        .dark .card-icon.income {
-          background: transparent;
-        }
-        .dark .card-type {
-          color: #888888;
-        }
-        .dark .chart-card {
-          background: #1c1c1e;
-        }
-        .dark .chart-title {
-          color: #ffffff;
-        }
-        .dark .panel {
-          background: #1c1c1e;
-        }
-        .dark .toggle {
-          background: #1c1c1e;
-          border: 1px solid rgba(255,255,255,0.1);
-        }
-        .dark .toggle-btn {
-          color: #888888;
-        }
-        .dark .toggle-btn.active {
-          background: rgba(255,255,255,0.1);
-          color: #ffffff;
-        }
-        .dark .cat-row {
-          border-bottom-color: rgba(255,255,255,0.05);
-        }
-        .dark .cat-icon {
-          background: rgba(255,255,255,0.05);
-          border-color: rgba(255,255,255,0.05);
-        }
-        .dark .cat-pct {
-          color: #ffffff;
-        }
-        .dark .cat-name {
-          color: #888888;
-        }
-        .dark .cat-value {
-          color: #ffffff;
-        }
+        .blur-privacy { filter: blur(8px); opacity: 0.6; user-select: none; pointer-events: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
 
       <main className="phone">

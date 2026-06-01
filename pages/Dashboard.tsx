@@ -761,47 +761,40 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
-
+        /* Fonts imported via design-tokens.css */
+        /* Remap legacy Dashboard tokens to global --mb-* design tokens */
         :root {
-          --bg: #f5f6fa;
-          --surface: #ffffff;
-          --fg: #111111;
-          --muted: #8e8e93;
-          --border: #e5e5ea;
-          --accent: oklch(72% 0.17 25);
-          --success: oklch(70% 0.15 155);
-          --danger: oklch(68% 0.19 25);
-          --nav: #1c1c1e;
-          --card-blue: oklch(33% 0.11 285);
-          --font-display: 'DM Serif Display', serif;
-          --font-body: 'Poppins', sans-serif;
-          --font-mono: 'Orbitron', sans-serif;
-          --shadow-soft: 0 20px 44px rgba(0, 0, 0, 0.05);
-          --radius-card: 14px;
-          --screen-w: 393px;
+          --bg:          var(--mb-bg);
+          --surface:     var(--mb-surface);
+          --fg:          var(--mb-fg);
+          --muted:       var(--mb-muted);
+          --border:      var(--mb-border);
+          --accent:      var(--mb-accent);
+          --success:     var(--mb-success);
+          --danger:      var(--mb-danger);
+          --nav:         var(--mb-nav);
+          --card-blue:   oklch(33% 0.11 285);
+          --font-display: var(--mb-font-display);
+          --font-body:   var(--mb-font-body);
+          --font-mono:   var(--mb-font-mono);
+          --shadow-soft: var(--mb-shadow-soft);
+          --radius-card: var(--mb-radius-md);
+          --screen-w:    393px;
         }
 
-        .dark {
-          --bg: #0c0c0e;
-          --surface: #1c1c1e;
-          --fg: #f5f6fa;
-          --muted: #777777;
-          --border: #2c2c2e;
-          --nav: #0c0c0e;
-        }
+        /* .dark handled globally by design-tokens.css */
 
         .phone, .phone * {
-          font-family: var(--font-body) !important;
+          font-family: var(--mb-font-body) !important;
         }
 
         .phone .balance-value {
-          font-family: var(--font-display) !important;
+          font-family: var(--mb-font-display) !important;
           font-weight: 400 !important;
         }
 
         .phone .digits {
-          font-family: var(--font-mono) !important;
+          font-family: var(--mb-font-mono) !important;
           font-weight: 500 !important;
         }
 
@@ -1930,28 +1923,28 @@ const Dashboard: React.FC = () => {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 26, stiffness: 210 }}
-                className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing"
+                className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-2" />
+                <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-2" />
 
-                <div className="flex items-center justify-between border-b border-gray-200/50 pb-4">
+                <div className="flex items-center justify-between border-b border-gray-200/50 dark:border-white/5 pb-4">
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedYear(y => y - 1)}
-                    className="rounded-full p-2 hover:bg-black/5 text-gray-900 transition-all flex items-center justify-center"
+                    className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
                   >
                     <span className="material-symbols-outlined">chevron_left</span>
                   </motion.button>
                   
                   <div className="px-6">
-                    <p className="text-2xl font-black text-gray-900 tracking-tight leading-none">{selectedYear}</p>
+                    <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none">{selectedYear}</p>
                   </div>
 
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedYear(y => y + 1)}
-                    className="rounded-full p-2 hover:bg-black/5 text-gray-900 transition-all flex items-center justify-center"
+                    className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-all flex items-center justify-center border border-transparent active:border-black/10 dark:active:border-white/10"
                   >
                     <span className="material-symbols-outlined">chevron_right</span>
                   </motion.button>
@@ -1963,7 +1956,7 @@ const Dashboard: React.FC = () => {
                       whileTap={{ scale: 0.95 }}
                       key={y}
                       onClick={() => setSelectedYear(y)}
-                      className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${y === selectedYear ? 'bg-accent text-white shadow-lg' : 'bg-black/5 text-gray-500 hover:bg-black/10'}`}
+                      className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${y === selectedYear ? 'bg-accent text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
                     >
                       {y}
                     </motion.button>
@@ -1976,7 +1969,7 @@ const Dashboard: React.FC = () => {
                       whileTap={{ scale: 0.95 }}
                       key={m}
                       onClick={() => { setSelectedMonth(idx); setShowMonthPicker(false); }}
-                      className={`px-2 py-3.5 rounded-xl text-xs font-black uppercase transition-all ${idx === selectedMonth ? 'bg-accent text-white shadow-lg' : 'bg-black/5 text-gray-500 hover:bg-black/10'}`}
+                      className={`px-2 py-3.5 rounded-xl text-xs font-black uppercase transition-all ${idx === selectedMonth ? 'bg-accent text-white shadow-lg' : 'bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10'}`}
                     >
                       {m}
                     </motion.button>
@@ -1987,7 +1980,7 @@ const Dashboard: React.FC = () => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => { const d = new Date(); setSelectedYear(d.getFullYear()); setSelectedMonth(d.getMonth()); setShowMonthPicker(false); }}
-                    className="flex-1 rounded-2xl bg-black/5 py-3.5 text-xs font-black uppercase text-gray-900 hover:bg-black/10 transition-all"
+                    className="flex-1 rounded-2xl bg-black/5 dark:bg-white/5 py-3.5 text-xs font-black uppercase text-gray-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all"
                   >
                     Mês Atual
                   </motion.button>
@@ -2029,14 +2022,22 @@ const Dashboard: React.FC = () => {
           {selectedBillMenu && (
             <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectedBillMenu(null)}>
               <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 250 }}
+                dragElastic={{ top: 0.05, bottom: 0.6 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.y > 120) {
+                    setSelectedBillMenu(null);
+                  }
+                }}
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 220 }}
-                className="w-full max-w-md bg-white dark:bg-[#1C1C1E] p-6 rounded-t-[2rem] shadow-2xl relative flex flex-col gap-3 pb-8"
+                transition={{ type: "spring", damping: 26, stiffness: 210 }}
+                className="w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-6 rounded-t-[2.5rem] border-t border-white/40 dark:border-white/10 shadow-glass-lg relative flex flex-col gap-4 select-none cursor-grab active:cursor-grabbing text-gray-900 dark:text-white pb-8"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-4" />
+                <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-2" />
                 
                 <div className="mb-2">
                   <h3 className="text-base font-black text-gray-900 dark:text-white leading-tight">{selectedBillMenu.title}</h3>

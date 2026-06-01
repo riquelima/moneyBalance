@@ -1,0 +1,214 @@
+/* ═══════════════════════════════════════════════
+   MONEY BALANCE — DESIGN TOKENS GLOBAIS
+   Fonte única de verdade para cores, tipografia,
+   sombras, bordas e cards em todas as telas.
+═══════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap');
+
+/* ── Modo Claro (padrão) ── */
+:root {
+  /* Fundo e superfícies */
+  --mb-bg:        #f4f5fb;
+  --mb-surface:   #ffffff;
+  --mb-surface-2: #eef0f7;
+
+  /* Tipografia */
+  --mb-fg:        #0f1117;
+  --mb-muted:     #7a7e91;
+  --mb-muted-2:   #a9adb8;
+
+  /* Bordas */
+  --mb-border:    #e2e4ed;
+  --mb-border-2:  #f0f1f7;
+
+  /* Cores funcionais */
+  --mb-accent:    oklch(52% 0.22 290);   /* violeta principal */
+  --mb-accent-2:  oklch(64% 0.18 290);   /* violeta claro */
+  --mb-success:   oklch(55% 0.16 155);   /* verde receita */
+  --mb-danger:    oklch(60% 0.21 25);    /* vermelho despesa */
+  --mb-warning:   oklch(72% 0.17 70);    /* laranja alerta */
+
+  /* Navegação */
+  --mb-nav:       #1c1c1e;
+
+  /* Tipografia — famílias */
+  --mb-font-display: 'DM Serif Display', serif;
+  --mb-font-body:    'Poppins', sans-serif;
+  --mb-font-mono:    'Orbitron', monospace;
+
+  /* Sombras */
+  --mb-shadow-card:  0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --mb-shadow-soft:  0 8px 32px rgba(0, 0, 0, 0.07);
+  --mb-shadow-pop:   0 16px 48px rgba(0, 0, 0, 0.12);
+
+  /* Bordas arredondadas */
+  --mb-radius-sm:   10px;
+  --mb-radius-md:   14px;
+  --mb-radius-lg:   18px;
+  --mb-radius-xl:   22px;
+  --mb-radius-full: 9999px;
+
+  /* Transições */
+  --mb-ease-card: 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --mb-ease-ui:   0.2s ease;
+}
+
+/* ── Modo Escuro ── */
+.dark {
+  --mb-bg:        #0b0c10;
+  --mb-surface:   #16171d;
+  --mb-surface-2: #1c1d25;
+  --mb-fg:        #f0f1f8;
+  --mb-muted:     #6b7280;
+  --mb-muted-2:   #4b5060;
+  --mb-border:    #252633;
+  --mb-border-2:  #1e1f2b;
+  --mb-nav:       #0b0c10;
+}
+
+/* ═══════════════════════════════════════════════
+   CLASSES UTILITÁRIAS DE CARDS ARRASTÁVEIS
+   Usadas em todas as telas para unificar o padrão
+   de painéis horizontais com scroll snap
+═══════════════════════════════════════════════ */
+
+/* Trilho de cards arrastável */
+.mb-rail {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 12px;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
+}
+.mb-rail::-webkit-scrollbar { display: none; }
+.mb-rail { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Card padrão de trilho */
+.mb-card {
+  flex: 0 0 156px;
+  scroll-snap-align: start;
+  border-radius: var(--mb-radius-lg);
+  background: var(--mb-surface);
+  border: 1px solid var(--mb-border);
+  box-shadow: var(--mb-shadow-card);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform var(--mb-ease-card), box-shadow var(--mb-ease-ui);
+  position: relative;
+  overflow: hidden;
+}
+.mb-card:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Ícone circular de categoria */
+.mb-icon-bubble {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--mb-radius-full);
+  background: var(--mb-surface-2);
+  border: 1px solid var(--mb-border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.mb-icon-bubble img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+/* Cabeçalho de seção padrão */
+.mb-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  margin-bottom: 14px;
+}
+.mb-section-head h2 {
+  font-family: var(--mb-font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--mb-muted);
+  letter-spacing: -0.02em;
+}
+.mb-section-head button {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mb-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0 4px 12px;
+}
+
+/* Painel geral (não arrastável) */
+.mb-panel {
+  background: var(--mb-surface);
+  border: 1px solid var(--mb-border);
+  border-radius: var(--mb-radius-lg);
+  box-shadow: var(--mb-shadow-card);
+  padding: 16px;
+}
+
+/* Toggle income/expense */
+.mb-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.mb-toggle {
+  background: var(--mb-surface-2);
+  border-radius: var(--mb-radius-md);
+  padding: 4px;
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--mb-border);
+}
+.mb-toggle-btn {
+  padding: 8px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--mb-muted);
+  transition: all var(--mb-ease-ui);
+  font-family: var(--mb-font-body);
+}
+.mb-toggle-btn.active {
+  background: var(--mb-surface);
+  color: var(--mb-fg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Linha de categoria em lista */
+.mb-cat-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--mb-border-2);
+  gap: 12px;
+}
+.mb-cat-row:last-child { border-bottom: none; }
+.mb-cat-pct  { font-size: 14px; font-weight: 600; color: var(--mb-fg); margin-right: 4px; }
+.mb-cat-name { font-size: 13px; font-weight: 400; color: var(--mb-muted); flex: 1; }
+.mb-cat-val  { font-size: 14px; font-weight: 600; color: var(--mb-fg); }
+
+/* Utilitário de privacidade */
+.mb-blur-privacy {
+  filter: blur(8px);
+  opacity: 0.6;
+  user-select: none;
+  pointer-events: none;
+}

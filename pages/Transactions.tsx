@@ -396,35 +396,25 @@ const Transactions: React.FC = () => {
       className="tx-page-container h-full flex flex-col overflow-hidden"
     >
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap');
-
+        /* Fonts imported via design-tokens.css */
+        /* Remap Transactions tokens to global --mb-* design tokens */
         :root {
-          --tx-bg: #f5f6fa;
-          --tx-surface: #ffffff;
-          --tx-border: #f0f1f5;
-          --tx-fg: #111111;
-          --tx-muted: #aaaaaa;
-          --tx-accent: #8854D0;
-          --tx-success: #2e9e44;
-          --tx-outcome-val: #111111;
-          --tx-header-bg: #ffffff;
+          --tx-bg:         var(--mb-bg);
+          --tx-surface:    var(--mb-surface);
+          --tx-border:     var(--mb-border);
+          --tx-fg:         var(--mb-fg);
+          --tx-muted:      var(--mb-muted);
+          --tx-accent:     var(--mb-accent);
+          --tx-success:    var(--mb-success);
+          --tx-outcome-val: var(--mb-fg);
+          --tx-header-bg:  var(--mb-surface);
         }
 
-        .dark {
-          --tx-bg: #0c0c0e;
-          --tx-surface: #1c1c1e;
-          --tx-border: #2c2c2e;
-          --tx-fg: #ffffff;
-          --tx-muted: #777777;
-          --tx-accent: #8854D0;
-          --tx-success: #40c057;
-          --tx-outcome-val: #ffffff;
-          --tx-header-bg: #1c1c1e;
-        }
+        /* .dark tokens handled globally by design-tokens.css */
 
         .tx-page-container {
           background-color: var(--tx-bg);
-          font-family: 'Poppins', sans-serif !important;
+          font-family: var(--mb-font-body) !important;
           color: var(--tx-fg);
           height: 100%;
           width: 100%;
@@ -434,7 +424,7 @@ const Transactions: React.FC = () => {
         }
 
         .tx-page-container *:not(.material-symbols-outlined) {
-          font-family: 'Poppins', sans-serif !important;
+          font-family: var(--mb-font-body) !important;
         }
 
         /* Header */
