@@ -496,7 +496,7 @@ const AddTransaction: React.FC = () => {
           color: var(--mb-fg);
           letter-spacing: -0.2px;
         }
-        .add-toggle-wrap { display: flex; justify-content: center; padding: 16px 0 20px; }
+        .add-toggle-wrap { display: flex; justify-content: center; padding: 16px 0 20px; flex-shrink: 0; }
         .add-toggle {
           background: var(--mb-surface-2);
           border-radius: var(--mb-radius-md);
@@ -707,18 +707,6 @@ const AddTransaction: React.FC = () => {
         }
         .add-input::placeholder { color: var(--mb-muted-2); }
 
-        /* Estilização Premium para Elementos Superiores e Toggles */
-        .add-amount-wrap {
-          display: flex;
-          align-items: baseline;
-          justify-content: center;
-          gap: 6px;
-          margin: 10px 16px;
-          padding: 16px;
-          background: var(--mb-surface-2);
-          border-radius: var(--mb-radius-lg);
-          border: 1px solid var(--mb-border);
-        }
         .add-amount-wrap {
           display: flex;
           align-items: center;
@@ -730,6 +718,7 @@ const AddTransaction: React.FC = () => {
           border-radius: var(--mb-radius-lg);
           border: 1px solid var(--mb-border);
           overflow: hidden;
+          flex-shrink: 0;
         }
         .add-currency-sign {
           font-family: 'Luckiest Guy', cursive !important;
@@ -748,9 +737,8 @@ const AddTransaction: React.FC = () => {
           background: transparent;
           border: none;
           outline: none;
-          text-align: left;
-          width: 100%;
-          max-width: 250px;
+          text-align: center;
+          width: 180px;
           letter-spacing: 0.03em;
           transition: color 0.2s ease;
           padding: 0;
@@ -772,6 +760,7 @@ const AddTransaction: React.FC = () => {
           border: 1px solid var(--mb-border);
           box-shadow: var(--mb-shadow-card);
           padding: 4px 16px;
+          flex-shrink: 0;
         }
         .add-description-input {
           width: 100%;
@@ -796,6 +785,7 @@ const AddTransaction: React.FC = () => {
           overflow: hidden;
           display: flex;
           flex-direction: column;
+          flex-shrink: 0;
         }
         .add-card-row {
           display: flex;

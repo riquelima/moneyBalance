@@ -761,12 +761,12 @@ const Transactions: React.FC = () => {
           opacity: 0.15;
         }
 
-        /* Estilização Premium para o Grid de Filtros de Categorias */
         .filter-cat-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 10px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 8px;
           padding: 10px 0;
+          width: 100%;
         }
         .filter-cat-item {
           display: flex;
