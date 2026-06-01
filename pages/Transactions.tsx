@@ -11,6 +11,22 @@ import Header from '../components/common/Header';
 
 const getCategoryIconUrl = (name: string): string => {
   const n = name.toLowerCase();
+  
+  // Regras Específicas do Usuário (Money Balance)
+  if (n.includes('educação') || n.includes('desenvolvimento') || n.includes('escola') || n.includes('curso') || n.includes('faculdade') || n.includes('estudo')) return 'https://cdn-icons-png.flaticon.com/512/4406/4406319.png';
+  if (n.includes('imprevisto') || n.includes('urgência') || n.includes('emergência') || n.includes('conserto') || n.includes('reforma')) return 'https://cdn-icons-png.flaticon.com/512/3756/3756712.png';
+  if (n.includes('rendimento') || n.includes('invest') || n.includes('economia') || n.includes('poupança') || n.includes('aplicação')) return 'https://cdn-icons-png.flaticon.com/512/10013/10013195.png';
+  if (n.includes('dinheiro extra') || n.includes('extra') || n.includes('freela') || n.includes('bico')) return 'https://cdn-icons-png.flaticon.com/512/8283/8283617.png';
+  if (n.includes('back')) return 'https://cdn-icons-png.flaticon.com/512/7182/7182410.png';
+  if (n.includes('cartão de crédito') || n.includes('cartão') || n.includes('crédito') || n.includes('limite')) return 'https://cdn-icons-png.flaticon.com/512/2625/2625610.png';
+  if (n.includes('cigarro') || n.includes('fumo') || n.includes('tabaco') || n.includes('tabacaria')) return 'https://cdn-icons-png.flaticon.com/512/595/595593.png';
+  if (n.includes('delivery') || n.includes('ifood') || n.includes('entrega') || n.includes('rappi')) return 'https://cdn-icons-png.flaticon.com/512/3081/3081371.png';
+  if (n.includes('empréstimo') || n.includes('financiamento') || n.includes('parcela de empréstimo')) return 'https://cdn-icons-png.flaticon.com/512/9428/9428343.png';
+  if (n.includes('serviço') || n.includes('assinatura') || n.includes('mensalidade')) return 'https://cdn-icons-png.flaticon.com/512/3631/3631153.png';
+  if (n.includes('transferência própria') || n.includes('transferência') || n.includes('ted') || n.includes('pix próprio')) return 'https://cdn-icons-png.flaticon.com/512/3344/3344961.png';
+  
+  if (n.includes('uazapi')) return 'https://cdn-icons-png.flaticon.com/512/2082/2082823.png';
+  if (n.includes('lúcia') || n.includes('dona lúcia')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
   if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
   if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
   if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
@@ -20,7 +36,6 @@ const getCategoryIconUrl = (name: string): string => {
   if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário') || n.includes('roupa')) return 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
   
   if (n.includes('salário') || n.includes('pagamento') || n.includes('renda')) return 'https://cdn-icons-png.flaticon.com/512/2454/2454269.png';
-  if (n.includes('invest') || n.includes('economia') || n.includes('poupança')) return 'https://cdn-icons-png.flaticon.com/512/2721/2721614.png';
   
   return 'https://cdn-icons-png.flaticon.com/512/5488/5488583.png';
 };
