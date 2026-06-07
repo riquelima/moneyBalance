@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameDay, 
-  isSameMonth, 
-  addMonths, 
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  isSameMonth,
+  addMonths,
   subMonths,
   startOfWeek,
   endOfWeek,
   isToday
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../supabaseClient';
-import BottomSheet from '../ui/BottomSheet';
 import { parseLocalISODate } from '../../utils/date';
 
 interface Transaction {
@@ -32,24 +32,533 @@ interface CalendarViewProps {
   setCurrentDate: React.Dispatch<React.SetStateAction<Date>>;
 }
 
+/* ─── Ícones SVG inline (sem emoji) ─── */
+const IconCheck = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const IconArrowUp = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+  </svg>
+);
+
+const IconArrowDown = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
+  </svg>
+);
+
+const IconCalendarEmpty = () => (
+  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.35 }}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+    <line x1="8" y1="15" x2="8" y2="15" strokeWidth="2" /><line x1="12" y1="15" x2="12" y2="15" strokeWidth="2" /><line x1="16" y1="15" x2="16" y2="15" strokeWidth="2" />
+  </svg>
+);
+
+const IconChevronLeft = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
+const IconChevronRight = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
+/* ─── Estilos inline (scoped) ─── */
+const styles = `
+  .calv-root {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-family: var(--mb-font-body);
+  }
+
+  /* ── Cartão principal do calendário ── */
+  .calv-card {
+    background: var(--mb-surface);
+    border: 1px solid var(--mb-border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--mb-shadow-soft);
+    position: relative;
+  }
+
+  /* ── Cabeçalho do mês com gradiente ── */
+  .calv-header {
+    background: linear-gradient(135deg,
+      oklch(52% 0.22 290) 0%,
+      oklch(58% 0.20 310) 60%,
+      oklch(64% 0.18 290) 100%
+    );
+    padding: 18px 16px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calv-header::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    pointer-events: none;
+  }
+
+  .calv-header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: 20px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    pointer-events: none;
+  }
+
+  .calv-month-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: capitalize;
+    letter-spacing: -0.3px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+  }
+
+  .calv-nav-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+  }
+  .calv-nav-btn:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.38);
+  }
+  .calv-nav-btn:active {
+    transform: scale(0.92);
+  }
+
+  /* ── Dias da semana ── */
+  .calv-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 10px 8px 6px;
+    background: var(--mb-surface);
+    border-bottom: 1px solid var(--mb-border-2);
+  }
+
+  .calv-weekday-label {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mb-muted-2);
+    padding: 2px 0;
+  }
+
+  /* ── Grade dos dias ── */
+  .calv-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 8px;
+    gap: 3px;
+    background: var(--mb-surface);
+  }
+
+  .calv-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    padding: 2px;
+  }
+
+  .calv-day:not(.calv-day--outside):hover {
+    background: color-mix(in oklab, var(--mb-accent), transparent 90%);
+  }
+
+  .calv-day:active {
+    transform: scale(0.88);
+  }
+
+  .calv-day--outside {
+    opacity: 0.25;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .calv-day--today .calv-day-num {
+    background: var(--mb-accent);
+    color: #ffffff;
+    box-shadow: 0 2px 10px color-mix(in oklab, var(--mb-accent), transparent 55%);
+  }
+
+  .calv-day--selected {
+    background: color-mix(in oklab, var(--mb-accent), transparent 84%) !important;
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--mb-accent), transparent 60%);
+  }
+
+  .calv-day--selected .calv-day-num {
+    color: var(--mb-accent);
+    font-weight: 800;
+  }
+
+  .calv-day--today.calv-day--selected .calv-day-num {
+    color: #ffffff;
+  }
+
+  .calv-day-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mb-fg);
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+
+  /* ── Pontos indicadores ── */
+  .calv-dots {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    height: 6px;
+  }
+
+  .calv-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .calv-dot--expense {
+    background: var(--mb-danger);
+    box-shadow: 0 0 5px color-mix(in oklab, var(--mb-danger), transparent 40%);
+  }
+
+  .calv-dot--income {
+    background: var(--mb-success);
+    box-shadow: 0 0 5px color-mix(in oklab, var(--mb-success), transparent 40%);
+  }
+
+  /* ── Rodapé de totais do mês ── */
+  .calv-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 14px 16px;
+    background: var(--mb-surface-2);
+    border-top: 1px solid var(--mb-border-2);
+    gap: 8px;
+  }
+
+  .calv-summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .calv-summary-item + .calv-summary-item {
+    border-left: 1px solid var(--mb-border);
+  }
+
+  .calv-summary-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mb-muted-2);
+  }
+
+  .calv-summary-value {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .calv-summary-value--income { color: var(--mb-success); }
+  .calv-summary-value--expense { color: var(--mb-danger); }
+  .calv-summary-value--balance { color: var(--mb-fg); }
+
+  /* ── Painel de transações (abaixo do calendário) ── */
+  .calv-txn-panel {
+    margin-top: 16px;
+    background: var(--mb-surface);
+    border: 1px solid var(--mb-border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--mb-shadow-card);
+  }
+
+  .calv-txn-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--mb-border-2);
+  }
+
+  .calv-txn-date-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--mb-fg);
+    letter-spacing: -0.2px;
+    text-transform: capitalize;
+  }
+
+  .calv-txn-count-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mb-muted);
+    background: var(--mb-surface-2);
+    border: 1px solid var(--mb-border);
+    border-radius: 99px;
+    padding: 2px 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .calv-txn-list {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px 10px;
+    gap: 6px;
+  }
+
+  /* ── Item de transação ── */
+  .calv-txn-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 12px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    transition: all 0.18s ease;
+    cursor: default;
+  }
+
+  .calv-txn-item--expense {
+    background: color-mix(in oklab, var(--mb-danger), transparent 93%);
+    border-color: color-mix(in oklab, var(--mb-danger), transparent 82%);
+  }
+
+  .calv-txn-item--income {
+    background: color-mix(in oklab, var(--mb-success), transparent 93%);
+    border-color: color-mix(in oklab, var(--mb-success), transparent 82%);
+  }
+
+  .calv-txn-item--paid {
+    opacity: 0.65;
+  }
+
+  /* Ícone lateral da transação */
+  .calv-txn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .calv-txn-icon--expense {
+    background: color-mix(in oklab, var(--mb-danger), transparent 84%);
+    color: var(--mb-danger);
+  }
+
+  .calv-txn-icon--income {
+    background: color-mix(in oklab, var(--mb-success), transparent 84%);
+    color: var(--mb-success);
+  }
+
+  /* Textos da transação */
+  .calv-txn-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .calv-txn-desc {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mb-fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .calv-txn-amount {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  .calv-txn-amount--expense { color: var(--mb-danger); }
+  .calv-txn-amount--income  { color: var(--mb-success); }
+
+  /* Botão de pagamento */
+  .calv-pay-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .calv-pay-btn--unpaid {
+    border-color: var(--mb-border);
+    background: transparent;
+    color: var(--mb-muted-2);
+  }
+
+  .calv-pay-btn--unpaid:hover {
+    border-color: var(--mb-success);
+    color: var(--mb-success);
+    background: color-mix(in oklab, var(--mb-success), transparent 90%);
+  }
+
+  .calv-pay-btn--paid {
+    border-color: var(--mb-success);
+    background: var(--mb-success);
+    color: #ffffff;
+    box-shadow: 0 3px 10px color-mix(in oklab, var(--mb-success), transparent 60%);
+  }
+
+  .calv-pay-btn:active {
+    transform: scale(0.88);
+  }
+
+  /* Status de pagamento */
+  .calv-paid-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mb-success);
+    opacity: 0.75;
+    margin-top: 1px;
+  }
+
+  .calv-unpaid-tag {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--mb-muted-2);
+    margin-top: 1px;
+  }
+
+  /* Estado vazio */
+  .calv-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 36px 20px;
+    color: var(--mb-muted);
+  }
+
+  .calv-empty-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--mb-muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Loading skeleton */
+  .calv-skeleton {
+    background: linear-gradient(90deg,
+      var(--mb-border-2) 25%,
+      var(--mb-border) 50%,
+      var(--mb-border-2) 75%
+    );
+    background-size: 200% 100%;
+    animation: calv-shimmer 1.4s ease infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes calv-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Efeito de update no botão pagar */
+  @keyframes calv-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+
+  .calv-pay-btn.calv-pay-btn--popping {
+    animation: calv-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+`;
+
+const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
 const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [loading, setLoading] = useState(true);
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   // Derived dates
   const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
-  
-  const calendarDays = eachDayOfInterval({
-    start: calendarStart,
-    end: calendarEnd
-  });
+  const monthEnd   = endOfMonth(currentDate);
+  const calStart   = startOfWeek(monthStart);
+  const calEnd     = endOfWeek(monthEnd);
+  const calendarDays = eachDayOfInterval({ start: calStart, end: calEnd });
 
-  // Fetch transactions
+  // Fetch transactions for the current month
   useEffect(() => {
     fetchTransactions();
   }, [currentDate]);
@@ -60,191 +569,293 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const startDate = monthStart.toISOString();
-      const endDate = monthEnd.toISOString();
-
       const { data, error } = await supabase
         .from('user_transactions')
         .select('*')
         .eq('user_id', user.id)
-        .gte('date', startDate)
-        .lte('date', endDate);
+        .gte('date', monthStart.toISOString())
+        .lte('date', monthEnd.toISOString());
 
       if (error) throw error;
       setTransactions(data || []);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const togglePaymentStatus = async (transaction: Transaction) => {
+  const togglePaymentStatus = useCallback(async (transaction: Transaction) => {
+    // Optimistic update imediato
+    setTransactions(prev =>
+      prev.map(t => t.id === transaction.id ? { ...t, is_paid: !t.is_paid } : t)
+    );
+    setUpdatingIds(prev => new Set(prev).add(transaction.id));
+
     try {
       const { error } = await supabase
         .from('user_transactions')
         .update({ is_paid: !transaction.is_paid })
         .eq('id', transaction.id);
 
-      if (error) throw error;
-      
-      // Optimistic update
-      setTransactions(prev => prev.map(t => 
-        t.id === transaction.id ? { ...t, is_paid: !t.is_paid } : t
-      ));
-    } catch (error) {
-      console.error('Error updating status:', error);
+      if (error) {
+        // Reverter se houver erro
+        setTransactions(prev =>
+          prev.map(t => t.id === transaction.id ? { ...t, is_paid: transaction.is_paid } : t)
+        );
+      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+    } finally {
+      setUpdatingIds(prev => { const s = new Set(prev); s.delete(transaction.id); return s; });
     }
-  };
+  }, []);
 
-  const handleDayClick = (day: Date) => {
-    setSelectedDate(day);
-    setIsSheetOpen(true);
-  };
+  const getDayTransactions = (day: Date) =>
+    transactions.filter(t => isSameDay(parseLocalISODate(t.date), day));
 
-  const getDayTransactions = (day: Date) => {
-    return transactions.filter(t => isSameDay(parseLocalISODate(t.date), day));
-  };
+  /* ── Transações da data selecionada (deve vir antes dos totais) ── */
+  const selectedTransactions = selectedDate ? getDayTransactions(selectedDate) : [];
+  const pendingCount = selectedTransactions.filter(t => !t.is_paid).length;
 
+  // Totais: usa dia selecionado se houver, senão o mês inteiro
+  const summarySource  = selectedDate ? selectedTransactions : transactions;
+  const summaryLabel   = selectedDate ? 'dia' : 'mês';
+  const totalIncome    = summarySource.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
+  const totalExpense   = summarySource.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+  const balance        = totalIncome - totalExpense;
+
+  const fmtBRL = (val: number) =>
+    new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(val));
+
+  /* ── Renderizar cada célula do dia ── */
   const renderDay = (day: Date) => {
-    const dayTransactions = getDayTransactions(day);
-    const hasExpense = dayTransactions.some(t => t.type === 'expense');
-    const hasIncome = dayTransactions.some(t => t.type === 'income');
-    const isCurrentMonth = isSameMonth(day, monthStart);
-    const isTodayDay = isToday(day);
+    const dayTxns      = getDayTransactions(day);
+    const hasExpense   = dayTxns.some(t => t.type === 'expense');
+    const hasIncome    = dayTxns.some(t => t.type === 'income');
+    const isThisMonth  = isSameMonth(day, monthStart);
+    const isTodayDay   = isToday(day);
     const isSelectedDay = selectedDate && isSameDay(day, selectedDate);
+
+    const classes = [
+      'calv-day',
+      !isThisMonth   ? 'calv-day--outside'  : '',
+      isTodayDay     ? 'calv-day--today'    : '',
+      isSelectedDay  ? 'calv-day--selected' : '',
+    ].filter(Boolean).join(' ');
 
     return (
       <div
         key={day.toISOString()}
-        onClick={() => handleDayClick(day)}
-        className={`cal-day-cell aspect-square p-1 sm:p-2 relative cursor-pointer transition-all flex flex-col items-center justify-center gap-1 rounded-xl
-          ${!isCurrentMonth ? 'opacity-25' : 'hover:bg-black/5 dark:hover:bg-white/5'}
-          ${isTodayDay ? 'bg-[var(--cal-accent)]/10 ring-1 ring-[var(--cal-accent)]/30' : ''}
-          ${isSelectedDay ? 'bg-[var(--cal-accent)]/20 ring-1 ring-[var(--cal-accent)]/50' : ''}
-        `}
+        className={classes}
+        onClick={() => isThisMonth && setSelectedDate(day)}
+        role="button"
+        tabIndex={isThisMonth ? 0 : -1}
+        aria-label={format(day, "d 'de' MMMM", { locale: ptBR })}
+        aria-pressed={!!isSelectedDay}
       >
-        <span className={`cal-day-num text-xs sm:text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full transition-all
-          ${isTodayDay ? 'bg-[var(--cal-accent)] text-white shadow-md' : 'text-gray-700 dark:text-gray-300'}
-          ${isSelectedDay && !isTodayDay ? 'text-[var(--cal-accent)]' : ''}
-        `}>
-          {format(day, 'd')}
-        </span>
-        
-        <div className="cal-day-dots flex gap-1 mt-0.5 items-center justify-center h-1.5">
-          {hasExpense && <div className="cal-dot-expense w-1.5 h-1.5 rounded-full bg-[#FF6B6B] shadow-[0_0_6px_rgba(255,107,107,0.6)]" />}
-          {hasIncome && <div className="cal-dot-income w-1.5 h-1.5 rounded-full bg-[#20BF55] shadow-[0_0_6px_rgba(32,191,85,0.6)]" />}
+        <span className="calv-day-num">{format(day, 'd')}</span>
+
+        {/* Pontos indicadores */}
+        <div className="calv-dots">
+          {hasExpense && <div className="calv-dot calv-dot--expense" />}
+          {hasIncome  && <div className="calv-dot calv-dot--income" />}
         </div>
       </div>
     );
   };
 
-  const selectedTransactions = selectedDate ? getDayTransactions(selectedDate) : [];
+  /* (selectedTransactions e pendingCount declarados acima, antes dos totais) */
 
   return (
-    <div className="flex flex-col h-auto">
-      <div className="cal-card border border-[var(--cal-border)] rounded-3xl shadow-lg bg-[var(--cal-surface)] overflow-hidden">
-        {/* Header */}
-        <div className="cal-view-header flex items-center justify-between p-4 bg-gradient-to-r from-[var(--cal-accent)] to-[var(--mb-accent-2)] text-white rounded-t-2xl">
-          <button 
-            onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            className="cal-view-nav-btn flex items-center justify-center w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white transition-all active:scale-95 shadow-sm cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-lg leading-none">chevron_left</span>
-          </button>
-          
-          <h2 className="cal-view-title text-base font-bold select-none text-white tracking-wide capitalize">
-            {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
-          </h2>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
 
-          <button 
-            onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            className="cal-view-nav-btn flex items-center justify-center w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 border border-white/10 text-white transition-all active:scale-95 shadow-sm cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-lg leading-none">chevron_right</span>
-          </button>
-        </div>
+      <div className="calv-root">
 
-        {/* Week Days Header */}
-        <div className="cal-weekdays grid grid-cols-7 border-b border-[var(--cal-border)] bg-black/5 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">
-          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-            <div key={day} className="cal-weekday-cell py-3 text-center">
-              {day}
-            </div>
-          ))}
-        </div>
+        {/* ── Cartão Calendário ── */}
+        <div className="calv-card">
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 p-2 gap-1 bg-[var(--cal-bg)]">
-          {calendarDays.map(renderDay)}
-        </div>
-      </div>
+          {/* Header do mês */}
+          <div className="calv-header">
+            <button
+              className="calv-nav-btn"
+              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+              aria-label="Mês anterior"
+            >
+              <IconChevronLeft />
+            </button>
 
-      {/* Details Sheet */}
-      <BottomSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        title={selectedDate ? format(selectedDate, "d 'de' MMMM", { locale: ptBR }) : ''}
-      >
-        <div className="space-y-4">
-          {selectedTransactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-              <span className="material-symbols-outlined text-4xl mb-2 opacity-50">event_busy</span>
-              <p className="text-sm font-medium">Nenhum lançamento para esta data.</p>
-            </div>
-          ) : (
-            selectedTransactions.map(transaction => (
-              <div 
-                key={transaction.id}
-                className={`
-                  flex items-center justify-between p-4 rounded-2xl border backdrop-blur-md transition-all
-                  ${transaction.type === 'expense' 
-                    ? 'border-danger/20 bg-danger/5 dark:bg-danger/10 hover:bg-danger/10 dark:hover:bg-danger/20' 
-                    : 'border-secondary/20 bg-secondary/5 dark:bg-secondary/10 hover:bg-secondary/10 dark:hover:bg-secondary/20'}
-                `}
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className={`
-                    p-2 rounded-xl shrink-0
-                    ${transaction.type === 'expense' ? 'bg-danger/10 text-danger' : 'bg-secondary/10 text-secondary'}
-                  `}>
-                    <span className="material-symbols-outlined text-lg">
-                      {transaction.type === 'expense' ? 'arrow_downward' : 'arrow_upward'}
-                    </span>
+            <motion.span
+              key={format(currentDate, 'MM-yyyy')}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22 }}
+              className="calv-month-title"
+            >
+              {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+            </motion.span>
+
+            <button
+              className="calv-nav-btn"
+              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+              aria-label="Próximo mês"
+            >
+              <IconChevronRight />
+            </button>
+          </div>
+
+          {/* Labels dos dias da semana */}
+          <div className="calv-weekdays">
+            {WEEKDAY_LABELS.map(d => (
+              <div key={d} className="calv-weekday-label">{d}</div>
+            ))}
+          </div>
+
+          {/* Grade dos dias */}
+          <div className="calv-grid">
+            {loading
+              ? Array.from({ length: 35 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="calv-day"
+                    style={{ padding: '4px' }}
+                  >
+                    <div className="calv-skeleton" style={{ width: 28, height: 28, borderRadius: '50%' }} />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 dark:text-white truncate text-sm">{transaction.description || 'Sem descrição'}</h3>
-                    <p className={`text-xs font-bold ${transaction.type === 'expense' ? 'text-danger' : 'text-secondary'}`}>
-                      R$ {Number(transaction.amount).toFixed(2)}
+                ))
+              : calendarDays.map(renderDay)
+            }
+          </div>
+
+          {/* Rodapé com totais do dia ou do mês */}
+          <motion.div
+            key={selectedDate ? selectedDate.toISOString() : 'month'}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="calv-summary"
+          >
+            <div className="calv-summary-item">
+              <span className="calv-summary-label">Receitas ({summaryLabel})</span>
+              <span className="calv-summary-value calv-summary-value--income">
+                R$ {fmtBRL(totalIncome)}
+              </span>
+            </div>
+            <div className="calv-summary-item">
+              <span className="calv-summary-label">Despesas ({summaryLabel})</span>
+              <span className="calv-summary-value calv-summary-value--expense">
+                R$ {fmtBRL(totalExpense)}
+              </span>
+            </div>
+            <div className="calv-summary-item">
+              <span className="calv-summary-label">Saldo ({summaryLabel})</span>
+              <span
+                className="calv-summary-value"
+                style={{ color: balance >= 0 ? 'var(--mb-success)' : 'var(--mb-danger)' }}
+              >
+                {balance < 0 ? '-' : ''}R$ {fmtBRL(balance)}
+              </span>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ── Painel de Transações da Data Selecionada ── */}
+        <AnimatePresence mode="wait">
+          {selectedDate && (
+            <motion.div
+              key={selectedDate.toISOString()}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.26, ease: [0.34, 1.1, 0.64, 1] }}
+              className="calv-txn-panel"
+            >
+              {/* Cabeçalho da data */}
+              <div className="calv-txn-header">
+                <span className="calv-txn-date-label">
+                  {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                </span>
+                {selectedTransactions.length > 0 && (
+                  <span className="calv-txn-count-badge">
+                    {selectedTransactions.length} {selectedTransactions.length === 1 ? 'lançamento' : 'lançamentos'}
+                    {pendingCount > 0 && ` · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}`}
+                  </span>
+                )}
+              </div>
+
+              {/* Lista de transações */}
+              <div className="calv-txn-list">
+                {selectedTransactions.length === 0 ? (
+                  <div className="calv-empty">
+                    <IconCalendarEmpty />
+                    <p className="calv-empty-text">
+                      Nenhum lançamento para esta data.
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <AnimatePresence initial={false}>
+                    {selectedTransactions.map((txn, i) => (
+                      <motion.div
+                        key={txn.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        transition={{ delay: i * 0.04, duration: 0.2 }}
+                        className={[
+                          'calv-txn-item',
+                          txn.type === 'expense' ? 'calv-txn-item--expense' : 'calv-txn-item--income',
+                          txn.is_paid ? 'calv-txn-item--paid' : ''
+                        ].join(' ')}
+                      >
+                        {/* Ícone do tipo */}
+                        <div className={`calv-txn-icon calv-txn-icon--${txn.type}`}>
+                          {txn.type === 'expense' ? <IconArrowDown /> : <IconArrowUp />}
+                        </div>
 
-                <button
-                  onClick={() => togglePaymentStatus(transaction)}
-                  className={`
-                    w-10 h-10 flex items-center justify-center rounded-full border transition-all active:scale-95 shrink-0 ml-2
-                    ${transaction.is_paid 
-                      ? 'bg-secondary border-secondary text-white shadow-lg shadow-secondary/30' 
-                      : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-400 hover:border-secondary hover:text-secondary'}
-                  `}
-                  title={transaction.is_paid ? "Pago" : "Marcar como pago"}
-                >
-                  <span className="material-symbols-outlined text-lg">check</span>
-                </button>
+                        {/* Descrição e valor */}
+                        <div className="calv-txn-body">
+                          <span className="calv-txn-desc">
+                            {txn.description || 'Sem descrição'}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span className={`calv-txn-amount calv-txn-amount--${txn.type}`}>
+                              {txn.type === 'expense' ? '−' : '+'}R$ {fmtBRL(txn.amount)}
+                            </span>
+                            {txn.is_paid
+                              ? <span className="calv-paid-tag">Pago</span>
+                              : txn.type === 'expense'
+                                ? <span className="calv-unpaid-tag">Pendente</span>
+                                : null
+                            }
+                          </div>
+                        </div>
+
+                        {/* Botão marcar como pago */}
+                        <motion.button
+                          className={[
+                            'calv-pay-btn',
+                            txn.is_paid ? 'calv-pay-btn--paid' : 'calv-pay-btn--unpaid',
+                            updatingIds.has(txn.id) ? 'calv-pay-btn--popping' : ''
+                          ].join(' ')}
+                          onClick={() => togglePaymentStatus(txn)}
+                          whileTap={{ scale: 0.85 }}
+                          aria-label={txn.is_paid ? 'Marcar como pendente' : 'Marcar como pago'}
+                          title={txn.is_paid ? 'Marcar como pendente' : 'Marcar como pago'}
+                          disabled={updatingIds.has(txn.id)}
+                        >
+                          <IconCheck />
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
               </div>
-            ))
+            </motion.div>
           )}
-          
-          <button 
-            onClick={() => setIsSheetOpen(false)}
-            className="w-full py-4 mt-4 font-bold text-center text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-all bg-white dark:bg-white/5 backdrop-blur-md shadow-sm"
-          >
-            Fechar
-          </button>
-        </div>
-      </BottomSheet>
-    </div>
+        </AnimatePresence>
+      </div>
+    </>
   );
 };
 
