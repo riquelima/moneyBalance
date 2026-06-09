@@ -1055,7 +1055,7 @@ const Transactions: React.FC = () => {
                               {t.description || (t.type === 'income' ? 'Entrada' : 'Despesa')}
                             </div>
                             <div className="tx-date-sub">
-                              {parseLocalISODate(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · {parseLocalISODate(t.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              {parseLocalISODate(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                             </div>
                           </div>
 

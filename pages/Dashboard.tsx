@@ -722,7 +722,7 @@ const Dashboard: React.FC = () => {
 
   const formatTxDate = (dateStr: string) => {
     const d = parseLocalISODate(dateStr);
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
   const pendingBills = expenseItems.filter(t => !t.is_paid);
