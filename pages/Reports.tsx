@@ -1120,6 +1120,8 @@ const Reports: React.FC = () => {
               </motion.div>
             )}
           </AnimatePresence>
+          {/* Espaçador para evitar que o conteúdo final fique sob a BottomNav flutuante */}
+          <div style={{ height: '110px', flexShrink: 0 }} aria-hidden="true" />
         </div>
 
         {/* Indicador Home iOS */}
