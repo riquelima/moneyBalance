@@ -76,6 +76,7 @@ const Dashboard: React.FC = () => {
   const [selectedBillMenu, setSelectedBillMenu] = useState<any | null>(null);
   const [hiddenFakeBillIds, setHiddenFakeBillIds] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -255,6 +256,17 @@ const Dashboard: React.FC = () => {
         saveToCache(`profile_${user.id}`, { displayName: dName, avatarUrl: aUrl });
       })());
     }
+
+    // Últimas transações (independente de mês, por created_at)
+    promises.push((async () => {
+      const { data: recentData } = await supabase
+        .from('user_transactions')
+        .select('id, description, amount, type, date, is_paid, category_id, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (recentData) setRecentTransactions(recentData);
+    })());
 
     if (promises.length > 0) {
       await Promise.all(promises);
@@ -1813,7 +1825,7 @@ const Dashboard: React.FC = () => {
                 ))}
               </>
             ) : (
-              displayTransactions.map((tx) => {
+              (recentTransactions.length > 0 ? recentTransactions : displayTransactions).map((tx) => {
                 const isExpense = tx.type === 'expense';
                 return (
                   <article
