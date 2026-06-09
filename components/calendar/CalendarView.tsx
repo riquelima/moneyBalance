@@ -32,6 +32,38 @@ interface CalendarViewProps {
   setCurrentDate: React.Dispatch<React.SetStateAction<Date>>;
 }
 
+const getCategoryIconUrl = (name: string): string => {
+  const n = name.toLowerCase();
+  
+  // Regras Específicas do Usuário (Money Balance)
+  if (n.includes('educação') || n.includes('desenvolvimento') || n.includes('escola') || n.includes('curso') || n.includes('faculdade') || n.includes('estudo')) return 'https://cdn-icons-png.flaticon.com/512/4406/4406319.png';
+  if (n.includes('imprevisto') || n.includes('urgência') || n.includes('emergência') || n.includes('conserto') || n.includes('reforma')) return 'https://cdn-icons-png.flaticon.com/512/3756/3756712.png';
+  if (n.includes('rendimento') || n.includes('invest') || n.includes('economia') || n.includes('poupança') || n.includes('aplicação')) return 'https://cdn-icons-png.flaticon.com/512/10013/10013195.png';
+  if (n.includes('dinheiro extra') || n.includes('extra') || n.includes('freela') || n.includes('bico')) return 'https://cdn-icons-png.flaticon.com/512/8283/8283617.png';
+  if (n.includes('intelektus')) return 'https://cdn-icons-png.flaticon.com/512/7747/7747220.png';
+  if (n.includes('back') || n.includes('beck')) return 'https://cdn-icons-png.flaticon.com/512/2160/2160424.png';
+  if (n.includes('cartão de crédito') || n.includes('cartão') || n.includes('crédito') || n.includes('limite')) return 'https://cdn-icons-png.flaticon.com/512/2625/2625610.png';
+  if (n.includes('cigarro') || n.includes('fumo') || n.includes('tabaco') || n.includes('tabacaria')) return 'https://cdn-icons-png.flaticon.com/512/595/595593.png';
+  if (n.includes('delivery') || n.includes('ifood') || n.includes('entrega') || n.includes('rappi')) return 'https://cdn-icons-png.flaticon.com/512/3081/3081371.png';
+  if (n.includes('empréstimo') || n.includes('financiamento') || n.includes('parcela de empréstimo')) return 'https://cdn-icons-png.flaticon.com/512/9428/9428343.png';
+  if (n.includes('serviço') || n.includes('assinatura') || n.includes('mensalidade')) return 'https://cdn-icons-png.flaticon.com/512/3631/3631153.png';
+  if (n.includes('transferência própria') || n.includes('transferência') || n.includes('ted') || n.includes('pix próprio')) return 'https://cdn-icons-png.flaticon.com/512/3344/3344961.png';
+  
+  if (n.includes('uazapi')) return 'https://cdn-icons-png.flaticon.com/512/2082/2082823.png';
+  if (n.includes('lúcia') || n.includes('dona lúcia')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
+  if (n.includes('mercado') || n.includes('feira') || n.includes('cesta')) return 'https://cdn-icons-png.flaticon.com/512/2203/2203239.png';
+  if (n.includes('refeição') || n.includes('alimentação') || n.includes('comer') || n.includes('restaurante') || n.includes('cafe') || n.includes('café') || n.includes('padaria')) return 'https://cdn-icons-png.flaticon.com/512/2424/2424721.png';
+  if (n.includes('transporte') || n.includes('ônibus') || n.includes('bus') || n.includes('carro') || n.includes('uber') || n.includes('gasolina') || n.includes('combustível')) return 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
+  if (n.includes('aluguel') || n.includes('moradia') || n.includes('casa') || n.includes('apartamento') || n.includes('condomínio')) return 'https://cdn-icons-png.flaticon.com/512/619/619153.png';
+  if (n.includes('lazer') || n.includes('social') || n.includes('cinema') || n.includes('filme') || n.includes('pipoca') || n.includes('show') || n.includes('festa') || n.includes('viagem')) return 'https://cdn-icons-png.flaticon.com/512/3588/3588658.png';
+  if (n.includes('saúde') || n.includes('médico') || n.includes('remédio') || n.includes('farmácia') || n.includes('hospital') || n.includes('academia') || n.includes('crossfit') || n.includes('dentista')) return 'https://cdn-icons-png.flaticon.com/512/1142/1142172.png';
+  if (n.includes('compras') || n.includes('shopping') || n.includes('loja') || n.includes('vestuário') || n.includes('roupa')) return 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
+  
+  if (n.includes('salário') || n.includes('pagamento') || n.includes('renda')) return 'https://cdn-icons-png.flaticon.com/512/2454/2454269.png';
+  
+  return 'https://cdn-icons-png.flaticon.com/512/5488/5488583.png';
+};
+
 /* ─── Ícones SVG inline (sem emoji) ─── */
 const IconCheck = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -550,6 +582,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [loading, setLoading] = useState(true);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [catMap, setCatMap] = useState<Record<string, { name: string; type: 'income' | 'expense' }>>({});
 
   // Derived dates
   const monthStart = startOfMonth(currentDate);
@@ -578,6 +611,30 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
 
       if (error) throw error;
       setTransactions(data || []);
+
+      // Buscar categorias associadas às transações do mês
+      const ids = Array.from(new Set((data || []).map((x: any) => x.category_id).filter(Boolean)));
+      if (ids.length) {
+        const { data: cats } = await supabase
+          .from('user_categories')
+          .select('id, name, type')
+          .in('id', ids);
+
+        if (cats) {
+          setCatMap(prev => {
+            const next = { ...prev };
+            cats.forEach((c: any) => {
+              if (c?.id) {
+                next[c.id as string] = {
+                  name: String(c.name || 'Categoria'),
+                  type: (c.type as any) || 'expense'
+                };
+              }
+            });
+            return next;
+          });
+        }
+      }
     } catch (err) {
       console.error('Error fetching transactions:', err);
     } finally {
@@ -808,9 +865,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, setCurrentDate
                           txn.is_paid ? 'calv-txn-item--paid' : ''
                         ].join(' ')}
                       >
-                        {/* Ícone do tipo */}
+                        {/* Ícone do tipo / categoria */}
                         <div className={`calv-txn-icon calv-txn-icon--${txn.type}`}>
-                          {txn.type === 'expense' ? <IconArrowDown /> : <IconArrowUp />}
+                          {(() => {
+                            const cat = txn.category_id ? catMap[txn.category_id] : null;
+                            const catName = cat?.name || txn.description || 'Sem Categoria';
+                            const iconUrl = getCategoryIconUrl(catName);
+                            return (
+                              <img
+                                src={iconUrl}
+                                alt={catName}
+                                className="w-5 h-5 object-contain"
+                              />
+                            );
+                          })()}
                         </div>
 
                         {/* Descrição e valor */}

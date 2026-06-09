@@ -535,6 +535,8 @@ const Reports: React.FC = () => {
           box-shadow: var(--mb-shadow-card);
           display: flex;
           flex-direction: column;
+          align-items: center;
+          text-align: center;
           gap: 8px;
         }
         .card-dots { position: absolute; top: 12px; right: 12px; font-size: 18px; color: var(--mb-muted-2); letter-spacing: 1px; line-height: 0.6; cursor: pointer; }
@@ -713,7 +715,7 @@ const Reports: React.FC = () => {
                   <article className="card cursor-pointer" onClick={() => { setActiveTab('details'); setStatTab('expense'); }}>
                     <div className="card-dots">···</div>
                     <div className="card-icon expense" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}>
-                      <img src="https://cdn-icons-png.flaticon.com/512/6067/6067145.png" alt="Despesa" className="w-11 h-11 object-contain" />
+                      <img src="https://cdn-icons-png.flaticon.com/512/7327/7327428.png" alt="Despesa" className="w-11 h-11 object-contain" />
                     </div>
                     <div className="card-type">Despesa</div>
                     <div className="card-amount expense">{fmtBRL(monthTotal)}</div>
@@ -721,7 +723,7 @@ const Reports: React.FC = () => {
                   <article className="card cursor-pointer" onClick={() => { setActiveTab('details'); setStatTab('income'); }}>
                     <div className="card-dots">···</div>
                     <div className="card-icon income" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}>
-                      <img src="https://cdn-icons-png.flaticon.com/512/6067/6067121.png" alt="Receita" className="w-11 h-11 object-contain" />
+                      <img src="https://cdn-icons-png.flaticon.com/512/7327/7327426.png" alt="Receita" className="w-11 h-11 object-contain" />
                     </div>
                     <div className="card-type">Receita</div>
                     <div className="card-amount income">{fmtBRL(incomeTotal)}</div>
