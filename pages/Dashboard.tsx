@@ -1529,6 +1529,19 @@ const Dashboard: React.FC = () => {
           color: var(--muted);
           text-transform: uppercase;
         }
+        .bar-chart-value-vertical {
+          position: absolute;
+          left: 50%;
+          bottom: 6px;
+          transform: translateX(-50%) rotate(180deg);
+          writing-mode: vertical-rl;
+          font-size: 8px;
+          font-weight: 800;
+          color: #ffffff;
+          white-space: nowrap;
+          pointer-events: none;
+          letter-spacing: 0.5px;
+        }
       `}} />
 
       <main className="phone" aria-label="Tela inicial do app de finanças">
@@ -1891,6 +1904,7 @@ const Dashboard: React.FC = () => {
                     <div className="h-[200px] w-full flex items-end justify-between gap-1 sm:gap-2 px-1 relative">
                       {current.values.map((h, i) => {
                         const isHighlighted = period === 'month' && i === selectedMonth && chartYear === selectedYear;
+                        const rawVal = current.raw ? current.raw[i] : 0;
                         return (
                           <div key={i} className="bar-container cursor-pointer" onClick={() => period === 'month' && setSelectedMonth(i)}>
                             <motion.div
@@ -1898,7 +1912,13 @@ const Dashboard: React.FC = () => {
                               animate={{ height: `${Math.max(6, h * 1.2)}%` }}
                               transition={{ duration: 0.6, delay: i * 0.03 }}
                               className={`bar-chart-visual ${chartType === 'expense' ? 'expense-bar' : 'income-bar'} ${isHighlighted ? 'ring-2 ring-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
-                            />
+                            >
+                              {rawVal > 0 && (
+                                <span className={`bar-chart-value-vertical ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>
+                                  {rawVal.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                </span>
+                              )}
+                            </motion.div>
                             <span className="bar-chart-label" style={{ fontSize: '8px' }}>{current.labels[i].substring(0, 3)}</span>
                           </div>
                         );
