@@ -985,10 +985,10 @@ const Reports: React.FC = () => {
                   </div>
                   <div className="chart-legend" style={{ paddingLeft: '54px', marginTop: '12px' }}>
                     <div className="legend-item">
-                      <div className="legend-dot" style={{ background: '#51cf66' }}></div> Saídas (Verde)
+                      <div className="legend-dot" style={{ background: '#51cf66' }}></div> Saídas
                     </div>
                     <div className="legend-item">
-                      <div className="legend-dot" style={{ background: '#e03131' }}></div> Entradas (Vermelha)
+                      <div className="legend-dot" style={{ background: '#e03131' }}></div> Entradas
                     </div>
                   </div>
                 </div>
