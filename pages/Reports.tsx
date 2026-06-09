@@ -324,30 +324,27 @@ const Reports: React.FC = () => {
 
   // 3. Gráfico de Linha de Tendência de Gastos Mensais (Valores e Meses do Ano Reais)
   const lineChartData = useMemo(() => {
-    const maxVal = Math.max(...annualExpenses, 1);
+    const maxVal = Math.max(...annualExpenses, ...annualIncomes, 1);
 
-    const points = annualExpenses.map((val, idx) => {
+    const expensePoints = annualExpenses.map((val, idx) => {
       const x = (idx / 11) * 280;
       const ratio = val / maxVal;
       const y = 148 - ratio * 100; // Mantém a linha entre y=48 e y=148
       return { x, y, month: idx, val };
     });
 
-    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-
-    let peakPoint = points[0];
-    points.forEach(p => {
-      if (p.val > peakPoint.val) {
-        peakPoint = p;
-      }
+    const incomePoints = annualIncomes.map((val, idx) => {
+      const x = (idx / 11) * 280;
+      const ratio = val / maxVal;
+      const y = 148 - ratio * 100; // Mantém a linha entre y=48 e y=148
+      return { x, y, month: idx, val };
     });
 
-    if (peakPoint.val === 0 && points.length > 0) {
-      peakPoint = points[selectedMonth];
-    }
+    const expensePath = expensePoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    const incomePath = incomePoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
 
-    return { points, linePath, peakPoint, maxVal };
-  }, [annualExpenses, selectedMonth]);
+    return { expensePoints, incomePoints, expensePath, incomePath, maxVal };
+  }, [annualExpenses, annualIncomes]);
 
   // 4. Donut Chart (Gráfico de Rosca) Dinâmico & Posicionamento Geométrico de Emojis
   const donutChartData = useMemo(() => {
@@ -824,7 +821,7 @@ const Reports: React.FC = () => {
                   <h3 className="chart-title">Tendência de Gastos Mensais</h3>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
                     {/* Eixo Y Reativo com Valores Reais */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flexShrink: 0, paddingBottom: '2px', minWidth: '46px' }} aria-hidden="true">
+                    <div style={{ display: 'flex', flexDirection: 'column', justifycontent: 'space-between', flexShrink: 0, paddingBottom: '2px', minWidth: '46px' }} aria-hidden="true">
                       <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal)}</span>
                       <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal * 0.75)}</span>
                       <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal * 0.50)}</span>
@@ -834,18 +831,31 @@ const Reports: React.FC = () => {
                     <div style={{ flex: 1, position: 'relative' }}>
                       {/* Tooltip Dinâmico seguindo o mês selecionado */}
                       {(() => {
-                        const activePoint = lineChartData.points[selectedMonth];
-                        if (!activePoint) return null;
+                        const expPoint = lineChartData.expensePoints[selectedMonth];
+                        const incPoint = lineChartData.incomePoints[selectedMonth];
+                        if (!expPoint || !incPoint) return null;
+                        const minOffset = Math.min(expPoint.y, incPoint.y);
                         return (
                           <div
                             className="tooltip-box"
                             style={{
-                              top: `${activePoint.y}px`,
-                              left: `${(activePoint.x / 280) * 100}%`
+                              top: `${minOffset - 10}px`,
+                              left: `${(expPoint.x / 280) * 100}%`
                             }}
                           >
-                            <div className="tooltip-date">{monthFullNames[activePoint.month]} {selectedYear}</div>
-                            <div className="tooltip-val">{fmtBRL(activePoint.val)}</div>
+                            <div className="tooltip-date">{monthFullNames[expPoint.month]} {selectedYear}</div>
+                            <div className="flex flex-col gap-0.5 text-left text-[9px] mt-1">
+                              <div className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#51cf66]"></span>
+                                <span className="font-semibold text-white/70">Saídas:</span>
+                                <span className="font-extrabold text-white">{fmtBRL(expPoint.val)}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#e03131]"></span>
+                                <span className="font-semibold text-white/70">Entradas:</span>
+                                <span className="font-extrabold text-white">{fmtBRL(incPoint.val)}</span>
+                              </div>
+                            </div>
                             <div className="tooltip-arrow"></div>
                           </div>
                         );
@@ -859,60 +869,91 @@ const Reports: React.FC = () => {
                         <line x1="0" y1="120" x2="280" y2="120" stroke="#f0f1f7" strokeWidth="1"/>
                         <line x1="0" y1="160" x2="280" y2="160" stroke="#f0f1f7" strokeWidth="1"/>
 
-                        {/* Linha tracejada dinamicamente calculada */}
-                        {lineChartData.points.length > 0 && (
+                        {/* Linha vertical no mês selecionado */}
+                        {(() => {
+                          const ap = lineChartData.expensePoints[selectedMonth];
+                          if (!ap) return null;
+                          return (
+                            <line
+                              x1={ap.x} y1="0"
+                              x2={ap.x} y2="160"
+                              stroke="#c0c4d6"
+                              strokeWidth="1"
+                              strokeDasharray="3 3"
+                              strokeOpacity="0.4"
+                            />
+                          );
+                        })()}
+
+                        {/* Linha de Entradas (Receitas) - Vermelha */}
+                        {lineChartData.incomePoints.length > 0 && (
                           <path
-                            d={lineChartData.linePath}
+                            d={lineChartData.incomePath}
                             fill="none"
-                            stroke="#3b5bdb"
-                            strokeWidth="2"
+                            stroke="#e03131"
+                            strokeWidth="2.5"
                             strokeDasharray="4 4"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           />
                         )}
 
-                        {/* Linha vertical no mês selecionado */}
-                        {(() => {
-                          const ap = lineChartData.points[selectedMonth];
-                          if (!ap) return null;
-                          return (
-                            <line
-                              x1={ap.x} y1={ap.y + 6}
-                              x2={ap.x} y2="160"
-                              stroke="#3b5bdb"
-                              strokeWidth="1"
-                              strokeDasharray="3 3"
-                              strokeOpacity="0.3"
-                            />
-                          );
-                        })()}
+                        {/* Linha de Saídas (Despesas) - Verde */}
+                        {lineChartData.expensePoints.length > 0 && (
+                          <path
+                            d={lineChartData.expensePath}
+                            fill="none"
+                            stroke="#51cf66"
+                            strokeWidth="2.5"
+                            strokeDasharray="4 4"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        )}
 
-                        {/* Dots clicáveis em todos os pontos */}
-                        {lineChartData.points.map((p, idx) => {
+                        {/* Dots clicáveis - Saídas (Despesas, Verde) */}
+                        {lineChartData.expensePoints.map((p, idx) => {
                           const isActive = idx === selectedMonth;
                           return (
-                            <g
-                              key={idx}
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => setSelectedMonth(idx)}
-                            >
-                              {/* Área de toque ampla (invisível) */}
+                            <g key={`exp-${idx}`} style={{ cursor: 'pointer' }} onClick={() => setSelectedMonth(idx)}>
                               <circle cx={p.x} cy={p.y} r="14" fill="transparent" />
-                              {/* Halo de destaque no mês ativo */}
                               {isActive && (
-                                <circle cx={p.x} cy={p.y} r="10" fill="#3b5bdb" fillOpacity="0.15" />
+                                <circle cx={p.x} cy={p.y} r="10" fill="#51cf66" fillOpacity="0.15" />
                               )}
-                              {/* Dot principal — visível apenas com valor > 0 */}
                               {p.val > 0 && (
                                 <>
                                   <circle
                                     cx={p.x} cy={p.y}
                                     r={isActive ? 5.5 : 3}
-                                    fill={isActive ? '#3b5bdb' : '#93a4f4'}
+                                    fill={isActive ? '#51cf66' : '#a2e8b4'}
                                   />
                                   {isActive && (
-                                    <circle cx={p.x} cy={p.y} r="2.5" fill="#fff" />
+                                    <circle cx={p.x} cy={p.y} r="2" fill="#fff" />
+                                  )}
+                                </>
+                              )}
+                            </g>
+                          );
+                        })}
+
+                        {/* Dots clicáveis - Entradas (Receitas, Vermelha) */}
+                        {lineChartData.incomePoints.map((p, idx) => {
+                          const isActive = idx === selectedMonth;
+                          return (
+                            <g key={`inc-${idx}`} style={{ cursor: 'pointer' }} onClick={() => setSelectedMonth(idx)}>
+                              <circle cx={p.x} cy={p.y} r="14" fill="transparent" />
+                              {isActive && (
+                                <circle cx={p.x} cy={p.y} r="10" fill="#e03131" fillOpacity="0.15" />
+                              )}
+                              {p.val > 0 && (
+                                <>
+                                  <circle
+                                    cx={p.x} cy={p.y}
+                                    r={isActive ? 5.5 : 3}
+                                    fill={isActive ? '#e03131' : '#f5a2a2'}
+                                  />
+                                  {isActive && (
+                                    <circle cx={p.x} cy={p.y} r="2" fill="#fff" />
                                   )}
                                 </>
                               )}
@@ -941,6 +982,14 @@ const Reports: React.FC = () => {
                         {m}
                       </span>
                     ))}
+                  </div>
+                  <div className="chart-legend" style={{ paddingLeft: '54px', marginTop: '12px' }}>
+                    <div className="legend-item">
+                      <div className="legend-dot" style={{ background: '#51cf66' }}></div> Saídas (Verde)
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-dot" style={{ background: '#e03131' }}></div> Entradas (Vermelha)
+                    </div>
                   </div>
                 </div>
 
