@@ -1450,9 +1450,14 @@ const Dashboard: React.FC = () => {
           font-size: 14px;
         }
         .tx-amount {
-          font-size: 17px;
-          font-weight: 700;
-          color: var(--fg);
+          font-size: 14.5px;
+          font-weight: 600;
+        }
+        .tx-amount.income {
+          color: var(--success);
+        }
+        .tx-amount.expense {
+          color: var(--danger);
         }
         .blur-privacy {
           filter: blur(8px);
@@ -1851,7 +1856,7 @@ const Dashboard: React.FC = () => {
                       <p className="tx-title">{tx.description}</p>
                       <p className="tx-date">{formatTxDate(tx.date)}</p>
                     </div>
-                    <p className={`tx-amount ${isExpense ? 'text-gray-700 font-extrabold' : 'text-success font-extrabold'} ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>
+                    <p className={`tx-amount ${isExpense ? 'expense' : 'income'} ${isPrivacyEnabled ? 'blur-privacy' : ''}`}>
                       {isExpense ? '-' : '+'} {formatBRL(Math.abs(Number(tx.amount)))}
                     </p>
                   </article>

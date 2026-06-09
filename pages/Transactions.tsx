@@ -413,7 +413,7 @@ const Transactions: React.FC = () => {
           --tx-muted:      var(--mb-muted);
           --tx-accent:     var(--mb-accent);
           --tx-success:    var(--mb-success);
-          --tx-outcome-val: var(--mb-fg);
+          --tx-outcome-val: var(--mb-danger);
           --tx-header-bg:  var(--mb-surface);
         }
 
