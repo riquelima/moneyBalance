@@ -820,15 +820,7 @@ const Reports: React.FC = () => {
                 <div className="chart-card">
                   <h3 className="chart-title">Tendência de Gastos Mensais</h3>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
-                    {/* Eixo Y Reativo com Valores Reais */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifycontent: 'space-between', flexShrink: 0, paddingBottom: '2px', minWidth: '46px' }} aria-hidden="true">
-                      <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal)}</span>
-                      <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal * 0.75)}</span>
-                      <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal * 0.50)}</span>
-                      <span className="line-y-label">{formatCompactBRL(lineChartData.maxVal * 0.25)}</span>
-                      <span className="line-y-label">R$ 0</span>
-                    </div>
-                    <div style={{ flex: 1, position: 'relative' }}>
+                    <div style={{ flex: 1, position: 'relative', paddingLeft: '8px', paddingRight: '8px' }}>
                       {/* Tooltip Dinâmico seguindo o mês selecionado */}
                       {(() => {
                         const expPoint = lineChartData.expensePoints[selectedMonth];
@@ -964,7 +956,7 @@ const Reports: React.FC = () => {
                     </div>
                   </div>
                   {/* Index com os meses do ano — clicáveis */}
-                  <div className="flex justify-between pl-[54px] pr-1 mt-2.5 select-none">
+                  <div className="flex justify-between px-2 mt-2.5 select-none">
                     {monthNames.map((m, idx) => (
                       <span
                         key={m}
@@ -983,7 +975,7 @@ const Reports: React.FC = () => {
                       </span>
                     ))}
                   </div>
-                  <div className="chart-legend" style={{ paddingLeft: '54px', marginTop: '12px' }}>
+                  <div className="chart-legend" style={{ paddingLeft: '8px', marginTop: '12px' }}>
                     <div className="legend-item">
                       <div className="legend-dot" style={{ background: '#51cf66' }}></div> Saídas
                     </div>
